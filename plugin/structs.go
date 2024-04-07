@@ -43,6 +43,8 @@ type PluginManifest struct {
 	Version     string
 	Author      string
 	Description string
+	// A list of tables that the plugin will provide
+	Tables []string
 
 	UserConfig []PluginConfigField
 }
@@ -61,8 +63,19 @@ type PluginConfigField struct {
 // you can generate a unique key. The primary key must be unique for each row.
 // It is used to update and delete rows.
 type DatabaseSchema struct {
-	// ... other fields
-	HandleLimit  bool
+	// The columns of the table
+	Columns []DatabaseSchemaColumn
+	// The primary key is the index of the column that is the primary key (starting from 0)
+	PrimaryKey int
+
+	// The following fields are used to optimize the queries
+
+	// HandleLimit is a boolean that specifies whether the plugin can handle the LIMIT clause.
+	// If so, the plugin should return only the specified number of rows.
+	HandleLimit bool
+
+	// HandleOffset is a boolean that specifies whether the plugin can handle the OFFSET clause.
+	// If not, the main program will skip the n offseted rows.
 	HandleOffset bool
 }
 
