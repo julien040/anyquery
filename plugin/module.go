@@ -1,8 +1,15 @@
 package plugin
 
 import (
+	"errors"
+
 	"github.com/gammazero/deque"
 	"github.com/mattn/go-sqlite3"
+)
+
+const (
+	minimumCapacityRingBuffer = 256
+	preAllocatedCapacity      = 128
 )
 
 // This file links the plugin to the SQLite Virtual Table interface
@@ -16,6 +23,7 @@ type SQLiteModule struct {
 	PluginManifest PluginManifest
 	TableIndex     int
 	client         *InternalClient
+	UserConfig     map[string]string
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
@@ -47,7 +55,29 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 // Its main job is to create a new RPC client and return the needed information
 // for the SQLite virtual table methods
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
-	return nil, nil
+	// Create a new plugin instance
+	// and store the client in the module
+	rpcClient, err := NewClient(m.PluginPath)
+	if err != nil {
+		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
+	}
+	m.client = rpcClient
+
+	// Request the schema of the table from the plugin
+	dbSchema, err := m.client.Plugin.Initialize(m.TableIndex, m.UserConfig)
+	if err != nil {
+		return nil, errors.Join(errors.New("could not request the schema of the table from the plugin "+m.PluginPath), err)
+	}
+
+	// Initialize a new table
+	table := &SQLiteTable{
+		0,
+		m.TableIndex,
+		dbSchema,
+		m.client,
+	}
+
+	return table, nil
 }
 
 // Connect is called when the virtual table is connected
@@ -63,6 +93,8 @@ func (m *SQLiteModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 // However, we don't use it that way but only to serialize the constraints
 // for the Filter method
 func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+	// The first task of BestIndex is to check if the constraints are valid
+	// If not, we return sqlite3.ErrConstraint
 	return nil, nil
 }
 
@@ -70,7 +102,20 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 //
 // It should return a new cursor
 func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
-	return nil, nil
+	cursor := &SQLiteCursor{
+		t.tableIndex,
+		t.nextCursor,
+		t.schema,
+		t.client,
+		false,
+		deque.New[[]interface{}](preAllocatedCapacity, minimumCapacityRingBuffer),
+		&t.nextCursor,
+	}
+	// We increment the cursor id for the next cursor by 1
+	// so that the next cursor will have a different id
+	t.nextCursor++
+
+	return cursor, nil
 }
 
 // Close is called when the cursor is no longer needed
