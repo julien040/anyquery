@@ -94,9 +94,49 @@ const (
 )
 
 type DatabaseSchemaColumn struct {
+	// The name of the column
 	Name string
+	// The type of the column (INTEGER, REAL, TEXT, BLOB)
 	Type ColumnType
+	// Whether the column is a parameter
+	//
+	// If a column is a parameter, it will be hidden from the user
+	// in the result of a SELECT query
+	// and can be passed as an argument of the table
+	//
+	// For example, a parameter column named account_id
+	// can be used as such
+	//	SELECT * FROM mytable(<account_id>)
+	//	SELECT * FROM mytable WHERE account_id = <account_id>
+	//
+	// Arguments order is the same as the order of the columns in the schema
+	IsParameter bool
 }
+
+// These operators are used in the ColumnConstraint struct
+// They are extracted from https://tinyurl.com/28seb4bs
+
+type Operator int8
+
+const (
+	// OperatorEqual is the equal operator =
+	OperatorEqual = 2
+	// OperatorGreater is the greater than operator >
+	OperatorGreater = 4
+	// OperatorLessOrEqual is the less than or equal operator <=
+	OperatorLessOrEqual = 8
+	// OperatorLess is the less than operator <
+	OperatorLess = 16
+	// OperatorGreaterOrEqual is the greater than or equal operator >=
+	OperatorGreaterOrEqual = 32
+	// OperatorGlob is the glob operator.
+	// It represents a simple pattern matching operator
+	// with a UNIX syntax
+	//
+	// Note: A like operator is not provided because anyquery
+	// converts it to a glob operator
+	OperatorGlob = 66
+)
 
 // QueryConstraint is a struct that holds the constraints for a SELECT query
 //
@@ -112,6 +152,6 @@ type QueryConstraint struct {
 
 type ColumnConstraint struct {
 	ColumnID int
-	Operator string
+	Operator Operator
 	Value    interface{}
 }
