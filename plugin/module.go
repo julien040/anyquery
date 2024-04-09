@@ -129,7 +129,7 @@ func (v *SQLiteModule) DestroyModule()   {}
 // Column is called when a column is queried
 //
 // It should return the value of the column
-func (c *SQLiteCursor) Column(cst int) (interface{}, error) { return nil, nil }
+func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error { return nil }
 
 // EOF is called after each row is queried to check if there are more rows
 func (c *SQLiteCursor) EOF() bool { return false }
@@ -143,7 +143,7 @@ func (c *SQLiteCursor) EOF() bool { return false }
 func (c *SQLiteCursor) Next() error { return nil }
 
 // RowID is called to get the row ID of the current row
-func (c *SQLiteCursor) RowID() (int64, error) { return 0, nil }
+func (c *SQLiteCursor) Rowid() (int64, error) { return 0, nil }
 
 func (c *SQLiteCursor) Filter(idxNum int, idxStr string, vals []interface{}) error {
 	// Filter can be called several times with the same cursor
