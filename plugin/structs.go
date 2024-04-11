@@ -66,7 +66,18 @@ type DatabaseSchema struct {
 	// The columns of the table
 	Columns []DatabaseSchemaColumn
 	// The primary key is the index of the column that is the primary key (starting from 0)
+	//
+	// If set to -1, it means the table does not have a primary key.
+	// Therefore, the main program will generate a unique key for each row.
+	// However, the table won't be able to update or delete rows.
 	PrimaryKey int
+
+	// Whether the plugin can handle an INSERT statement
+	HandlesInsert bool
+	// Whether the plugin can handle an UPDATE statement
+	HandlesUpdate bool
+	// Whether the plugin can handle a DELETE statement
+	HandlesDelete bool
 
 	// The following fields are used to optimize the queries
 
