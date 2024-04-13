@@ -61,6 +61,11 @@ type QueryArgs struct {
 	Constraint  QueryConstraint
 }
 
+type QueryReturn struct {
+	Rows       [][]interface{}
+	NoMoreRows bool
+}
+
 func (m *PluginRPCClient) Initialize(tableIndex int, config PluginConfig) (DatabaseSchema, error) {
 	args := &InitializeArgs{
 		TableIndex: tableIndex,
@@ -71,15 +76,15 @@ func (m *PluginRPCClient) Initialize(tableIndex int, config PluginConfig) (Datab
 	return resp, err
 }
 
-func (m *PluginRPCClient) Query(tableIndex int, cursorIndex int, constraint QueryConstraint) ([][]interface{}, error) {
+func (m *PluginRPCClient) Query(tableIndex int, cursorIndex int, constraint QueryConstraint) ([][]interface{}, bool, error) {
 	args := &QueryArgs{
 		TableIndex:  tableIndex,
 		CursorIndex: cursorIndex,
 		Constraint:  constraint,
 	}
-	var resp [][]interface{}
+	var resp QueryReturn
 	err := m.client.Call("Plugin.Query", args, &resp)
-	return resp, err
+	return resp.Rows, resp.NoMoreRows, err
 }
 
 func (m *PluginRPCServer) Initialize(args *InitializeArgs, resp *DatabaseSchema) error {
@@ -88,9 +93,9 @@ func (m *PluginRPCServer) Initialize(args *InitializeArgs, resp *DatabaseSchema)
 	return err
 }
 
-func (m *PluginRPCServer) Query(args *QueryArgs, resp *[][]interface{}) error {
+func (m *PluginRPCServer) Query(args *QueryArgs, resp *QueryReturn) error {
 	var err error
-	*resp, err = m.Impl.Query(args.TableIndex, args.CursorIndex, args.Constraint)
+	resp.Rows, resp.NoMoreRows, err = m.Impl.Query(args.TableIndex, args.CursorIndex, args.Constraint)
 	return err
 }
 
