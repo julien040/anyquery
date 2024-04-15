@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	rand "math/rand/v2"
+	"reflect"
 	"strings"
 	"time"
 
@@ -48,12 +49,6 @@ type SQLiteCursor struct {
 	rows        *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
 	nextCursor  *int
 	constraints QueryConstraint
-}
-
-type constraintsFromQuery struct {
-	columns []int
-	op      []Operator
-	value   []string
 }
 
 // EponymousOnlyModule is a method that is used to mark the table as eponymous-only
@@ -181,7 +176,68 @@ func (v *SQLiteModule) DestroyModule() {}
 // Column is called when a column is queried
 //
 // It should return the value of the column
-func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error { return nil }
+func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error {
+	// First, we need to check if the column is a parameter
+	// If so, we return the value of the linked constraint
+	// becase it must be the same value for all the rows
+	if c.schema.Columns[col].IsParameter {
+		// We find the constraint that is linked to the column
+		// and return its value
+		for _, cst := range c.constraints.Columns {
+			if cst.ColumnID == col {
+				convertToSQLiteVal(cst.Value, context)
+				return nil
+			}
+		}
+	} else {
+		// Otherwise, we return the value of the column from the ring buffer
+		if len(c.rows.Front()) <= col {
+			// The plugin did not return enough columns. We return NULL
+			// TODO: Must return a log message
+			context.ResultNull()
+		} else {
+			convertToSQLiteVal(c.rows.Front()[col], context)
+		}
+	}
+
+	return nil
+}
+
+// convertToSQLiteVal asserts the type of the value and converts it to the SQLite type
+func convertToSQLiteVal(val interface{}, c *sqlite3.SQLiteContext) {
+	// We convert the value to the SQLite type
+	// and store it in the SQLite context
+	switch v := val.(type) {
+	case string:
+		c.ResultText(v)
+	case int, int8, int16, int32:
+		c.ResultInt(int(reflect.ValueOf(v).Int()))
+	case uint, uint8, uint16, uint32:
+		c.ResultInt(int(reflect.ValueOf(v).Uint()))
+	case []uint, []uint8:
+		c.ResultBlob(reflect.ValueOf(v).Bytes())
+	case int64:
+		c.ResultInt64(v)
+	case uint64:
+		c.ResultInt64(int64(v))
+	case bool:
+		if v {
+			c.ResultInt(1)
+		} else {
+			c.ResultInt(0)
+		}
+	case float64:
+		c.ResultDouble(v)
+	case float32:
+		c.ResultDouble(float64(v))
+	case nil:
+		c.ResultNull()
+	default:
+		// TODO: Must return a log message
+		c.ResultNull()
+	}
+
+}
 
 // EOF is called after each row is queried to check if there are more rows
 func (c *SQLiteCursor) EOF() bool {
@@ -223,7 +279,11 @@ func (c *SQLiteCursor) Rowid() (int64, error) {
 	// and return its value
 	// TODO: handle the case where the primary key is a string
 	columnID := c.schema.PrimaryKey
-	return c.rows.Front()[columnID].(int64), nil
+	id, ok := c.rows.Front()[columnID].(int64)
+	if !ok {
+		return 0, errors.New("could not convert the primary key to int64")
+	}
+	return id, nil
 }
 
 func (c *SQLiteCursor) Filter(idxNum int, idxStr string, vals []interface{}) error {
