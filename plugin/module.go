@@ -75,6 +75,12 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		return nil, errors.Join(errors.New("could not request the schema of the table from the plugin "+m.PluginPath), err)
 	}
 
+	// Create the schema in SQLite
+	err = createSQLiteSchema(c, dbSchema)
+	if err != nil {
+		return nil, errors.Join(errors.New("could not create the schema in SQLite"), err)
+	}
+
 	// Initialize a new table
 	table := &SQLiteTable{
 		0,
@@ -84,6 +90,42 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	}
 
 	return table, nil
+}
+
+// createSQLiteSchema creates the schema of the table in SQLite
+// using the sqlite3.SQLiteConn.DeclareVTab method
+func createSQLiteSchema(c *sqlite3.SQLiteConn, arg DatabaseSchema) error {
+	// Initialize a string builder to efficiently create the schema
+	var schema strings.Builder
+
+	// The table name is not important, we set it to x therefore
+	schema.WriteString("CREATE TABLE x(")
+
+	// We iterate over the columns and add them to the schema
+	for i, col := range arg.Columns {
+		schema.WriteString(col.Name)
+		schema.WriteByte(' ')
+		switch col.Type {
+		case ColumnTypeInt:
+			schema.WriteString("INTEGER")
+		case ColumnTypeString:
+			schema.WriteString("TEXT")
+		case ColumnTypeBlob:
+			schema.WriteString("BLOB")
+		case ColumnTypeFloat:
+			schema.WriteString("REAL")
+		}
+
+		// We add a comma if it's not the last column
+		if i != len(arg.Columns)-1 {
+			schema.WriteString(", ")
+		}
+	}
+	schema.WriteString(");")
+
+	// We declare the virtual table in SQLite
+	err := c.DeclareVTab(schema.String())
+	return err
 }
 
 // Connect is called when the virtual table is connected
