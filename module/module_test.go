@@ -70,6 +70,7 @@ var schema3 = rpc.DatabaseSchema{
 }
 
 func TestCreateSQLiteSchema(t *testing.T) {
+	t.Parallel()
 	type args struct {
 		schema   rpc.DatabaseSchema
 		expected string
@@ -103,6 +104,7 @@ func TestCreateSQLiteSchema(t *testing.T) {
 }
 
 func TestRawPlugin(t *testing.T) {
+	t.Parallel()
 	// Build the raw plugin
 	os.Mkdir("_test", 0755)
 	err := exec.Command("go", "build", "-o", "_test/test.out", "../test/rawplugin.go").Run()
@@ -188,6 +190,7 @@ func TestRawPlugin(t *testing.T) {
 }
 
 func TestRawPlugin2(t *testing.T) {
+	t.Parallel()
 	// Build the raw plugin
 	os.Mkdir("_test", 0755)
 	err := exec.Command("go", "build", "-o", "_test/test2.out", "../test/rawplugin2.go").Run()
@@ -278,5 +281,23 @@ func TestRawPlugin2(t *testing.T) {
 		rows.Close()
 
 	})
+
+}
+
+func TestOpCode(t *testing.T) {
+	t.Parallel()
+	// This test ensure that the go-sqlite3 keeps the same opcode
+
+	assert.Equal(t, int(sqlite3.OpEQ), int(rpc.OperatorEqual), "The opcode EQ must be the same")
+	assert.Equal(t, int(sqlite3.OpLT), int(rpc.OperatorLess), "The opcode LT must be the same")
+	assert.Equal(t, int(sqlite3.OpLE), int(rpc.OperatorLessOrEqual), "The opcode LE must be the same")
+	assert.Equal(t, int(sqlite3.OpGT), int(rpc.OperatorGreater), "The opcode GT must be the same")
+	assert.Equal(t, int(sqlite3.OpGE), int(rpc.OperatorGreaterOrEqual), "The opcode GE must be the same")
+	assert.Equal(t, int(sqlite3.OpLIKE), int(rpc.OperatorLike), "The opcode LIKE must be the same")
+	assert.Equal(t, int(sqlite3.OpGLOB), int(rpc.OperatorGlob), "The opcode GLOB must be the same")
+	assert.Equal(t, int(sqlite3.OpMATCH), int(rpc.OperatorMatch), "The opcode MATCH must be the same")
+	assert.Equal(t, int(sqlite3.OpREGEXP), int(rpc.OperatorRegexp), "The opcode REGEXP must be the same")
+	assert.Equal(t, int(sqlite3.OpLIMIT), int(rpc.OperatorLimit), "The opcode LIMIT must be the same")
+	assert.Equal(t, int(sqlite3.OpOFFSET), int(rpc.OperatorOffset), "The opcode OFFSET must be the same")
 
 }
