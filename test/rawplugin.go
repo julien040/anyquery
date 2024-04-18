@@ -2,7 +2,7 @@ package main
 
 import (
 	go_plugin "github.com/hashicorp/go-plugin"
-	"github.com/julien040/anyquery/plugin"
+	plugin "github.com/julien040/anyquery/rpc"
 )
 
 type testPlugin struct {

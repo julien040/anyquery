@@ -2,8 +2,7 @@ package main
 
 import (
 	go_plugin "github.com/hashicorp/go-plugin"
-	"github.com/julien040/anyquery/plugin"
-	"log"
+	plugin "github.com/julien040/anyquery/rpc"
 )
 
 type testPlugin struct {
@@ -51,7 +50,6 @@ func (i *testPlugin) Query(tableIndex int, cursorIndex int, constraint plugin.Qu
 	// We send an empty array the first time
 	// to let anyquery retry the query
 	if i.counter < 1 {
-		log.Println("Plugin Query: Empty array to retry the query")
 		i.counter++
 		return [][]interface{}{}, false, nil
 	}
@@ -66,9 +64,6 @@ func (i *testPlugin) Query(tableIndex int, cursorIndex int, constraint plugin.Qu
 		offset = constraint.Offset
 	}
 
-	log.Println("Offset", constraint.Offset)
-	log.Println("Limit", constraint.Limit)
-
 	// We convert to esoteric types to test the conversion
 	return [][]interface{}{
 
@@ -76,7 +71,7 @@ func (i *testPlugin) Query(tableIndex int, cursorIndex int, constraint plugin.Qu
 		{i.counter * 100, "Franck", float32(6.28), uint8(0)},
 		{i.counter * 1000, "Julien", float64(3.14), int64(1)},
 		{uint16(i.counter * 10000), "Julien", 6.28, false},
-		{int32(i.counter * 100000)}, // This row will be filled with
+		{int32(i.counter * 100000), nil}, // This row will be filled with nil
 
 	}[offset:], i.counter > 0, nil
 }

@@ -1,4 +1,4 @@
-package plugin
+package rpc
 
 // This file is mostly boilerplate code that is required to communicate with the main program
 // thanks to hashicorp/go-plugin.

@@ -1,69 +1,69 @@
-package plugin
+package module
 
 import (
 	"database/sql"
-	"log"
 	"os"
 	"os/exec"
 	"testing"
 
+	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 )
 
-var schema1 = DatabaseSchema{
+var schema1 = rpc.DatabaseSchema{
 	PrimaryKey: -1,
-	Columns: []DatabaseSchemaColumn{
+	Columns: []rpc.DatabaseSchemaColumn{
 		{
 			Name:        "id",
-			Type:        ColumnTypeInt,
+			Type:        rpc.ColumnTypeInt,
 			IsParameter: false,
 		},
 		{
 			Name:        "name",
-			Type:        ColumnTypeString,
+			Type:        rpc.ColumnTypeString,
 			IsParameter: true,
 		},
 	},
 }
 
-var schema2 = DatabaseSchema{
+var schema2 = rpc.DatabaseSchema{
 	PrimaryKey: 0,
-	Columns: []DatabaseSchemaColumn{
+	Columns: []rpc.DatabaseSchemaColumn{
 		{
 			Name:        "id",
-			Type:        ColumnTypeInt,
+			Type:        rpc.ColumnTypeInt,
 			IsParameter: false,
 		},
 		{
 			Name:        "name",
-			Type:        ColumnTypeString,
+			Type:        rpc.ColumnTypeString,
 			IsParameter: false,
 		},
 	},
 }
 
-var schema3 = DatabaseSchema{
+var schema3 = rpc.DatabaseSchema{
 	PrimaryKey: -1,
-	Columns: []DatabaseSchemaColumn{
+	Columns: []rpc.DatabaseSchemaColumn{
 		{
 			Name:        "id",
-			Type:        ColumnTypeInt,
+			Type:        rpc.ColumnTypeInt,
 			IsParameter: true,
 		},
 		{
 			Name:        "name",
-			Type:        ColumnTypeString,
+			Type:        rpc.ColumnTypeString,
 			IsParameter: false,
 		},
 		{
 			Name:        "size",
-			Type:        ColumnTypeFloat,
+			Type:        rpc.ColumnTypeFloat,
 			IsParameter: false,
 		},
 		{
 			Name:        "binary",
-			Type:        ColumnTypeBlob,
+			Type:        rpc.ColumnTypeBlob,
 			IsParameter: false,
 		},
 	},
@@ -71,7 +71,7 @@ var schema3 = DatabaseSchema{
 
 func TestCreateSQLiteSchema(t *testing.T) {
 	type args struct {
-		schema   DatabaseSchema
+		schema   rpc.DatabaseSchema
 		expected string
 		testName string
 	}
@@ -105,7 +105,7 @@ func TestCreateSQLiteSchema(t *testing.T) {
 func TestRawPlugin(t *testing.T) {
 	// Build the raw plugin
 	os.Mkdir("_test", 0755)
-	err := exec.Command("go", "build", "-tags", "vtable", "-o", "_test/test.out", "../test/rawplugin.go").Run()
+	err := exec.Command("go", "build", "-o", "_test/test.out", "../test/rawplugin.go").Run()
 	if err != nil {
 		t.Fatalf("Can't build the plugin: %v", err)
 	}
@@ -137,9 +137,8 @@ func TestRawPlugin(t *testing.T) {
 		rows, err := db.Query("SELECT id, name, size, is_active FROM test('Franck')")
 		assert.NoError(t, err, "A query with required parameters should work")
 
-		col, err := rows.Columns()
+		_, err = rows.Columns()
 		assert.NoError(t, err, "Columns should be retrieved")
-		log.Println("Query run successfully with columns:", col)
 		i := 0
 		for rows.Next() {
 			i++
@@ -156,8 +155,6 @@ func TestRawPlugin(t *testing.T) {
 		}
 		assert.Equal(t, 20, i, "The number of rows should be 20")
 
-		log.Println("Query run successfully with rows:", i)
-
 		err = rows.Close()
 		assert.NoError(t, err, "Rows should be closed")
 	})
@@ -166,9 +163,8 @@ func TestRawPlugin(t *testing.T) {
 		rows, err := db.Query("SELECT id, name, size, is_active FROM test('Franck') WHERE (size IS NULL OR id IS NOT NULL) OR size IS NOT NULL")
 		assert.NoError(t, err, "A query with required parameters should work")
 
-		col, err := rows.Columns()
+		_, err = rows.Columns()
 		assert.NoError(t, err, "Columns should be retrieved")
-		log.Println("Query run successfully with columns:", col)
 		i := 0
 		for rows.Next() {
 			i++
@@ -183,9 +179,7 @@ func TestRawPlugin(t *testing.T) {
 				assert.NotEmpty(t, name, "The name should not be empty")
 			}
 		}
-		// assert.Equal(t, 20, i, "The number of rows should be 20")
-
-		log.Println("Query run successfully with rows:", i)
+		assert.Equal(t, 20, i, "The number of rows should be 20")
 
 		err = rows.Close()
 		assert.NoError(t, err, "Rows should be closed")
@@ -196,7 +190,7 @@ func TestRawPlugin(t *testing.T) {
 func TestRawPlugin2(t *testing.T) {
 	// Build the raw plugin
 	os.Mkdir("_test", 0755)
-	err := exec.Command("go", "build", "-tags", "vtable", "-o", "_test/test2.out", "../test/rawplugin2.go").Run()
+	err := exec.Command("go", "build", "-o", "_test/test2.out", "../test/rawplugin2.go").Run()
 	if err != nil {
 		t.Fatalf("Can't build the plugin: %v", err)
 	}
@@ -218,7 +212,6 @@ func TestRawPlugin2(t *testing.T) {
 
 	t.Run("A query without primary key must have a rowid", func(t *testing.T) {
 		rows, err := db.Query("SELECT rowid, * FROM test")
-		// Because we don't have parameters constraints, it should fail
 		assert.NoError(t, err, "A query without primary key must have a rowid")
 
 		i := 0
@@ -247,7 +240,6 @@ func TestRawPlugin2(t *testing.T) {
 
 	t.Run("A query with LIMIT and OFFSET", func(t *testing.T) {
 		rows, err := db.Query("SELECT rowid, * FROM test LIMIT 3 OFFSET 2")
-		// Because we don't have parameters constraints, it should fail
 		assert.NoError(t, err, "A query without primary key must have a rowid")
 
 		i := 0
@@ -258,7 +250,6 @@ func TestRawPlugin2(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&rowid, &id, &name, &size, &isActive)
-			log.Println("Row:", rowid, id, name, size, isActive)
 			assert.NoError(t, err, "A scan should work")
 			assert.Greater(t, id, int64(0), "The id should be greater than 0")
 			if i == 0 {
@@ -267,6 +258,23 @@ func TestRawPlugin2(t *testing.T) {
 			i++
 		}
 		assert.Equal(t, 3, i, "The number of rows should be 3")
+		rows.Close()
+
+	})
+
+	t.Run("A query with LIKE must work", func(t *testing.T) {
+		rows, err := db.Query("SELECT rowid, * FROM test WHERE name LIKE '%n%'")
+		assert.NoError(t, err, "A query without primary key must have a rowid")
+		for rows.Next() {
+			var rowid int64
+			var id int64
+			var name sql.NullString
+			var size sql.NullFloat64
+			var isActive sql.NullBool
+			err = rows.Scan(&rowid, &id, &name, &size, &isActive)
+			assert.NoError(t, err, "A scan should work")
+			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+		}
 		rows.Close()
 
 	})

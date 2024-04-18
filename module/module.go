@@ -1,4 +1,4 @@
-package plugin
+package module
 
 import (
 	"encoding/json"
@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gammazero/deque"
+	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -25,9 +26,9 @@ const (
 // should be created and registered in the main program
 type SQLiteModule struct {
 	PluginPath     string
-	PluginManifest PluginManifest
+	PluginManifest rpc.PluginManifest
 	TableIndex     int
-	client         *InternalClient
+	client         *rpc.InternalClient
 	UserConfig     map[string]string
 }
 
@@ -35,20 +36,20 @@ type SQLiteModule struct {
 type SQLiteTable struct {
 	nextCursor int
 	tableIndex int
-	schema     DatabaseSchema
-	client     *InternalClient
+	schema     rpc.DatabaseSchema
+	client     *rpc.InternalClient
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
 type SQLiteCursor struct {
 	tableIndex  int
 	cursorIndex int
-	schema      DatabaseSchema
-	client      *InternalClient
+	schema      rpc.DatabaseSchema
+	client      *rpc.InternalClient
 	noMoreRows  bool
 	rows        *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
 	nextCursor  *int
-	constraints QueryConstraint
+	constraints rpc.QueryConstraint
 }
 
 // EponymousOnlyModule is a method that is used to mark the table as eponymous-only
@@ -63,7 +64,7 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	// Create a new plugin instance
 	// and store the client in the module
-	rpcClient, err := NewClient(m.PluginPath)
+	rpcClient, err := rpc.NewClient(m.PluginPath)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
 	}
@@ -92,7 +93,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 
 // createSQLiteSchema creates the schema of the table in SQLite
 // using the sqlite3.SQLiteConn.DeclareVTab method
-func createSQLiteSchema(arg DatabaseSchema) string {
+func createSQLiteSchema(arg rpc.DatabaseSchema) string {
 	// Initialize a string builder to efficiently create the schema
 	var schema strings.Builder
 
@@ -104,13 +105,13 @@ func createSQLiteSchema(arg DatabaseSchema) string {
 		schema.WriteString(col.Name)
 		schema.WriteByte(' ')
 		switch col.Type {
-		case ColumnTypeInt:
+		case rpc.ColumnTypeInt:
 			schema.WriteString("INTEGER")
-		case ColumnTypeString:
+		case rpc.ColumnTypeString:
 			schema.WriteString("TEXT")
-		case ColumnTypeBlob:
+		case rpc.ColumnTypeBlob:
 			schema.WriteString("BLOB")
-		case ColumnTypeFloat:
+		case rpc.ColumnTypeFloat:
 			schema.WriteString("REAL")
 		}
 
@@ -175,7 +176,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 	// We serialize the constraints so that we can pass them to the Filter method
 	// The only way to communicate them to the Filter method is through the IdxStr field
 	// Therefore, we must serialize them as JSON and unmarshal them in the Filter method
-	constraints := QueryConstraint{
+	constraints := rpc.QueryConstraint{
 		Limit:  -1,
 		Offset: -1,
 	}
@@ -211,7 +212,7 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 		false,
 		deque.New[[]interface{}](preAllocatedCapacity, minimumCapacityRingBuffer),
 		&t.nextCursor,
-		QueryConstraint{},
+		rpc.QueryConstraint{},
 	}
 	// We increment the cursor id for the next cursor by 1
 	// so that the next cursor will have a different id
@@ -424,7 +425,7 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 //
 // For the IS NULL, IS, IS NOT NULL and IS NOT operators, we convert them to the EQUAL and NOT EQUAL operators
 // because
-func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *QueryConstraint, used []bool, schema DatabaseSchema) {
+func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *rpc.QueryConstraint, used []bool, schema rpc.DatabaseSchema) {
 	/*
 		Internal notes:
 		- The usable constraints are the ones that are used in the query
@@ -438,19 +439,19 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *Query
 		But you know, nothing is more permanent than a temporary solution.
 	*/
 
-	constraints.Columns = make([]ColumnConstraint, 0, len(cst))
+	constraints.Columns = make([]rpc.ColumnConstraint, 0, len(cst))
 
 	// We iterate over the constraints and store the usable ones
-	var tempOp Operator
+	var tempOp rpc.Operator
 	j := 0 // Keep track of the number of constraints used (for marking the LIMIT and OFFSET cols)
 	for i, c := range cst {
 		if c.Usable {
 			tempOp = convertSQLiteOPtoOperator(c.Op)
 			switch tempOp {
-			case OperatorLimit:
+			case rpc.OperatorLimit:
 				// We note the position of the LIMIT constraint in vals
 				constraints.Limit = j
-			case OperatorOffset:
+			case rpc.OperatorOffset:
 				// We note the position of the OFFSET constraint in vals
 				constraints.Offset = j
 				// We check if the schema handles the OFFSET constraint
@@ -463,7 +464,7 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *Query
 			// In all the other cases, we don't know the value yet
 			// so we store the constraint as is
 			default:
-				constraints.Columns = append(constraints.Columns, ColumnConstraint{
+				constraints.Columns = append(constraints.Columns, rpc.ColumnConstraint{
 					ColumnID: c.Column, // The column index
 					Operator: tempOp,   // We convert the SQLite operator to our own operator
 					Value:    nil,      // We don't know the value yet
@@ -475,12 +476,21 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *Query
 	}
 }
 
+// convertSQLiteOPtoOperator converts a SQLite operator to an Operator
+// known by anyquery
+func convertSQLiteOPtoOperator(op sqlite3.Op) rpc.Operator {
+	converted := int8(op)
+	// Try to convert the operator
+	opConverted := rpc.Operator(converted)
+	return opConverted
+}
+
 // loadConstraintsFromJSON unmarshals the JSON serialized constraints
 // from the IdxStr field of the IndexResult
 // and stores them in the constraints field of the cursor
 //
 // It also infer the type of the value and stores it in the constraints field
-func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals []interface{}) error {
+func loadConstraintsFromJSON(idxStr string, constraints *rpc.QueryConstraint, vals []interface{}) error {
 	err := json.Unmarshal([]byte(idxStr), &constraints)
 	if err != nil {
 		return errors.Join(errors.New("could not unmarshal the constraints"), err)
@@ -500,11 +510,11 @@ func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals [
 	j := 0
 	for i, cst := range constraints.Columns {
 		switch cst.Operator {
-		case OperatorLike:
+		case rpc.OperatorLike:
 			// We convert the LIKE string to a MATCH string
 			// and store it in the constraints field
 			constraints.Columns[i].Value = convertLikeToGlobString(vals[j].(string))
-			constraints.Columns[i].Operator = OperatorGlob
+			constraints.Columns[i].Operator = rpc.OperatorGlob
 			j++
 
 		default:
@@ -545,7 +555,7 @@ func resetCursor(c *SQLiteCursor) {
 	c.cursorIndex = *c.nextCursor
 	*c.nextCursor++
 
-	c.constraints = QueryConstraint{
+	c.constraints = rpc.QueryConstraint{
 		Limit:  -1,
 		Offset: -1,
 	}
