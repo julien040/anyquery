@@ -160,6 +160,9 @@ const (
 	// converts it to a glob operator
 	OperatorGlob = 66
 
+	// OperatorRegexp is the regexp operator
+	OperatorRegexp = 67
+
 	// OperatorNotEqual is the not equal operator !=
 	OperatorNotEqual = 68
 	// OperatorISNOT is the IS NOT operator
