@@ -184,7 +184,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 	// Used is a boolean array that tells SQLite which constraints are used
 	// and that must be passed to the Filter method in the vals field
 	used := make([]bool, len(cst))
-	parseConstraintsFromSQLite(cst, &constraints, used, t.schema)
+	parseConstraintsFromSQLite(cst, ob, &constraints, used, t.schema)
 
 	// We store the constraints as JSON to be passed with IdxStr in IndexResult
 	marshal, err := json.Marshal(constraints)
@@ -425,7 +425,7 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 //
 // For the IS NULL, IS, IS NOT NULL and IS NOT operators, we convert them to the EQUAL and NOT EQUAL operators
 // because
-func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *rpc.QueryConstraint, used []bool, schema rpc.DatabaseSchema) {
+func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, constraints *rpc.QueryConstraint, used []bool, schema rpc.DatabaseSchema) {
 	/*
 		Internal notes:
 		- The usable constraints are the ones that are used in the query
@@ -473,6 +473,15 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *rpc.Q
 			used[i] = true
 			j++
 		}
+	}
+
+	// We iterate over the ORDER BY constraints and store them in the OrderBy field
+	constraints.OrderBy = make([]rpc.OrderConstraint, 0, len(ob))
+	for _, o := range ob {
+		constraints.OrderBy = append(constraints.OrderBy, rpc.OrderConstraint{
+			ColumnID:   o.Column,
+			Descending: o.Desc,
+		})
 	}
 }
 
