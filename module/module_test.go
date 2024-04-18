@@ -284,6 +284,51 @@ func TestRawPlugin2(t *testing.T) {
 
 }
 
+// Test a plugin built with the lib plugin
+// rather than the raw plugin
+func TestLibPlugin(t *testing.T) {
+	t.Parallel()
+	// Build the raw plugin
+	os.Mkdir("_test", 0755)
+	err := exec.Command("go", "build", "-o", "_test/normalplugin.out", "../test/normalplugin.go").Run()
+	if err != nil {
+		t.Fatalf("Can't build the plugin: %v", err)
+	}
+
+	// Register a db connection
+	sql.Register("sqlite_custom3", &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+			return conn.CreateModule("test", &SQLiteModule{
+				PluginPath: "./_test/normalplugin.out",
+			})
+		},
+	})
+
+	// Open a connection
+	db, err := sql.Open("sqlite_custom3", ":memory:")
+	assert.NoError(t, err, "Can't open the database")
+
+	// Run a simple query
+	rows, err := db.Query("SELECT * FROM test")
+	assert.NoError(t, err, "A query must work")
+	i := 0
+	for rows.Next() {
+		var id int64
+		var name sql.NullString
+		rows.Scan(&id, &name)
+
+		assert.Greater(t, id, int64(0), "The id should be greater than 0")
+		if name.Valid {
+			assert.NotEmpty(t, name, "The name should not be empty")
+		}
+		i++
+	}
+	assert.Equal(t, 2, i, "The number of rows should be 2")
+
+	defer db.Close()
+
+}
+
 func TestOpCode(t *testing.T) {
 	t.Parallel()
 	// This test ensure that the go-sqlite3 keeps the same opcode
