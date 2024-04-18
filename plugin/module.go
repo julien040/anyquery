@@ -76,10 +76,8 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	}
 
 	// Create the schema in SQLite
-	err = createSQLiteSchema(c, dbSchema)
-	if err != nil {
-		return nil, errors.Join(errors.New("could not create the schema in SQLite"), err)
-	}
+	stringSchema := createSQLiteSchema(dbSchema)
+	c.DeclareVTab(stringSchema)
 
 	// Initialize a new table
 	table := &SQLiteTable{
@@ -94,7 +92,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 
 // createSQLiteSchema creates the schema of the table in SQLite
 // using the sqlite3.SQLiteConn.DeclareVTab method
-func createSQLiteSchema(c *sqlite3.SQLiteConn, arg DatabaseSchema) error {
+func createSQLiteSchema(arg DatabaseSchema) string {
 	// Initialize a string builder to efficiently create the schema
 	var schema strings.Builder
 
@@ -116,16 +114,35 @@ func createSQLiteSchema(c *sqlite3.SQLiteConn, arg DatabaseSchema) error {
 			schema.WriteString("REAL")
 		}
 
+		// If the column is a parameter, we add the HIDDEN keyword
+		if col.IsParameter {
+			schema.WriteString(" HIDDEN")
+		}
+
+		// If the column is the primary key, we add the PRIMARY KEY keyword
+		if i == arg.PrimaryKey {
+			schema.WriteString(" PRIMARY KEY")
+		}
+
 		// We add a comma if it's not the last column
 		if i != len(arg.Columns)-1 {
 			schema.WriteString(", ")
 		}
 	}
-	schema.WriteString(");")
+	// We close the schema
+	schema.WriteRune(')')
+
+	// We check if the plugin has a primary key
+	// If so, we add "WITHOUT ROWID" to the schema
+	if arg.PrimaryKey != -1 {
+		schema.WriteString(" WITHOUT ROWID")
+	}
+
+	// Add the last semicolon
+	schema.WriteRune(';')
 
 	// We declare the virtual table in SQLite
-	err := c.DeclareVTab(schema.String())
-	return err
+	return schema.String()
 }
 
 // Connect is called when the virtual table is connected
@@ -166,7 +183,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 	// Used is a boolean array that tells SQLite which constraints are used
 	// and that must be passed to the Filter method in the vals field
 	used := make([]bool, len(cst))
-	parseConstraintsFromSQLite(cst, constraints, used, t.schema)
+	parseConstraintsFromSQLite(cst, &constraints, used, t.schema)
 
 	// We store the constraints as JSON to be passed with IdxStr in IndexResult
 	marshal, err := json.Marshal(constraints)
@@ -232,6 +249,10 @@ func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error {
 			}
 		}
 	} else {
+		// If column is called with an empty row, we return NULL
+		if c.rows.Len() == 0 {
+			context.ResultNull()
+		}
 		// Otherwise, we return the value of the column from the ring buffer
 		if len(c.rows.Front()) <= col {
 			// The plugin did not return enough columns. We return NULL
@@ -293,11 +314,13 @@ func (c *SQLiteCursor) EOF() bool {
 //
 // If noMoreRows is set to true, Next will set EOF to true
 func (c *SQLiteCursor) Next() error {
-	// If the cursor is at the end of the rows
-	// we ask the plugin for more rows
-	if c.rows.Len() == 0 {
+	// Next is always called before scanning the row
+	// Therefore, if there is one row left, it means we have already scanned it
+	// and we must ask the plugin for more rows
+	if c.rows.Len() <= 1 {
 		// If the plugin stated that there are no more rows, we return
 		if c.noMoreRows {
+			c.rows.Clear()
 			return nil
 		}
 		_, err := c.requestRowsFromPlugin()
@@ -372,9 +395,11 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 	if err != nil {
 		return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
 	}
+	// If the plugin did not return any rows, we retry
 	i := 0
-	for (!noMoreRows) && (len(rows) == 0) && (i < maxRowsFetchingRetry) {
+	for (!noMoreRows) && (len(rows) == 0 || rows == nil) && (i < maxRowsFetchingRetry) {
 		rows, noMoreRows, err = cursor.client.Plugin.Query(cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
+		i++
 		time.Sleep(10 * time.Millisecond)
 		if err != nil {
 			return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
@@ -383,6 +408,8 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 	if i == maxRowsFetchingRetry {
 		return 0, errors.New("could not fetch any row from the plugin. Max retries reached")
 	}
+	// If the plugin stated that there are no more rows, we set noMoreRows to true
+	cursor.noMoreRows = noMoreRows
 	for _, row := range rows {
 		cursor.rows.PushBack(row)
 	}
@@ -397,7 +424,7 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 //
 // For the IS NULL, IS, IS NOT NULL and IS NOT operators, we convert them to the EQUAL and NOT EQUAL operators
 // because
-func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints QueryConstraint, used []bool, schema DatabaseSchema) {
+func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints *QueryConstraint, used []bool, schema DatabaseSchema) {
 	/*
 		Internal notes:
 		- The usable constraints are the ones that are used in the query
@@ -410,6 +437,8 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints QueryC
 		I know it looks like a mess, will probably refactor it later
 		But you know, nothing is more permanent than a temporary solution.
 	*/
+
+	constraints.Columns = make([]ColumnConstraint, 0, len(cst))
 
 	// We iterate over the constraints and store the usable ones
 	var tempOp Operator
@@ -431,37 +460,6 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints QueryC
 				if !schema.HandleOffset {
 					used[i] = false
 				}
-			case OperatorIsNull:
-				// We convert the IS NULL operator to the EQUAL operator
-				constraints.Columns = append(constraints.Columns, ColumnConstraint{
-					ColumnID: c.Column, // The column index
-					Operator: OperatorEqual,
-					Value:    -1, // -1 means SQL NULL | the loader will convert it to nil
-				})
-				continue // To avoid setting used[i] to true
-			case OperatorIs:
-				// We convert the IS operator to the EQUAL operator
-				constraints.Columns = append(constraints.Columns, ColumnConstraint{
-					ColumnID: c.Column, // The column index
-					Operator: OperatorEqual,
-					Value:    nil, // We don't know the value yet
-				})
-			case OperatorIsNotNull:
-				// We convert the IS NOT NULL operator to the NOT EQUAL operator
-				constraints.Columns = append(constraints.Columns, ColumnConstraint{
-					ColumnID: c.Column, // The column index
-					Operator: OperatorNotEqual,
-					Value:    -1, // -1 means SQL NULL | the loader will convert it to nilt
-				})
-				continue
-			case OperatorIsNot:
-				// We convert the IS NOT operator to the NOT EQUAL operator
-				constraints.Columns = append(constraints.Columns, ColumnConstraint{
-					ColumnID: c.Column, // The column index
-					Operator: OperatorNotEqual,
-					Value:    nil, // We don't know the value yet
-				})
-
 			// In all the other cases, we don't know the value yet
 			// so we store the constraint as is
 			default:
@@ -477,7 +475,7 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, constraints QueryC
 	}
 }
 
-// loadConstraintsFromJSON unmashals the JSON serialized constraints
+// loadConstraintsFromJSON unmarshals the JSON serialized constraints
 // from the IdxStr field of the IndexResult
 // and stores them in the constraints field of the cursor
 //
@@ -489,6 +487,14 @@ func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals [
 	}
 	// We load the values from the vals field in the QueryConstraint struct
 
+	// Fill the offset and limit constraints
+	if constraints.Limit != -1 {
+		constraints.Limit = int(vals[constraints.Limit].(int64))
+	}
+	if constraints.Offset != -1 {
+		constraints.Offset = int(vals[constraints.Offset].(int64))
+	}
+
 	// J is the indice of the value in the vals field
 	// We keep it separate from the loop because we need to increment it only when the value is not nil
 	j := 0
@@ -497,8 +503,8 @@ func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals [
 		case OperatorLike:
 			// We convert the LIKE string to a MATCH string
 			// and store it in the constraints field
-			constraints.Columns[i].Value = convertLikeToMatchString(vals[j].(string))
-			constraints.Columns[i].Operator = OperatorMatch
+			constraints.Columns[i].Value = convertLikeToGlobString(vals[j].(string))
+			constraints.Columns[i].Operator = OperatorGlob
 			j++
 
 		default:
@@ -506,7 +512,7 @@ func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals [
 			// so we fill it with nil
 			// In the other cases, we fill it with the value in vals
 			if constraints.Columns[i].Value == nil {
-				constraints.Columns[i].Value = vals[i]
+				constraints.Columns[i].Value = vals[j]
 				j++
 			} else {
 				constraints.Columns[i].Value = nil
@@ -517,12 +523,12 @@ func loadConstraintsFromJSON(idxStr string, constraints *QueryConstraint, vals [
 	return nil
 }
 
-// convertLikeToMatchString converts a LIKE string to a MATCH string
+// convertLikeToGlobString converts a LIKE string to a MATCH string
 //
 // LIKE follows the SQL syntax with % and _
 //
 //	MATCH follows the UNIX glob syntax with * and ?
-func convertLikeToMatchString(s string) string {
+func convertLikeToGlobString(s string) string {
 	// We replace the % with *
 	// and the _ with ?
 	// We also escape the * and ? with a backslash
