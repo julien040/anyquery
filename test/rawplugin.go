@@ -22,6 +22,7 @@ func (i *testPlugin) Initialize(tableIndex int, config plugin.PluginConfig) (plu
 				Name:        "name",
 				Type:        plugin.ColumnTypeString,
 				IsParameter: true,
+				IsRequired:  true,
 			},
 			{
 				Name:        "size",

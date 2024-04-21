@@ -9,6 +9,7 @@ import (
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var schema1 = rpc.DatabaseSchema{
@@ -344,5 +345,99 @@ func TestOpCode(t *testing.T) {
 	assert.Equal(t, int(sqlite3.OpREGEXP), int(rpc.OperatorRegexp), "The opcode REGEXP must be the same")
 	assert.Equal(t, int(sqlite3.OpLIMIT), int(rpc.OperatorLimit), "The opcode LIMIT must be the same")
 	assert.Equal(t, int(sqlite3.OpOFFSET), int(rpc.OperatorOffset), "The opcode OFFSET must be the same")
+
+}
+
+func TestXBestIndexConstraintsValidation(t *testing.T) {
+	table := SQLiteTable{
+		schema: rpc.DatabaseSchema{
+			PrimaryKey: -1,
+			Columns: []rpc.DatabaseSchemaColumn{
+				{
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					IsParameter: true,
+					IsRequired:  true,
+				},
+				{
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					IsParameter: false,
+				},
+			},
+		},
+	}
+	t.Run("A query without the required parameters should fail", func(t *testing.T) {
+		// The required parameter is missing
+		constraints := []sqlite3.InfoConstraint{
+			{
+				Column: 1,
+				Op:     sqlite3.OpEQ,
+				Usable: true,
+			},
+		}
+
+		ob := []sqlite3.InfoOrderBy{}
+		_, err := table.BestIndex(constraints, ob)
+		require.Error(t, err, "The query should fail because the required parameter is missing")
+	})
+
+	t.Run("A query with the required parameters but not usable should fail", func(t *testing.T) {
+		// The required parameter is missing
+		constraints := []sqlite3.InfoConstraint{
+			{
+				Column: 0,
+				Op:     sqlite3.OpEQ,
+				Usable: false,
+			},
+			{
+				Column: 1,
+				Op:     sqlite3.OpEQ,
+				Usable: true,
+			},
+		}
+
+		ob := []sqlite3.InfoOrderBy{}
+		_, err := table.BestIndex(constraints, ob)
+		require.Error(t, err, "The query should fail because the required parameter is not usable")
+	})
+
+	t.Run("A query with the required parameters should work", func(t *testing.T) {
+		constraints := []sqlite3.InfoConstraint{
+			{
+				Column: 0,
+				Op:     sqlite3.OpEQ,
+				Usable: true,
+			},
+			{
+				Column: 1,
+				Op:     sqlite3.OpEQ,
+				Usable: true,
+			},
+		}
+
+		ob := []sqlite3.InfoOrderBy{}
+		_, err := table.BestIndex(constraints, ob)
+		require.NoError(t, err, "The query should work")
+	})
+
+	t.Run("A query with the required parameters should work even if other columns are not usable", func(t *testing.T) {
+		constraints := []sqlite3.InfoConstraint{
+			{
+				Column: 0,
+				Op:     sqlite3.OpEQ,
+				Usable: true,
+			},
+			{
+				Column: 1,
+				Op:     sqlite3.OpEQ,
+				Usable: false,
+			},
+		}
+
+		ob := []sqlite3.InfoOrderBy{}
+		_, err := table.BestIndex(constraints, ob)
+		require.NoError(t, err, "The query should work")
+	})
 
 }

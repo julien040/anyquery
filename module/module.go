@@ -168,7 +168,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 		}
 	}
 	for i, col := range t.schema.Columns {
-		if col.IsParameter && !present[i] {
+		if col.IsRequired && !present[i] {
 			return nil, sqlite3.ErrConstraint
 		}
 	}

@@ -116,6 +116,12 @@ type DatabaseSchemaColumn struct {
 	//
 	// Arguments order is the same as the order of the columns in the schema
 	IsParameter bool
+
+	// Whether the column is required
+	//
+	// If a column is required, the user must provide a value for it.
+	// If not, the query will fail.
+	IsRequired bool
 }
 
 // These operators are used in the ColumnConstraint struct
