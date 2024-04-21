@@ -1,8 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"github.com/julien040/anyquery/cmd"
+)
 
 func main() {
 
-	fmt.Println("Welcome to AnyQuery!")
+	cmd.Execute()
 }
