@@ -1,16 +1,35 @@
 package namespace
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"math/rand/v2"
 	"strconv"
 	"strings"
 
+	"github.com/hashicorp/go-hclog"
+	"github.com/julien040/anyquery/controller/config"
+	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
+
+	"golang.org/x/mod/sumdb/dirhash"
 )
+
+func hashDirectory(path string) (string, error) {
+	str, err := dirhash.HashDir(path, "", dirhash.Hash1)
+	if err != nil {
+		return "", err
+	}
+
+	// We remove the h1: prefix
+	return str[4:], nil
+
+}
 
 type NamespaceConfig struct {
 	// If InMemory is set to true, the SQLite database will only be stored in memory
@@ -33,6 +52,9 @@ type NamespaceConfig struct {
 
 	// Enforce foreign key constraints
 	EnforceForeignKeys bool
+
+	// The hclog logger to use from hashicorp/go-hclog
+	Logger hclog.Logger
 }
 
 type Namespace struct {
@@ -52,6 +74,9 @@ type Namespace struct {
 
 	// The list of shared objects to load
 	sharedObjectToLoad []sharedObjectExtension
+
+	// The logger to use
+	logger hclog.Logger
 }
 
 type sharedObjectExtension struct {
@@ -109,6 +134,17 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 
 	result := connectionStringBuilder.String()
 	n.connectionString = result
+
+	// Set the logger
+	if config.Logger == nil {
+		n.logger = hclog.New(&hclog.LoggerOptions{
+			Name:   "anyquery",
+			Output: hclog.DefaultOutput,
+			Level:  hclog.Info,
+		})
+	} else {
+		n.logger = config.Logger
+	}
 
 	return nil
 }
@@ -240,4 +276,167 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 
 func (n *Namespace) GetConnectionString() string {
 	return n.connectionString
+}
+
+func getManifestFromRow(row model.PluginInstalled) (rpc.PluginManifest, error) {
+	// We define a plugin manifest that will be used to load the plugin
+	var manifest rpc.PluginManifest
+
+	// Case of a development plugin
+	if row.Dev.Valid && row.Dev.Int64 == 1 {
+		manifest = rpc.PluginManifest{
+			// We fill it with garbage data
+			Name:        row.Name.String,
+			Version:     "0.0.0",
+			Description: "Development plugin " + row.Name.String,
+		}
+	} else {
+		// We check if the required fields in the DB are not null
+		if !row.Name.Valid || !row.Registry.Valid || !row.Path.Valid || !row.Version.Valid ||
+			!row.Description.Valid || !row.Tablename.Valid {
+			return manifest, errors.New("the plugin has fields that are nulled in the database")
+		}
+
+		// We check if the name is not empty
+		if row.Name.String == "" {
+			return manifest, errors.New("the plugin has an empty name")
+		}
+
+		// Unmarshal the tables
+		var tables []string
+		err := json.Unmarshal([]byte(row.Tablename.String), &tables)
+		if err != nil {
+			return manifest, fmt.Errorf("could not unmarshal the tables: %w", err)
+		}
+
+		manifest = rpc.PluginManifest{
+			Name:        row.Name.String,
+			Version:     row.Version.String,
+			Description: row.Description.String,
+			// We remove the first and last character (the brackets)
+			Tables:     tables,
+			Author:     row.Author.String,
+			UserConfig: nil, // We leave it nil because it's not its job to fill it
+		}
+
+	}
+	// Unmarshal the plugin config manifest
+	if row.Config.Valid {
+		err := json.Unmarshal([]byte(row.Config.String), &manifest.UserConfig)
+		if err != nil {
+			return manifest, fmt.Errorf("could not unmarshal the plugin config: %w", err)
+		}
+	}
+
+	return manifest, nil
+}
+
+// LoadAsAnyqueryCLI loads the plugins from the configuration of the CLI
+//
+// It's useful if you want to mimic the behavior of the CLI
+// (internally, the CLI uses this function to load the plugins)
+//
+// The path is the absolute path to the database used by the CLI.
+// When a plugin can't be loaded, it will be ignored and logged
+func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
+	ctx := context.Background()
+	logger := n.logger.Named("plugin_loader")
+	logger.Debug("opening the database from the namespace", "path", path)
+	db, queries, err := config.OpenDatabaseConnection(path)
+	if err != nil {
+		logger.Error("could not open the database", "error", err)
+		return err
+	}
+	defer db.Close()
+
+	logger.Debug("getting the plugins from the database")
+	// We get the plugins
+	rows, err := queries.GetPlugins(ctx)
+	if err != nil {
+		logger.Error("could not get the plugins from the database", "error", err)
+		return err
+	}
+
+	for _, row := range rows {
+		logger.Debug("loading the plugin", "plugin", row.Name.String, "registry", row.Registry.String)
+		// We define a plugin manifest that will be used to load the plugin
+		manifest, err := getManifestFromRow(row)
+		if err != nil {
+			logger.Error("could not load valid data for the plugin", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
+		}
+
+		// Ensure the checksum is correct
+		hash, err := hashDirectory(row.Path.String)
+		if err != nil {
+			logger.Error("could not hash the directory", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
+		}
+		if hash != row.Checksumdir.String {
+			logger.Error("the checksum of the directory is not correct. The plugin will not be loaded", "plugin", row.Name.String, "registry", row.Registry.String)
+			continue
+		}
+
+		// We check if the plugin is a shared object extension (a SQLite extension)
+		if row.Issharedextension.Valid && row.Issharedextension.Int64 == 1 {
+			// We load it using LoadSharedExtension because it's a SQLite extension
+			err := n.LoadSharedExtension(row.Path.String, "")
+			if err != nil {
+				logger.Error("could not load the shared extension", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
+			}
+			continue
+		}
+
+		// We find the profiles for the plugin
+		profiles, err := queries.GetProfilesOfPlugin(ctx, row.ID)
+		if err != nil {
+			logger.Error("could not get the profiles of the plugin", "plugin", row.Name.String, "error", err)
+		}
+
+		// For each profile, we register a new module for the plugin
+		// If the profile is not named default, it means the user has a custom profile
+		// Therefore, we need to rename the tables with a prefix to avoid conflicts.
+		// At the same time, we must ensure an alias has not been defined for the table
+		for _, profile := range profiles {
+			localManifest := manifest
+			// We copy the tables to avoid modifying the original manifest
+			localManifest.Tables = make([]string, len(manifest.Tables))
+			copy(localManifest.Tables, manifest.Tables)
+			prefix := ""
+			if profile.Name.String != "default" {
+				// We add a prefix to the tables
+				prefix = profile.Name.String + "_"
+
+				for index, table := range localManifest.Tables {
+					// We check if the table is not an alias
+					alias, err := queries.GetAlias(ctx, sql.NullString{String: prefix + table, Valid: true})
+					if err != nil {
+						logger.Error("could not get the alias of the table", "table", table, "error", err)
+					}
+					if alias.Alias.Valid {
+						localManifest.Tables[index] = alias.Alias.String
+					} else {
+						localManifest.Tables[index] = prefix + table
+					}
+				}
+			}
+			// We unmarsal the user config
+			var userConfig map[string]string
+			if profile.Config.Valid {
+				err := json.Unmarshal([]byte(profile.Config.String), &userConfig)
+				if err != nil {
+					logger.Error("could not unmarshal the user config", "error", err)
+				}
+			}
+
+			// We load the plugin
+			err = n.LoadAnyqueryPlugin(row.Path.String, localManifest, userConfig)
+			if err != nil {
+				logger.Error("could not load the plugin", "plugin", row.Name.String, "error", err)
+			}
+
+		}
+
+	}
+
+	return nil
+
 }

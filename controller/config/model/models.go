@@ -14,17 +14,20 @@ type Alias struct {
 }
 
 type PluginInstalled struct {
-	ID             sql.NullString
-	Name           sql.NullString
-	Description    sql.NullString
-	Path           sql.NullString
-	Executablepath sql.NullString
-	Version        sql.NullString
-	Homepage       sql.NullString
-	Registry       sql.NullString
-	Config         sql.NullString
-	Checksumdir    sql.NullString
-	Dev            sql.NullInt64
+	ID                sql.NullString
+	Name              sql.NullString
+	Description       sql.NullString
+	Path              sql.NullString
+	Executablepath    sql.NullString
+	Version           sql.NullString
+	Homepage          sql.NullString
+	Registry          sql.NullString
+	Config            sql.NullString
+	Checksumdir       sql.NullString
+	Dev               sql.NullInt64
+	Author            sql.NullString
+	Tablename         sql.NullString
+	Issharedextension sql.NullInt64
 }
 
 type Profile struct {

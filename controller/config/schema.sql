@@ -36,6 +36,12 @@ CREATE TABLE IF NOT EXISTS plugin_installed (
     -- Dev is a boolean to indicate if the plugin is in development mode
     -- If so, we don't check the checksum. Registry, homepage, and version are empty
     dev INTEGER DEFAULT 0,
+    -- Author of the plugin
+    author TEXT,
+    -- Tablename is a JSON serialized array of the tables names the plugin provides
+    tablename TEXT,
+    -- IsSharedExtension specifies if the plugin must be load as an anyquery extension or a SQLite extension
+    isSharedExtension INTEGER DEFAULT 0,
     FOREIGN KEY (registry) REFERENCES registry(name),
     PRIMARY KEY (registry, id)
 ) WITHOUT ROWID;

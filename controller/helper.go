@@ -2,6 +2,7 @@ package controller
 
 import (
 	"database/sql"
+	"path/filepath"
 
 	"github.com/julien040/anyquery/controller/config"
 	"github.com/julien040/anyquery/controller/config/model"
@@ -19,6 +20,14 @@ func requestDatabase(flags *pflag.FlagSet) (*sql.DB, *model.Queries, error) {
 	path, err := flags.GetString("config")
 	if err != nil {
 		path = ""
+	}
+
+	// We get an absolute path if we have one
+	if path != "" {
+		path, err = filepath.Abs(path)
+		if err != nil {
+			return nil, nil, err
+		}
 	}
 
 	// We open the database

@@ -40,24 +40,30 @@ INSERT INTO
         registry,
         config,
         checksumDir,
-        dev
+        dev,
+        author,
+        tablename,
+        isSharedExtension
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type AddPluginParams struct {
-	ID             sql.NullString
-	Name           sql.NullString
-	Description    sql.NullString
-	Path           sql.NullString
-	Executablepath sql.NullString
-	Version        sql.NullString
-	Homepage       sql.NullString
-	Registry       sql.NullString
-	Config         sql.NullString
-	Checksumdir    sql.NullString
-	Dev            sql.NullInt64
+	ID                sql.NullString
+	Name              sql.NullString
+	Description       sql.NullString
+	Path              sql.NullString
+	Executablepath    sql.NullString
+	Version           sql.NullString
+	Homepage          sql.NullString
+	Registry          sql.NullString
+	Config            sql.NullString
+	Checksumdir       sql.NullString
+	Dev               sql.NullInt64
+	Author            sql.NullString
+	Tablename         sql.NullString
+	Issharedextension sql.NullInt64
 }
 
 func (q *Queries) AddPlugin(ctx context.Context, arg AddPluginParams) error {
@@ -73,6 +79,9 @@ func (q *Queries) AddPlugin(ctx context.Context, arg AddPluginParams) error {
 		arg.Config,
 		arg.Checksumdir,
 		arg.Dev,
+		arg.Author,
+		arg.Tablename,
+		arg.Issharedextension,
 	)
 	return err
 }
@@ -179,7 +188,7 @@ func (q *Queries) GetAliases(ctx context.Context) ([]Alias, error) {
 
 const getPlugin = `-- name: GetPlugin :one
 SELECT
-    id, name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev
+    id, name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
 FROM
     plugin_installed
 WHERE
@@ -201,13 +210,16 @@ func (q *Queries) GetPlugin(ctx context.Context, id sql.NullString) (PluginInsta
 		&i.Config,
 		&i.Checksumdir,
 		&i.Dev,
+		&i.Author,
+		&i.Tablename,
+		&i.Issharedextension,
 	)
 	return i, err
 }
 
 const getPlugins = `-- name: GetPlugins :many
 SELECT
-    id, name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev
+    id, name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
 FROM
     plugin_installed
 `
@@ -233,6 +245,9 @@ func (q *Queries) GetPlugins(ctx context.Context) ([]PluginInstalled, error) {
 			&i.Config,
 			&i.Checksumdir,
 			&i.Dev,
+			&i.Author,
+			&i.Tablename,
+			&i.Issharedextension,
 		); err != nil {
 			return nil, err
 		}
@@ -278,6 +293,38 @@ FROM
 
 func (q *Queries) GetProfiles(ctx context.Context) ([]Profile, error) {
 	rows, err := q.db.QueryContext(ctx, getProfiles)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Profile
+	for rows.Next() {
+		var i Profile
+		if err := rows.Scan(&i.Name, &i.Pluginid, &i.Config); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getProfilesOfPlugin = `-- name: GetProfilesOfPlugin :many
+SELECT
+    name, pluginid, config
+FROM
+    profile
+WHERE
+    pluginId = ?
+`
+
+func (q *Queries) GetProfilesOfPlugin(ctx context.Context, pluginid sql.NullString) ([]Profile, error) {
+	rows, err := q.db.QueryContext(ctx, getProfilesOfPlugin, pluginid)
 	if err != nil {
 		return nil, err
 	}

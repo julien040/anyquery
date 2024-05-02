@@ -23,10 +23,13 @@ INSERT INTO
         registry,
         config,
         checksumDir,
-        dev
+        dev,
+        author,
+        tablename,
+        isSharedExtension
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: AddProfile :exec
 INSERT INTO
@@ -68,6 +71,14 @@ FROM
 WHERE
     name = ?
     AND pluginId = ?;
+
+-- name: GetProfilesOfPlugin :many
+SELECT
+    *
+FROM
+    profile
+WHERE
+    pluginId = ?;
 
 -- name: GetAlias :one
 SELECT
