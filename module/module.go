@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gammazero/deque"
+	"github.com/hashicorp/go-hclog"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
 )
@@ -30,6 +31,7 @@ type SQLiteModule struct {
 	TableIndex     int
 	client         *rpc.InternalClient
 	UserConfig     map[string]string
+	Logger         hclog.Logger
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
@@ -64,7 +66,7 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	// Create a new plugin instance
 	// and store the client in the module
-	rpcClient, err := rpc.NewClient(m.PluginPath)
+	rpcClient, err := rpc.NewClient(m.PluginPath, m.Logger)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
 	}

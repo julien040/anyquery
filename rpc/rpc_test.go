@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,7 +18,7 @@ func TestRPCPlugin(t *testing.T) {
 	var client *InternalClient
 
 	t.Run("Create a connection to the plugin", func(t *testing.T) {
-		client, err = NewClient("_test/plugin.out")
+		client, err = NewClient("_test/plugin.out", hclog.Default())
 		require.NoError(t, err, "The plugin should be created without errors")
 	})
 

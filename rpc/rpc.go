@@ -12,6 +12,7 @@ import (
 
 	"errors"
 
+	"github.com/hashicorp/go-hclog"
 	go_plugin "github.com/hashicorp/go-plugin"
 )
 
@@ -106,7 +107,7 @@ type InternalClient struct {
 	Plugin InternalExchangeInterface
 }
 
-func NewClient(executableLocation string) (*InternalClient, error) {
+func NewClient(executableLocation string, logger hclog.Logger) (*InternalClient, error) {
 	client := new(InternalClient)
 
 	// We use the same magic cookie as the main program
@@ -120,7 +121,8 @@ func NewClient(executableLocation string) (*InternalClient, error) {
 		Plugins: map[string]go_plugin.Plugin{
 			"plugin": &Plugin{},
 		},
-		Cmd: exec.Command(executableLocation),
+		Cmd:    exec.Command(executableLocation),
+		Logger: logger,
 	})
 
 	// We get the RPC client

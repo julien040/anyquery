@@ -205,6 +205,7 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 			PluginManifest: manifest,
 			TableIndex:     index,
 			UserConfig:     userConfig,
+			Logger:         n.logger,
 		}
 		n.LoadGoPlugin(plugin, table)
 	}
