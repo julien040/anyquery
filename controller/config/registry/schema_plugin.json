@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$id": "https://registry.anyquery.dev/schema_plugin.json",
+  "type": "array",
+  "default": [],
+  "title": "Anyquery registry",
+  "items": {
+    "type": "object",
+    "default": {},
+    "title": "A Schema",
+    "additionalProperties": true,
+    "required": [
+      "name",
+      "desc",
+      "author",
+      "versions",
+      "license",
+      "homepage",
+      "last_version",
+      "type"
+    ],
+    "properties": {
+      "name": {
+        "type": "string",
+        "default": "",
+        "title": "The name of the plugin",
+        "examples": ["github"]
+      },
+      "desc": {
+        "type": "string",
+        "default": "",
+        "title": "An HTML description of the plugin",
+        "examples": [
+          "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e"
+        ]
+      },
+      "author": {
+        "type": "string",
+        "default": "",
+        "title": "The github username of the author of the plugin",
+        "examples": [""]
+      },
+      "versions": {
+        "type": "array",
+        "default": [],
+        "title": "The array of versions of the plugin",
+        "additionalProperties": true,
+        "items": {
+          "type": "object",
+          "title": "A version of a plugin",
+          "required": [
+            "version",
+            "files",
+            "minimum_required_version",
+            "user_config",
+            "tables"
+          ],
+          "properties": {
+            "version": {
+              "type": "string",
+              "title": "The version Schema",
+              "examples": ["0.1.2", "0.0.2", "0.0.1"]
+            },
+            "files": {
+              "type": "object",
+              "title": "A dictionnary of files for the plugin",
+              "description": "Key is the os/arch (as found in go tool dist list), value is an object with hash, url and path",
+              "additionalProperties": {
+                "type": "object",
+                "title": "A file for the plugin",
+                "required": ["hash", "url", "path"],
+                "properties": {
+                  "hash": {
+                    "type": "string",
+                    "title": "A SHA 256 hash of the zip file",
+                    "examples": [
+                      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                    ]
+                  },
+                  "url": {
+                    "type": "string",
+                    "title": "A URL to download the plugin",
+                    "format": "uri",
+                    "examples": [
+                      "http://localhost:8090/api/files/qi4bnlajjtxxt5x/sqlean_darwin64/sqlean_macos_arm64_ET7GxU6Ehd.zip"
+                    ]
+                  },
+                  "path": {
+                    "type": "string",
+                    "title": "The path to the plugin in the zip file",
+                    "format": "uri-reference",
+                    "examples": ["mypath/plugin.so"]
+                  }
+                },
+                "additionalProperties": true
+              }
+            },
+            "minimum_required_version": {
+              "type": "string",
+              "title": "The minimum version of anyquery required for this version to work",
+              "examples": ["0.0.1"]
+            },
+            "user_config": {
+              "type": ["array"],
+              "title": "The user_config Schema",
+              "items": {
+                "type": "object",
+                "default": {},
+                "title": "A Schema",
+                "required": ["Name", "Required"],
+                "additionalProperties": true,
+                "properties": {
+                  "Name": {
+                    "type": "string",
+                    "default": "",
+                    "title": "The key name of the user configuration",
+                    "examples": ["Notion API Key"]
+                  },
+                  "Required": {
+                    "type": "boolean",
+                    "default": false,
+                    "title": "If this key is required to be filled by the user",
+                    "examples": [true]
+                  }
+                },
+                "examples": [
+                  {
+                    "Name": "Notion API Key",
+                    "Required": true
+                  }
+                ]
+              },
+              "examples": [
+                [
+                  {
+                    "Name": "Notion API Key",
+                    "Required": true
+                  }
+                ]
+              ]
+            },
+            "tables": {
+              "type": ["array"],
+              "title": "The tables Schema",
+
+              "items": {
+                "type": "string",
+                "title": "The name of a table available in the plugin",
+                "examples": ["db1", "db2"]
+              },
+              "examples": [null, ["db1", "db2"]]
+            }
+          },
+          "examples": [
+            {
+              "version": "0.1.2",
+              "files": {
+                "darwin/arm64": {
+                  "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "url": "http://localhost:8090/api/files/qi4bnlajjtxxt5x/sqlean_darwin64/sqlean_macos_arm64_ET7GxU6Ehd.zip",
+                  "path": "mypath/plugin.dylib"
+                },
+                "linux/arm64": {
+                  "hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                  "url": "http://localhost:8090/api/files/qi4bnlajjtxxt5x/z9g6bbpid9xamna/libspatialite_5_1_49DLzRFvGl.0.zip",
+                  "path": "mypath/plugin.so"
+                }
+              },
+              "minimum_required_version": "0.0.1",
+              "user_config": [
+                {
+                  "Name": "Notion API Key",
+                  "Required": true
+                }
+              ],
+              "tables": ["db1", "db2"]
+            }
+          ]
+        }
+      },
+      "license": {
+        "type": "string",
+        "default": "",
+        "title": "The license Schema",
+        "examples": ["MIT"]
+      },
+      "homepage": {
+        "type": "string",
+        "default": "",
+        "title": "The homepage of the plugin",
+        "examples": ["https://github.com"]
+      },
+      "last_version": {
+        "type": "string",
+        "default": "",
+        "title": "A semver string of the last version of the plugin",
+        "examples": ["0.1.2"]
+      },
+      "type": {
+        "type": "string",
+        "default": "",
+        "title": "The type Schema",
+        "examples": ["anyquery", "sharedObject"]
+      }
+    }
+  }
+}

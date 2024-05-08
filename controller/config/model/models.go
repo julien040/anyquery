@@ -14,14 +14,13 @@ type Alias struct {
 }
 
 type PluginInstalled struct {
-	ID                sql.NullString
-	Name              sql.NullString
+	Name              string
 	Description       sql.NullString
 	Path              string
 	Executablepath    string
 	Version           string
 	Homepage          sql.NullString
-	Registry          sql.NullString
+	Registry          string
 	Config            string
 	Checksumdir       sql.NullString
 	Dev               int64
@@ -31,9 +30,10 @@ type PluginInstalled struct {
 }
 
 type Profile struct {
-	Name     sql.NullString
-	Pluginid sql.NullString
-	Config   string
+	Name       string
+	Pluginname string
+	Registry   string
+	Config     string
 }
 
 type Registry struct {
