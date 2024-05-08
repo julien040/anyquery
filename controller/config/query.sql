@@ -13,7 +13,6 @@ VALUES
 -- name: AddPlugin :exec
 INSERT INTO
     plugin_installed (
-        id,
         name,
         description,
         path,
@@ -29,17 +28,18 @@ INSERT INTO
         isSharedExtension
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: AddProfile :exec
 INSERT INTO
     profile (
         name,
-        pluginId,
+        pluginName,
+        registry,
         config
     )
 VALUES
-    (?, ?, ?);
+    (?, ?, ?, ?);
 
 -- name: AddAlias :exec
 INSERT INTO
@@ -61,7 +61,8 @@ SELECT
 FROM
     plugin_installed
 WHERE
-    id = ?;
+    name = ?
+    AND registry = ?;
 
 -- name: GetProfile :one
 SELECT
@@ -70,7 +71,8 @@ FROM
     profile
 WHERE
     name = ?
-    AND pluginId = ?;
+    AND pluginName = ?
+    AND registry = ?;
 
 -- name: GetProfilesOfPlugin :many
 SELECT
@@ -78,7 +80,8 @@ SELECT
 FROM
     profile
 WHERE
-    pluginId = ?;
+    pluginName = ?
+    AND registry = ?;
 
 -- name: GetAlias :one
 SELECT
@@ -111,3 +114,17 @@ SELECT
     *
 FROM
     alias;
+
+/* -------------------------------------------------------------------------- */
+/*                                   Updates                                  */
+/* -------------------------------------------------------------------------- */
+-- name: UpdateRegistry :exec
+UPDATE
+    registry
+SET
+    url = ?,
+    lastUpdated = ?,
+    checksumRegistry = ?,
+    registryJSON = ?
+WHERE
+    name = ?;

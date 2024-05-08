@@ -53,17 +53,17 @@ type AddPluginParams struct {
 	ID                sql.NullString
 	Name              sql.NullString
 	Description       sql.NullString
-	Path              sql.NullString
-	Executablepath    sql.NullString
-	Version           sql.NullString
+	Path              string
+	Executablepath    string
+	Version           string
 	Homepage          sql.NullString
 	Registry          sql.NullString
-	Config            sql.NullString
+	Config            string
 	Checksumdir       sql.NullString
-	Dev               sql.NullInt64
+	Dev               int64
 	Author            sql.NullString
-	Tablename         sql.NullString
-	Issharedextension sql.NullInt64
+	Tablename         string
+	Issharedextension int64
 }
 
 func (q *Queries) AddPlugin(ctx context.Context, arg AddPluginParams) error {
@@ -100,7 +100,7 @@ VALUES
 type AddProfileParams struct {
 	Name     sql.NullString
 	Pluginid sql.NullString
-	Config   sql.NullString
+	Config   string
 }
 
 func (q *Queries) AddProfile(ctx context.Context, arg AddProfileParams) error {
@@ -123,10 +123,10 @@ VALUES
 
 type AddRegistryParams struct {
 	Name             string
-	Url              sql.NullString
-	Lastupdated      sql.NullInt64
-	Checksumregistry sql.NullString
-	Registryjson     sql.NullString
+	Url              string
+	Lastupdated      int64
+	Checksumregistry string
+	Registryjson     string
 }
 
 func (q *Queries) AddRegistry(ctx context.Context, arg AddRegistryParams) error {

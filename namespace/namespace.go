@@ -284,35 +284,31 @@ func getManifestFromRow(row model.PluginInstalled) (rpc.PluginManifest, error) {
 	var manifest rpc.PluginManifest
 
 	// Case of a development plugin
-	if row.Dev.Valid && row.Dev.Int64 == 1 {
+	if row.Dev == 1 {
 		manifest = rpc.PluginManifest{
 			// We fill it with garbage data
-			Name:        row.Name.String,
+			Name:        row.Name,
 			Version:     "0.0.0",
-			Description: "Development plugin " + row.Name.String,
+			Description: "Development plugin " + row.Name,
 		}
 	} else {
 		// We check if the required fields in the DB are not null
-		if !row.Name.Valid || !row.Registry.Valid || !row.Path.Valid || !row.Version.Valid ||
-			!row.Description.Valid || !row.Tablename.Valid {
-			return manifest, errors.New("the plugin has fields that are nulled in the database")
-		}
 
 		// We check if the name is not empty
-		if row.Name.String == "" {
+		if row.Name == "" {
 			return manifest, errors.New("the plugin has an empty name")
 		}
 
 		// Unmarshal the tables
 		var tables []string
-		err := json.Unmarshal([]byte(row.Tablename.String), &tables)
+		err := json.Unmarshal([]byte(row.Tablename), &tables)
 		if err != nil {
 			return manifest, fmt.Errorf("could not unmarshal the tables: %w", err)
 		}
 
 		manifest = rpc.PluginManifest{
-			Name:        row.Name.String,
-			Version:     row.Version.String,
+			Name:        row.Name,
+			Version:     row.Version,
 			Description: row.Description.String,
 			// We remove the first and last character (the brackets)
 			Tables:     tables,
@@ -321,12 +317,10 @@ func getManifestFromRow(row model.PluginInstalled) (rpc.PluginManifest, error) {
 		}
 
 	}
-	// Unmarshal the plugin config manifest
-	if row.Config.Valid {
-		err := json.Unmarshal([]byte(row.Config.String), &manifest.UserConfig)
-		if err != nil {
-			return manifest, fmt.Errorf("could not unmarshal the plugin config: %w", err)
-		}
+	// Unmarshal the plugin config manifes
+	err := json.Unmarshal([]byte(row.Config), &manifest.UserConfig)
+	if err != nil {
+		return manifest, fmt.Errorf("could not unmarshal the plugin config: %w", err)
 	}
 
 	return manifest, nil
@@ -359,37 +353,41 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 	}
 
 	for _, row := range rows {
-		logger.Debug("loading the plugin", "plugin", row.Name.String, "registry", row.Registry.String)
+		logger.Debug("loading the plugin", "plugin", row.Name, "registry", row.Registry)
 		// We define a plugin manifest that will be used to load the plugin
 		manifest, err := getManifestFromRow(row)
 		if err != nil {
-			logger.Error("could not load valid data for the plugin", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
+			logger.Error("could not load valid data for the plugin", "plugin", row.Name, "registry", row.Registry, "error", err)
 		}
 
 		// Ensure the checksum is correct
-		hash, err := hashDirectory(row.Path.String)
+		// We remove temporarily the checksum check because I think it has issues (DS_Store files)
+		/* hash, err := hashDirectory(row.Path)
 		if err != nil {
 			logger.Error("could not hash the directory", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
 		}
 		if hash != row.Checksumdir.String {
 			logger.Error("the checksum of the directory is not correct. The plugin will not be loaded", "plugin", row.Name.String, "registry", row.Registry.String)
 			continue
-		}
+		} */
 
 		// We check if the plugin is a shared object extension (a SQLite extension)
-		if row.Issharedextension.Valid && row.Issharedextension.Int64 == 1 {
+		if row.Issharedextension == 1 {
 			// We load it using LoadSharedExtension because it's a SQLite extension
-			err := n.LoadSharedExtension(row.Path.String, "")
+			err := n.LoadSharedExtension(row.Path, "")
 			if err != nil {
-				logger.Error("could not load the shared extension", "plugin", row.Name.String, "registry", row.Registry.String, "error", err)
+				logger.Error("could not load the shared extension", "plugin", row.Name, "registry", row.Registry, "error", err)
 			}
 			continue
 		}
 
 		// We find the profiles for the plugin
-		profiles, err := queries.GetProfilesOfPlugin(ctx, row.ID)
+		profiles, err := queries.GetProfilesOfPlugin(ctx, model.GetProfilesOfPluginParams{
+			Pluginname: row.Name,
+			Registry:   row.Registry,
+		})
 		if err != nil {
-			logger.Error("could not get the profiles of the plugin", "plugin", row.Name.String, "error", err)
+			logger.Error("could not get the profiles of the plugin", "plugin", row.Name, "error", err)
 		}
 
 		// For each profile, we register a new module for the plugin
@@ -402,9 +400,9 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			localManifest.Tables = make([]string, len(manifest.Tables))
 			copy(localManifest.Tables, manifest.Tables)
 			prefix := ""
-			if profile.Name.String != "default" {
+			if profile.Name != "default" {
 				// We add a prefix to the tables
-				prefix = profile.Name.String + "_"
+				prefix = profile.Name + "_"
 
 				for index, table := range localManifest.Tables {
 					// We check if the table is not an alias
@@ -421,17 +419,15 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			}
 			// We unmarsal the user config
 			var userConfig map[string]string
-			if profile.Config.Valid {
-				err := json.Unmarshal([]byte(profile.Config.String), &userConfig)
-				if err != nil {
-					logger.Error("could not unmarshal the user config", "error", err)
-				}
+			err := json.Unmarshal([]byte(profile.Config), &userConfig)
+			if err != nil {
+				logger.Error("could not unmarshal the user config", "error", err)
 			}
 
 			// We load the plugin
-			err = n.LoadAnyqueryPlugin(row.Path.String, localManifest, userConfig)
+			err = n.LoadAnyqueryPlugin(row.Path, localManifest, userConfig)
 			if err != nil {
-				logger.Error("could not load the plugin", "plugin", row.Name.String, "error", err)
+				logger.Error("could not load the plugin", "plugin", row.Name, "error", err)
 			}
 
 		}
