@@ -19,8 +19,5 @@ If no query is provided, the command will launch an interactive input.`,
 
 func init() {
 	rootCmd.AddCommand(queryCmd)
-	queryCmd.Flags().String("format", "pretty", "Output format (pretty, json, csv, plain)")
-	queryCmd.Flags().Bool("json", false, "Output format as JSON")
-	queryCmd.Flags().Bool("csv", false, "Output format as CSV")
-	queryCmd.Flags().Bool("plain", false, "Output format as plain text")
+	addFlag_commandPrintsData(queryCmd)
 }

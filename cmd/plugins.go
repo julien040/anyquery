@@ -18,5 +18,5 @@ func init() {
 	// Because the command modifies the configuration, we add the flag
 	// so that the user can specify which conf database to use
 	// rather than using the default one
-	commandModifiesConfiguration(pluginsCmd)
+	addFlag_commandModifiesConfiguration(pluginsCmd)
 }
