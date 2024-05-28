@@ -117,7 +117,8 @@ func TestRawPlugin(t *testing.T) {
 	sql.Register("sqlite_custom", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 			return conn.CreateModule("test", &SQLiteModule{
-				PluginPath: "./_test/test.out",
+				PluginPath:     "./_test/test.out",
+				ConnectionPool: rpc.NewConnectionPool(),
 			})
 		},
 	})
@@ -203,7 +204,8 @@ func TestRawPlugin2(t *testing.T) {
 	sql.Register("sqlite_custom2", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 			return conn.CreateModule("test", &SQLiteModule{
-				PluginPath: "./_test/test2.out",
+				PluginPath:     "./_test/test2.out",
+				ConnectionPool: rpc.NewConnectionPool(),
 			})
 		},
 	})
@@ -300,7 +302,8 @@ func TestLibPlugin(t *testing.T) {
 	sql.Register("sqlite_custom3", &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
 			return conn.CreateModule("test", &SQLiteModule{
-				PluginPath: "./_test/normalplugin.out",
+				PluginPath:     "./_test/normalplugin.out",
+				ConnectionPool: rpc.NewConnectionPool(),
 			})
 		},
 	})

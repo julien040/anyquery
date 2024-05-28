@@ -26,32 +26,38 @@ const (
 // For each table that the plugin provides and for each profile, a new SQLiteModule
 // should be created and registered in the main program
 type SQLiteModule struct {
-	PluginPath     string
-	PluginManifest rpc.PluginManifest
-	TableIndex     int
-	client         *rpc.InternalClient
-	UserConfig     map[string]string
-	Logger         hclog.Logger
+	PluginPath      string
+	PluginManifest  rpc.PluginManifest
+	ConnectionIndex int
+	TableIndex      int
+	client          *rpc.InternalClient
+	UserConfig      map[string]string
+	Logger          hclog.Logger
+	ConnectionPool  *rpc.ConnectionPool
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
 type SQLiteTable struct {
-	nextCursor int
-	tableIndex int
-	schema     rpc.DatabaseSchema
-	client     *rpc.InternalClient
+	PluginPath      string
+	connectionIndex int
+	nextCursor      int
+	tableIndex      int
+	schema          rpc.DatabaseSchema
+	client          *rpc.InternalClient
+	ConnectionPool  *rpc.ConnectionPool
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
 type SQLiteCursor struct {
-	tableIndex  int
-	cursorIndex int
-	schema      rpc.DatabaseSchema
-	client      *rpc.InternalClient
-	noMoreRows  bool
-	rows        *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
-	nextCursor  *int
-	constraints rpc.QueryConstraint
+	connectionIndex int
+	tableIndex      int
+	cursorIndex     int
+	schema          rpc.DatabaseSchema
+	client          *rpc.InternalClient
+	noMoreRows      bool
+	rows            *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
+	nextCursor      *int
+	constraints     rpc.QueryConstraint
 }
 
 // EponymousOnlyModule is a method that is used to mark the table as eponymous-only
@@ -66,14 +72,14 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	// Create a new plugin instance
 	// and store the client in the module
-	rpcClient, err := rpc.NewClient(m.PluginPath, m.Logger)
+	rpcClient, err := m.ConnectionPool.NewClient(m.PluginPath, m.Logger)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
 	}
 	m.client = rpcClient
 
 	// Request the schema of the table from the plugin
-	dbSchema, err := m.client.Plugin.Initialize(m.TableIndex, m.UserConfig)
+	dbSchema, err := m.client.Plugin.Initialize(m.ConnectionIndex, m.TableIndex, m.UserConfig)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not request the schema of the table from the plugin "+m.PluginPath), err)
 	}
@@ -84,10 +90,13 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 
 	// Initialize a new table
 	table := &SQLiteTable{
+		m.PluginPath,
+		m.ConnectionIndex,
 		0,
 		m.TableIndex,
 		dbSchema,
 		m.client,
+		m.ConnectionPool,
 	}
 
 	return table, nil
@@ -207,6 +216,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 // It should return a new cursor
 func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 	cursor := &SQLiteCursor{
+		t.connectionIndex,
 		t.tableIndex,
 		t.nextCursor,
 		t.schema,
@@ -223,13 +233,25 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 	return cursor, nil
 }
 
+func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
+	return 0, errors.New("not implemented")
+}
+
+func (t *SQLiteTable) Update(id any, vals []any) (int64, error) {
+	return 0, errors.New("not implemented")
+}
+
+func (t *SQLiteTable) Delete(id any) (int64, error) {
+	return 0, errors.New("not implemented")
+}
+
 // Close is called when the cursor is no longer needed
 func (c *SQLiteCursor) Close() error { return nil }
 
 // These methods are not used in this plugin
 func (v *SQLiteTable) Disconnect() error {
 	// We close the client
-	v.client.Client.Kill()
+	v.ConnectionPool.CloseConnection(v.PluginPath, v.connectionIndex)
 	return nil
 }
 func (v *SQLiteTable) Destroy() error  { return nil }
@@ -394,14 +416,14 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 	}
 
 	// We request the rows from the plugin
-	rows, noMoreRows, err := cursor.client.Plugin.Query(cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
+	rows, noMoreRows, err := cursor.client.Plugin.Query(cursor.connectionIndex, cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
 	if err != nil {
 		return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
 	}
 	// If the plugin did not return any rows, we retry
 	i := 0
 	for (!noMoreRows) && (len(rows) == 0 || rows == nil) && (i < maxRowsFetchingRetry) {
-		rows, noMoreRows, err = cursor.client.Plugin.Query(cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
+		rows, noMoreRows, err = cursor.client.Plugin.Query(cursor.connectionIndex, cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
 		i++
 		time.Sleep(10 * time.Millisecond)
 		if err != nil {

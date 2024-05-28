@@ -6,11 +6,10 @@ package rpc
 // This part should be handled by the plugin library and should not be
 // implemented by the user
 type InternalExchangeInterface interface {
-	// Initialize is a method that is called when the plugin is initialized
+	// Initialize is called when a new table is opened
 	//
-	// It is called once when the plugin is loaded and is used by the main
-	// program to infer the schema of the tables
-	Initialize(tableIndex int, config PluginConfig) (DatabaseSchema, error)
+	// It is used by the main program to infer the schema of the tables
+	Initialize(connectionID int, tableIndex int, config PluginConfig) (DatabaseSchema, error)
 
 	// Query is a method that returns rows for a given SELECT query
 	//
@@ -22,7 +21,29 @@ type InternalExchangeInterface interface {
 	// and each element in the row is an interface{} representing the value.
 	// The second return value is a boolean that specifies whether the cursor is exhausted
 	// The order and type of the values should match the schema of the table
-	Query(tableIndex int, cursorIndex int, constraint QueryConstraint) ([][]interface{}, bool, error)
+	Query(connectionID int, tableIndex int, cursorIndex int, constraint QueryConstraint) ([][]interface{}, bool, error)
+
+	// Insert is a method that inserts rows into the table
+	//
+	// The rows are passed as a 2D slice of interface{} where each row is a slice
+	// and each element in the row is an interface{} representing the value.
+	Insert(connectionID int, tableIndex int, rows [][]interface{}) error
+
+	// Update is a method that updates rows in the table
+	//
+	// The rows are passed as a 2D slice of interface{} where each row is a slice
+	// and each element in the row is an interface{} representing the value.
+	Update(connectionID int, tableIndex int, rows [][]interface{}) error
+
+	// Delete is a method that deletes rows from the table
+	//
+	// The rows are passed as an array of primary keys
+	Delete(connectionID int, tableIndex int, primaryKeys []interface{}) error
+
+	// Close is a method that is called when the connection is closed
+	//
+	// It is used to free resources and close connections
+	Close(connectionID int) error
 }
 
 // PluginConfig is a struct that holds the configuration for the plugin
@@ -82,6 +103,24 @@ type DatabaseSchema struct {
 	// HandleOffset is a boolean that specifies whether the plugin can handle the OFFSET clause.
 	// If not, the main program will skip the n offseted rows.
 	HandleOffset bool
+
+	// How many rows should anyquery buffer before sending them to the plugin
+	//
+	// If set to 0, the main program will send the rows one by one
+	// It is used to reduce the number of API calls of plugins
+	BufferInsert uint
+
+	// How many rows should anyquery buffer before sending them to the plugin
+	//
+	// If set to 0, the main program will send the rows one by one
+	// It is used to reduce the number of API calls of plugins
+	BufferUpdate uint
+
+	// How many rows should anyquery buffer before sending them to the plugin
+	//
+	// If set to 0, the main program will send the rows one by one
+	// It is used to reduce the number of API calls of plugins
+	BufferDelete uint
 }
 
 // ColumnType is an enum that represents the type of a column
@@ -122,6 +161,10 @@ type DatabaseSchemaColumn struct {
 	// If a column is required, the user must provide a value for it.
 	// If not, the query will fail.
 	IsRequired bool
+
+	// A description of the column
+	// Not used by early versions of anyquery
+	Description string
 }
 
 // These operators are used in the ColumnConstraint struct

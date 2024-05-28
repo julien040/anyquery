@@ -135,7 +135,7 @@ func TestNamespace(t *testing.T) {
 		// Load the Go plugin
 		err = namespace.LoadAnyqueryPlugin("_test/normalplugin.out", rpc.PluginManifest{
 			Tables: []string{"test", "test2"},
-		}, nil)
+		}, nil, 0)
 		require.NoError(t, err, "The Go plugin should load correctly")
 
 		// Register the connection and run a simple query
@@ -159,6 +159,15 @@ func TestNamespace(t *testing.T) {
 		err = rows.Close()
 		require.NoError(t, err, "The rows should be closed")
 
+		// Test an insert and expect an error
+		_, err = db.Exec("INSERT INTO test (id, name) VALUES (1, 'test')")
+		t.Log("Can't insert into a Go plugin", err)
+		require.Error(t, err, "The insert should not work")
+
+		// Test an update and expect an error
+		_, err = db.Exec("UPDATE test SET name = 'test' WHERE id = 1")
+		require.Error(t, err, "The update should not work")
+
 		// Close the database
 		err = db.Close()
 		require.NoError(t, err, "The database should be closed")
@@ -180,10 +189,10 @@ func TestNamespace(t *testing.T) {
 
 		err = namespace.LoadAnyqueryPlugin("_test/normalplugin.out", rpc.PluginManifest{
 			Tables: []string{"test", "test2"},
-		}, nil)
+		}, nil, 0)
 		require.Error(t, err, "The Go plugin should not load correctly if the namespace is already registered")
 
-		err = namespace.LoadAnyqueryPlugin("", rpc.PluginManifest{}, nil)
+		err = namespace.LoadAnyqueryPlugin("", rpc.PluginManifest{}, nil, 0)
 		require.Error(t, err, "The Go plugin should not load correctly if the path is empty")
 
 		err = namespace.LoadSharedExtension("_test/sqlean", "")

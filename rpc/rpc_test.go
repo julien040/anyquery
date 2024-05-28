@@ -17,13 +17,25 @@ func TestRPCPlugin(t *testing.T) {
 
 	var client *InternalClient
 
+	pool := NewConnectionPool()
+
+	logger := hclog.Default()
+	if testing.Verbose() {
+		logger.SetLevel(hclog.Debug)
+	}
+
+	client, err = pool.NewClient("_test/plugin.out", hclog.Default())
+	if err != nil {
+		t.Fatal("Could not create a new client", err)
+	}
+
 	t.Run("Create a connection to the plugin", func(t *testing.T) {
-		client, err = NewClient("_test/plugin.out", hclog.Default())
+		client, err = pool.NewClient("_test/plugin.out", hclog.Default())
 		require.NoError(t, err, "The plugin should be created without errors")
 	})
 
 	t.Run("Initialize the plugin", func(t *testing.T) {
-		schema, err := client.Plugin.Initialize(0, nil)
+		schema, err := client.Plugin.Initialize(0, 0, nil)
 		require.NoError(t, err, "The plugin should be initialized without errors")
 		require.Equal(t, DatabaseSchema{
 			Columns: []DatabaseSchemaColumn{
@@ -44,7 +56,7 @@ func TestRPCPlugin(t *testing.T) {
 	})
 
 	t.Run("Query the plugin", func(t *testing.T) {
-		rows, noMoreRows, err := client.Plugin.Query(0, 0, QueryConstraint{})
+		rows, noMoreRows, err := client.Plugin.Query(0, 0, 0, QueryConstraint{})
 		require.NoError(t, err, "The plugin should be queried without errors")
 		require.Equal(t, [][]interface{}{
 			{1, "hello"},

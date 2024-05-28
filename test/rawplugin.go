@@ -10,7 +10,7 @@ type testPlugin struct {
 	lastCursorIndex int
 }
 
-func (i *testPlugin) Initialize(tableIndex int, config plugin.PluginConfig) (plugin.DatabaseSchema, error) {
+func (i *testPlugin) Initialize(connectionID int, tableIndex int, config plugin.PluginConfig) (plugin.DatabaseSchema, error) {
 	return plugin.DatabaseSchema{
 		Columns: []plugin.DatabaseSchemaColumn{
 			{
@@ -45,7 +45,7 @@ func (i *testPlugin) Initialize(tableIndex int, config plugin.PluginConfig) (plu
 	}, nil
 }
 
-func (i *testPlugin) Query(tableIndex int, cursorIndex int, constraint plugin.QueryConstraint) ([][]interface{}, bool, error) {
+func (i *testPlugin) Query(connectionID int, tableIndex int, cursorIndex int, constraint plugin.QueryConstraint) ([][]interface{}, bool, error) {
 	// When we have a new cursor, we reset the counter
 	if cursorIndex != i.lastCursorIndex {
 		i.counter = 0
@@ -62,6 +62,22 @@ func (i *testPlugin) Query(tableIndex int, cursorIndex int, constraint plugin.Qu
 	}, (i.counter > 4), nil
 }
 
+func (i *testPlugin) Close(connectionID int) error {
+	return nil
+}
+
+func (i *testPlugin) Insert(connectionID int, tableIndex int, rows [][]interface{}) error {
+	return nil
+}
+
+func (i *testPlugin) Update(connectionID int, tableIndex int, rows [][]interface{}) error {
+	return nil
+}
+
+func (i *testPlugin) Delete(connectionID int, tableIndex int, primaryKeys []interface{}) error {
+	return nil
+}
+
 func main() {
 	go_plugin.Serve(&go_plugin.ServeConfig{
 		HandshakeConfig: go_plugin.HandshakeConfig{
@@ -70,7 +86,7 @@ func main() {
 			MagicCookieValue: plugin.MagicCookieValue,
 		},
 		Plugins: map[string]go_plugin.Plugin{
-			"plugin": &plugin.Plugin{Impl: &testPlugin{counter: 0, lastCursorIndex: -1}},
+			"plugin": &plugin.InternalPlugin{Impl: &testPlugin{counter: 0, lastCursorIndex: -1}},
 		},
 	})
 

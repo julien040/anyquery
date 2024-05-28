@@ -77,6 +77,9 @@ type Namespace struct {
 
 	// The logger to use
 	logger hclog.Logger
+
+	// The connection pool of the anyquery plugins
+	pool *rpc.ConnectionPool
 }
 
 type sharedObjectExtension struct {
@@ -146,6 +149,9 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 		n.logger = config.Logger
 	}
 
+	// Create the connection pool
+	n.pool = rpc.NewConnectionPool()
+
 	return nil
 }
 
@@ -190,7 +196,7 @@ func (n *Namespace) LoadSharedExtension(path string, entrypoint string) error {
 // Register a plugin written in Go built for anyquery for each table of the manifest
 //
 // In the manifest, any zeroed string of table name will be ignored
-func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest, userConfig map[string]string) error {
+func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest, userConfig map[string]string, connectionID int) error {
 	if path == "" {
 		return errors.New("the path of the plugin cannot be empty")
 	}
@@ -201,11 +207,13 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 	// Load the plugin
 	for index, table := range manifest.Tables {
 		plugin := &module.SQLiteModule{
-			PluginPath:     path,
-			PluginManifest: manifest,
-			TableIndex:     index,
-			UserConfig:     userConfig,
-			Logger:         n.logger,
+			ConnectionPool:  n.pool,
+			ConnectionIndex: connectionID,
+			PluginPath:      path,
+			PluginManifest:  manifest,
+			TableIndex:      index,
+			UserConfig:      userConfig,
+			Logger:          n.logger,
 		}
 		n.LoadGoPlugin(plugin, table)
 	}
@@ -398,7 +406,7 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 		// If the profile is not named default, it means the user has a custom profile
 		// Therefore, we need to rename the tables with a prefix to avoid conflicts.
 		// At the same time, we must ensure an alias has not been defined for the table
-		for _, profile := range profiles {
+		for connectionID, profile := range profiles {
 			localManifest := manifest
 			// We copy the tables to avoid modifying the original manifest
 			localManifest.Tables = make([]string, len(manifest.Tables))
@@ -429,7 +437,7 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			}
 
 			// We load the plugin
-			err = n.LoadAnyqueryPlugin(row.Path, localManifest, userConfig)
+			err = n.LoadAnyqueryPlugin(row.Path, localManifest, userConfig, connectionID)
 			if err != nil {
 				logger.Error("could not load the plugin", "plugin", row.Name, "error", err)
 			}
