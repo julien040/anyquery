@@ -349,7 +349,7 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 	ctx := context.Background()
 	logger := n.logger.Named("plugin_loader")
 	logger.Debug("opening the database from the namespace", "path", path)
-	db, queries, err := config.OpenDatabaseConnection(path)
+	db, queries, err := config.OpenDatabaseConnection(path, true)
 	if err != nil {
 		logger.Error("could not open the database", "error", err)
 		return err

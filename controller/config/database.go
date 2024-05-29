@@ -3,6 +3,7 @@ package config
 
 import (
 	"database/sql"
+	"os"
 
 	_ "embed"
 
@@ -19,7 +20,7 @@ var schema string
 //
 // If the path is empty, it defaults to XDG_CONFIG_HOME/anyquery/config.db
 // However, if the path is not empty, it will use the provided path (must be created beforehand)
-func OpenDatabaseConnection(path string) (*sql.DB, *model.Queries, error) {
+func OpenDatabaseConnection(path string, readOnly bool) (*sql.DB, *model.Queries, error) {
 	// We get the path to open or default to the XDG Base Directory Specification
 	var err error
 	if path == "" {
@@ -29,8 +30,23 @@ func OpenDatabaseConnection(path string) (*sql.DB, *model.Queries, error) {
 		}
 	}
 
+	// We check if the file exists
+	// If it doesn't, we set readOnly to false to create the file
+	// If we weren't setting the flag to false, because we are trying to read a non-existing file,
+	// it would fail
+	_, err = os.Stat(path)
+	if os.IsNotExist(err) {
+
+		readOnly = false
+	}
+
+	sqlitePath := "file:" + path + "?cache=shared&_cache_size=-50000&_foreign_keys=ON"
+	if readOnly {
+		sqlitePath += "&mode=ro"
+	}
+
 	// We open the database
-	db, err := sql.Open("sqlite3", path)
+	db, err := sql.Open("sqlite3", sqlitePath)
 	if err != nil {
 		return nil, nil, err
 	}

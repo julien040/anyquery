@@ -9,7 +9,7 @@ import (
 
 func ListPlugins(cmd *cobra.Command, args []string) error {
 	// Open the database
-	db, queries, err := requestDatabase(cmd.Flags())
+	db, queries, err := requestDatabase(cmd.Flags(), true)
 	if err != nil {
 		return fmt.Errorf("could not open the database: %w", err)
 	}
