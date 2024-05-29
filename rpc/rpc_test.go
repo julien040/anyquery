@@ -29,6 +29,8 @@ func TestRPCPlugin(t *testing.T) {
 		t.Fatal("Could not create a new client", err)
 	}
 
+	defer pool.CloseConnection("_test/plugin.out", 0)
+
 	t.Run("Create a connection to the plugin", func(t *testing.T) {
 		client, err = pool.NewClient("_test/plugin.out", hclog.Default())
 		require.NoError(t, err, "The plugin should be created without errors")

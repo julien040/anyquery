@@ -50,7 +50,7 @@ type InternalExchangeInterface interface {
 //
 // It is mostly used to specify user-defined configuration
 // and is passed to the plugin during initialization
-type PluginConfig map[string]string
+type PluginConfig map[string]interface{}
 
 // PluginManifest is a struct that holds the metadata of the plugin
 //
@@ -67,8 +67,10 @@ type PluginManifest struct {
 }
 
 type PluginConfigField struct {
-	Name     string
-	Required bool
+	Name        string
+	Required    bool
+	Type        string // string, int, float, bool, []string, []int, []float, []bool
+	Description string
 }
 
 // DatabaseSchema holds the schema of the database

@@ -31,7 +31,7 @@ type SQLiteModule struct {
 	ConnectionIndex int
 	TableIndex      int
 	client          *rpc.InternalClient
-	UserConfig      map[string]string
+	UserConfig      rpc.PluginConfig
 	Logger          hclog.Logger
 	ConnectionPool  *rpc.ConnectionPool
 }

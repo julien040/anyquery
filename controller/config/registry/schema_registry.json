@@ -113,7 +113,7 @@
                     "type": "object",
                     "default": {},
                     "title": "A Schema",
-                    "required": ["Name", "Required"],
+                    "required": ["Name", "Required", "Type"],
                     "additionalProperties": true,
                     "properties": {
                       "Name": {
@@ -127,6 +127,21 @@
                         "default": false,
                         "title": "If this key is required to be filled by the user",
                         "examples": [true]
+                      },
+                      "Type": {
+                        "type": "string",
+                        "default": "string",
+                        "title": "The type of the variable asked to the user",
+                        "enum": [
+                          "string",
+                          "int",
+                          "float",
+                          "bool",
+                          "[]string",
+                          "[]int",
+                          "[]float",
+                          "[]bool"
+                        ]
                       }
                     },
                     "examples": [

@@ -196,7 +196,7 @@ func (n *Namespace) LoadSharedExtension(path string, entrypoint string) error {
 // Register a plugin written in Go built for anyquery for each table of the manifest
 //
 // In the manifest, any zeroed string of table name will be ignored
-func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest, userConfig map[string]string, connectionID int) error {
+func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest, userConfig rpc.PluginConfig, connectionID int) error {
 	if path == "" {
 		return errors.New("the path of the plugin cannot be empty")
 	}
@@ -430,7 +430,7 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 				}
 			}
 			// We unmarsal the user config
-			var userConfig map[string]string
+			var userConfig rpc.PluginConfig
 			err := json.Unmarshal([]byte(profile.Config), &userConfig)
 			if err != nil {
 				logger.Error("could not unmarshal the user config", "error", err)

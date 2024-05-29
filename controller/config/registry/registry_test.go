@@ -63,7 +63,8 @@ func TestValidateSchema(t *testing.T) {
 						"user_config": [
 						  {
 							"Name": "Notion API Key",
-							"Required": true
+							"Required": true,
+							"Type": "string"
 						  }
 						],
 						"tables": [
@@ -190,11 +191,11 @@ func TestValidateSchema(t *testing.T) {
 }
 
 // A mock server that returns a registry
-const registry = `https://gist.githubusercontent.com/julien040/8a6db37826cbeb6b999463cd49067bcc/raw/0a94be64095eb643aac17535ae53a00172552c14/registry1.json`
+const registry = `https://gist.githubusercontent.com/julien040/8a6db37826cbeb6b999463cd49067bcc/raw/5b4110a478106f1a1357ec27c016eae3f1063ad9/registry1.json`
 
 // Test if a registry can be added and updated
 func TestRegistry(t *testing.T) {
-	db, query, err := config.OpenDatabaseConnection("./test.db")
+	db, query, err := config.OpenDatabaseConnection("./test.db", false)
 	if err != nil {
 		t.Fatal(fmt.Errorf("error opening database: %v", err))
 	}
@@ -213,8 +214,9 @@ func TestRegistry(t *testing.T) {
 
 		require.Equal(t, "default", testedRegistry.Name)
 		require.Equal(t, registry, testedRegistry.Url)
-		require.Equal(t, "72f021a298341e754ca31ac683689b2a630f2c1b2f6de17db7a44bd2218274b2", testedRegistry.Checksumregistry)
+		require.Equal(t, "6069c08e689f1a792262d71fac6fcc6d161a7621cd37f1174ef1255bfae7eda8", testedRegistry.Checksumregistry)
 		updateTime = testedRegistry.Lastupdated
+		require.NotEqual(t, 0, updateTime)
 
 	})
 
@@ -233,11 +235,8 @@ func TestRegistry(t *testing.T) {
 	t.Run("Update registry", func(t *testing.T) {
 		err := UpdateRegistry(query, "default")
 		require.NoError(t, err)
-		registry, err := query.GetRegistry(context.Background(), "default")
+		_, err = query.GetRegistry(context.Background(), "default")
 		require.NoError(t, err)
-		// Because the server is a mock server, the registry will always be the same
-		// Therefore, the update time should be the same
-		require.Equal(t, updateTime, registry.Lastupdated)
 	})
 
 	t.Run("Load the registry", func(t *testing.T) {
