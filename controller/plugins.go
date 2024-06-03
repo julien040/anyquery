@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -17,15 +18,31 @@ func ListPlugins(cmd *cobra.Command, args []string) error {
 
 	// We get the plugins
 	ctx := context.Background()
-	rows, err := queries.GetPlugins(ctx)
+	_, err = queries.GetPlugins(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get the plugins: %w", err)
 	}
-	for row := range rows {
-		fmt.Println(row)
+
+	rows, err := db.Query("SELECT * FROM plugin_installed")
+	if err != nil {
+		return fmt.Errorf("could not get the plugins: %w", err)
 	}
 
-	fmt.Println(len(rows), "plugins found")
+	// We print the plugins
+	output := outputTable{
+		Writer: os.Stdout,
+	}
+
+	output.InferFlags(cmd.Flags())
+	err = output.WriteSQLRows(rows)
+	if err != nil {
+		return fmt.Errorf("could not write the plugins: %w", err)
+	}
+
+	err = output.Close()
+	if err != nil {
+		return fmt.Errorf("could not close the output: %w", err)
+	}
 
 	return nil
 }
