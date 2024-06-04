@@ -12,12 +12,14 @@ var rootCmd = &cobra.Command{
 	Short: "A tool to query any data source",
 	Long: `Anyquery is a tool that allows you to query any data source
 by writing SQL queries. It is designed to be extended by anyone.`,
+	// Avoid writing help when an error occurs
+	// Thanks https://github.com/spf13/cobra/issues/340#issuecomment-243790200
+	SilenceUsage: true,
 }
 
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
-		os.Stderr.WriteString(err.Error() + "\n")
 		os.Exit(1)
 	}
 }
