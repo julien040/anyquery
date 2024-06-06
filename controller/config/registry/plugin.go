@@ -5,10 +5,12 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"math/rand/v2"
 	urlParser "net/url"
 	"os"
 	"path"
 	"runtime"
+	"strings"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/adrg/xdg"
@@ -63,18 +65,18 @@ func FindPluginVersionCandidate(plugin Plugin) (PluginFile, PluginVersion, error
 	return *candidateFile, *candidateVersion, nil
 }
 
-func InstallPlugin(queries *model.Queries, registry string, plugin string) error {
+func InstallPlugin(queries *model.Queries, registry string, plugin string) (string, error) {
 	// Create the plugin directory
-	path := path.Join(xdg.DataHome, "anyquery", "plugins", registry, plugin)
+	path := path.Join(xdg.DataHome, "anyquery", "plugins", registry, plugin, newSmallID())
 	err := os.MkdirAll(path, 0755)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Get the registry
 	_, plugins, err := LoadRegistry(queries, registry)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Find the plugin
@@ -88,17 +90,17 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) error
 
 	// Find a compatible version
 	if pluginInfo == nil {
-		return fmt.Errorf("plugin %s not found in registry %s", plugin, registry)
+		return "", fmt.Errorf("plugin %s not found in registry %s", plugin, registry)
 	}
 
 	file, version, err := FindPluginVersionCandidate(*pluginInfo)
 	if err != nil {
-		return err
+		return "", err
 	}
 	// Download the file
 	err = downloadZipToPath(file.URL, path, file.Hash)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	// Add the plugin to the database
@@ -109,13 +111,13 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) error
 
 	configJSON, err := json.Marshal(version.UserConfig)
 	if err != nil {
-		return err
+		return "", err
 	}
 	tablesJSON, err := json.Marshal(version.Tables)
 	if err != nil {
-		return err
+		return "", err
 	}
-	return queries.AddPlugin(context.Background(), model.AddPluginParams{
+	return path, queries.AddPlugin(context.Background(), model.AddPluginParams{
 		Name:     plugin,
 		Registry: registry,
 		Description: sql.NullString{
@@ -158,4 +160,18 @@ func downloadZipToPath(url string, path string, checksum string) error {
 		Ctx:  context.Background(),
 	}
 	return client.Get()
+}
+
+const letters = "abcdefghijklmnopqrstuvwxyz1234567890"
+
+// Create a small ID that can be used in the path of a plugin
+// It is 6 characters long and contains only letters and numbers
+// It is not meant to be unique, but it is unlikely to collide
+// We don't use uppercase letter due to the case-insensitive nature of some filesystems
+func newSmallID() string {
+	str := strings.Builder{}
+	for i := 0; i < 6; i++ {
+		str.WriteByte(letters[rand.IntN(len(letters))])
+	}
+	return str.String()
 }

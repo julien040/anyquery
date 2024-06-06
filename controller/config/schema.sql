@@ -4,8 +4,10 @@ CREATE TABLE IF NOT EXISTS registry (
     name TEXT PRIMARY KEY,
     -- The HTTPS URL to fetch to get the list of plugins
     url TEXT NOT NULL,
-    -- Last time the registry was updated
+    -- Last time the registry was updated (unix timestamp)
     lastUpdated INTEGER NOT NULL,
+    -- Last time the registry was fetched (unix timestamp)
+    lastFetched INTEGER NOT NULL,
     -- Checksum of the last fetched registry
     checksumRegistry TEXT NOT NULL,
     -- JSON string of the last fetched registry

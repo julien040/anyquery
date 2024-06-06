@@ -4,11 +4,12 @@ INSERT INTO
         name,
         url,
         lastUpdated,
+        lastFetched,
         checksumRegistry,
         registryJSON
     )
 VALUES
-    (?, ?, ?, ?, ?);
+    (?, ?, ?, unixepoch(), ?, ?);
 
 -- name: AddPlugin :exec
 INSERT INTO
@@ -124,7 +125,25 @@ UPDATE
 SET
     url = ?,
     lastUpdated = ?,
+    lastFetched = unixepoch(),
     checksumRegistry = ?,
     registryJSON = ?
+WHERE
+    name = ?;
+
+-- name: UpdateRegistryFetched :exec
+UPDATE
+    registry
+SET
+    lastFetched = unixepoch()
+WHERE
+    name = ?;
+
+/* -------------------------------------------------------------------------- */
+/*                                   DELETE                                   */
+/* -------------------------------------------------------------------------- */
+-- name: DeleteRegistry :exec
+DELETE FROM
+    registry
 WHERE
     name = ?;

@@ -40,6 +40,7 @@ type Registry struct {
 	Name             string
 	Url              string
 	Lastupdated      int64
+	Lastfetched      int64
 	Checksumregistry string
 	Registryjson     string
 }

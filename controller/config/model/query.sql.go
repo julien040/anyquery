@@ -118,11 +118,12 @@ INSERT INTO
         name,
         url,
         lastUpdated,
+        lastFetched,
         checksumRegistry,
         registryJSON
     )
 VALUES
-    (?, ?, ?, ?, ?)
+    (?, ?, ?, unixepoch(), ?, ?)
 `
 
 type AddRegistryParams struct {
@@ -141,6 +142,23 @@ func (q *Queries) AddRegistry(ctx context.Context, arg AddRegistryParams) error 
 		arg.Checksumregistry,
 		arg.Registryjson,
 	)
+	return err
+}
+
+const deleteRegistry = `-- name: DeleteRegistry :exec
+DELETE FROM
+    registry
+WHERE
+    name = ?
+`
+
+// --------------------------------------------------------------------------
+//
+//	DELETE
+//
+// --------------------------------------------------------------------------
+func (q *Queries) DeleteRegistry(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, deleteRegistry, name)
 	return err
 }
 
@@ -379,7 +397,7 @@ func (q *Queries) GetProfilesOfPlugin(ctx context.Context, arg GetProfilesOfPlug
 
 const getRegistries = `-- name: GetRegistries :many
 SELECT
-    name, url, lastupdated, checksumregistry, registryjson
+    name, url, lastupdated, lastfetched, checksumregistry, registryjson
 FROM
     registry
 `
@@ -397,6 +415,7 @@ func (q *Queries) GetRegistries(ctx context.Context) ([]Registry, error) {
 			&i.Name,
 			&i.Url,
 			&i.Lastupdated,
+			&i.Lastfetched,
 			&i.Checksumregistry,
 			&i.Registryjson,
 		); err != nil {
@@ -415,7 +434,7 @@ func (q *Queries) GetRegistries(ctx context.Context) ([]Registry, error) {
 
 const getRegistry = `-- name: GetRegistry :one
 SELECT
-    name, url, lastupdated, checksumregistry, registryjson
+    name, url, lastupdated, lastfetched, checksumregistry, registryjson
 FROM
     registry
 WHERE
@@ -429,6 +448,7 @@ func (q *Queries) GetRegistry(ctx context.Context, name string) (Registry, error
 		&i.Name,
 		&i.Url,
 		&i.Lastupdated,
+		&i.Lastfetched,
 		&i.Checksumregistry,
 		&i.Registryjson,
 	)
@@ -441,6 +461,7 @@ UPDATE
 SET
     url = ?,
     lastUpdated = ?,
+    lastFetched = unixepoch(),
     checksumRegistry = ?,
     registryJSON = ?
 WHERE
@@ -468,5 +489,19 @@ func (q *Queries) UpdateRegistry(ctx context.Context, arg UpdateRegistryParams) 
 		arg.Registryjson,
 		arg.Name,
 	)
+	return err
+}
+
+const updateRegistryFetched = `-- name: UpdateRegistryFetched :exec
+UPDATE
+    registry
+SET
+    lastFetched = unixepoch()
+WHERE
+    name = ?
+`
+
+func (q *Queries) UpdateRegistryFetched(ctx context.Context, name string) error {
+	_, err := q.db.ExecContext(ctx, updateRegistryFetched, name)
 	return err
 }

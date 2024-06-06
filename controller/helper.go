@@ -2,11 +2,14 @@ package controller
 
 import (
 	"database/sql"
+	"net/url"
+	"os"
 	"path/filepath"
 
 	"github.com/julien040/anyquery/controller/config"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/spf13/pflag"
+	"golang.org/x/term"
 )
 
 // This file defines a few functions to help commands to run
@@ -33,4 +36,41 @@ func requestDatabase(flags *pflag.FlagSet, readOnly bool) (*sql.DB, *model.Queri
 	// We open the database
 	return config.OpenDatabaseConnection(path, readOnly)
 
+}
+
+func isHttpsURL(s string) bool {
+	// parse the string as a URL
+	url, err := url.Parse(s)
+	if err != nil {
+		return false
+	}
+
+	return url.Hostname() != "" && url.Scheme == "https"
+}
+
+func isSTDinAtty() bool {
+	return term.IsTerminal(int(os.Stdin.Fd()))
+}
+
+func isSTDoutAtty() bool {
+	return term.IsTerminal(int(os.Stdout.Fd()))
+}
+
+// Check if --no-input is passed to the command
+func isNoInputFlagSet(flags *pflag.FlagSet) bool {
+	noInput, err := flags.GetBool("no-input")
+	if err != nil {
+		return false
+	}
+
+	return noInput
+}
+
+// Truncate a string to a given length - 3 (to add "...")
+func strTruncate(s string, length int) string {
+	if len(s) <= length {
+		return s
+	}
+
+	return s[:length-3] + "..."
 }

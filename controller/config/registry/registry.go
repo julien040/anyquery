@@ -136,7 +136,8 @@ func UpdateRegistry(queries *model.Queries, name string) error {
 
 	// Check if registry has changed
 	if checksum == registry.Checksumregistry {
-		return nil
+		// Set the last updated time
+		return queries.UpdateRegistryFetched(ctx, name)
 	}
 
 	// Update registry

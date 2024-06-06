@@ -27,6 +27,7 @@ const (
 	outputTableTypePretty
 	outputTableTypePlainWithHeader
 	outputTableTypeMarkdown
+	outputTableTypeLineByLine
 )
 
 type outputTable struct {
@@ -114,6 +115,11 @@ func (o *outputTable) SetEncoder() {
 		}
 	case outputTableTypeMarkdown:
 		o.encoder = &markdownTableEncoder{
+			Columns: o.Columns,
+			Writer:  o.Writer,
+		}
+	case outputTableTypeLineByLine:
+		o.encoder = &lineByLineTableEncoder{
 			Columns: o.Columns,
 			Writer:  o.Writer,
 		}
@@ -206,17 +212,16 @@ var formatName map[string]outputTableType = map[string]outputTableType{
 	"pretty":      outputTableTypePretty,
 	"plainheader": outputTableTypePlainWithHeader,
 	"markdown":    outputTableTypeMarkdown,
+	"linebyline":  outputTableTypeLineByLine,
 }
 
 // InferFlags scans the flags and modifies the output configuration accordingly
 func (o *outputTable) InferFlags(flag *pflag.FlagSet) {
-	// Default to plain
-	o.Type = outputTableTypePlain
-
 	// Check if io.writer is a file
 	// If so, check if it's a tty
-	// If it's not and no other output is specified, default to plain (tsv)
-	if file, ok := o.Writer.(*os.File); ok {
+	// Default to the corresponding output type unless one is already set by the caller
+	// We need to do that because if a cmd set a default output type, we don't want to override it
+	if file, ok := o.Writer.(*os.File); ok && o.Type == 0 {
 		if !term.IsTerminal(int(file.Fd())) {
 			o.Type = outputTableTypePlain
 		} else {
@@ -243,11 +248,10 @@ func (o *outputTable) InferFlags(flag *pflag.FlagSet) {
 
 	// Finally, iterate over the format flags
 	// If one is set, we set the output type to the corresponding type
-	for key, value := range formatName {
-		format, err := flag.GetString("format")
-		if err == nil && format == key {
-			o.Type = value
-			return
+	format, err := flag.GetString("format")
+	if err == nil {
+		if val, ok := formatName[format]; ok {
+			o.Type = val
 		}
 	}
 
@@ -471,6 +475,7 @@ type prettyTableEncoder struct {
 	Writer        io.Writer
 	internalTable *tablewriter.Table
 	rowWritten    int
+	columnLength  int
 }
 
 func (p *prettyTableEncoder) Write(row []interface{}) error {
@@ -482,17 +487,26 @@ func (p *prettyTableEncoder) Write(row []interface{}) error {
 
 	// To have a pretty table that doesn't break, we will check if the writer is a terminal
 	// If it is, we'll divide the width by the number of columns to get the max width of each column
-	if f, ok := p.Writer.(*os.File); ok {
-		if term.IsTerminal(int(f.Fd())) {
+	// We default to 40 if we can't get the width
+	if p.columnLength == 0 { // The zero value of an int is 0 so it means we didn't calculate it yet
+		p.columnLength = 40
+		if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
 			width, _, err := term.GetSize(int(f.Fd()))
 			if err == nil {
-				p.internalTable.SetColWidth(width / len(p.Columns))
+				p.columnLength = width / len(p.Columns)
 			}
 		}
-	}
 
+		p.columnLength = p.columnLength - 3 // -4 to account for the padding
+		p.internalTable.SetColWidth(p.columnLength)
+	}
 	// Convert the row to strings
 	rowStr := convertValueToStrSlice(row)
+
+	// We wrap the strings to the column length
+	for i, val := range rowStr {
+		rowStr[i] = wordWrap(val, p.columnLength)
+	}
 
 	// Write the row
 	p.internalTable.Append(rowStr)
@@ -561,5 +575,72 @@ func (m *markdownTableEncoder) Close() error {
 	} else {
 		m.internalTable.Render()
 	}
+	return nil
+}
+
+// Create a new line every lengthLine characters
+//
+// It can wrap on spaces, newlines, commas, semi-colons, colons, and slashes
+func wordWrap(s string, lengthLine int) string {
+	if len(s) <= lengthLine {
+		return s
+	}
+
+	// We will split the string on spaces, newlines, commas, semi-colons, colons, and slashes
+	builder := strings.Builder{}
+
+	currentLineLength := 0
+	i := 0
+	for i < len(s) {
+
+		switch s[i] {
+		case ' ', '\n', ',', ';', ':', '/':
+			// We add -5 to take the opportunity to break the line earlier instead of never
+			if currentLineLength >= lengthLine-5 {
+				builder.WriteRune('\n')
+				currentLineLength = 0
+			}
+			builder.WriteByte(s[i])
+		default:
+			// If we don't have a special character,
+			// and we are way over the line length, we will break the line
+			if currentLineLength >= lengthLine {
+				builder.WriteRune('\n')
+				currentLineLength = 0
+			}
+			builder.WriteByte(s[i])
+
+		}
+		currentLineLength++
+		i++
+	}
+
+	return builder.String()
+}
+
+/**********************
+ * LINEBYLINE ENCODER *
+ **********************/
+
+type lineByLineTableEncoder struct {
+	Columns         []string
+	Writer          io.Writer
+	firstRowWritten bool
+}
+
+func (l *lineByLineTableEncoder) Write(row []interface{}) error {
+	if !l.firstRowWritten {
+		l.firstRowWritten = true
+	} else {
+		// Add a separator between rows
+		fmt.Fprintln(l.Writer, "---")
+	}
+	for i, val := range row {
+		fmt.Fprintf(l.Writer, "%s: %v\n", l.Columns[i], val)
+	}
+	return nil
+}
+
+func (l *lineByLineTableEncoder) Close() error {
 	return nil
 }

@@ -9,7 +9,6 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/adrg/xdg"
 	"github.com/julien040/anyquery/controller/config"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/stretchr/testify/require"
@@ -283,11 +282,8 @@ func TestRegistry(t *testing.T) {
 
 	t.Run("Install a plugin", func(t *testing.T) {
 
-		err := InstallPlugin(query, "default", "sqlean")
+		pathPlugin, err := InstallPlugin(query, "default", "sqlean")
 		require.NoError(t, err)
-
-		// Check if the plugin was installed
-		pathPlugin := path.Join(xdg.DataHome, "anyquery", "plugins", "default", "sqlean")
 
 		// Check if the folder exists
 		_, err = os.Stat(pathPlugin)

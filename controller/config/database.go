@@ -40,7 +40,11 @@ func OpenDatabaseConnection(path string, readOnly bool) (*sql.DB, *model.Queries
 		readOnly = false
 	}
 
-	sqlitePath := "file:" + path + "?cache=shared&_cache_size=-50000&_foreign_keys=ON"
+	// We disable foreign keys because a registry can be deleted
+	// while its plugins are still in the database
+	//
+	// We add ?_loc=auto to let SQLite use the local timezone
+	sqlitePath := "file:" + path + "?cache=shared&_cache_size=-50000&_foreign_keys=OFF&_loc=auto"
 	if readOnly {
 		sqlitePath += "&mode=ro"
 	}
