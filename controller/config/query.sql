@@ -95,6 +95,14 @@ FROM
 WHERE
     tableName = ?;
 
+-- name: GetAliasOf :one
+SELECT
+    *
+FROM
+    alias
+WHERE
+    alias = ?;
+
 -- name: GetRegistries :many
 SELECT
     *
@@ -218,3 +226,9 @@ WHERE
     name = ?
     AND pluginName = ?
     AND registry = ?;
+
+-- name: DeleteAlias :exec
+DELETE FROM
+    alias
+WHERE
+    alias = ?;

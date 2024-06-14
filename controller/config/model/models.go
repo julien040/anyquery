@@ -9,8 +9,8 @@ import (
 )
 
 type Alias struct {
-	Tablename sql.NullString
-	Alias     sql.NullString
+	Tablename string
+	Alias     string
 }
 
 type PluginInstalled struct {

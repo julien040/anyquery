@@ -18,8 +18,8 @@ VALUES
 `
 
 type AddAliasParams struct {
-	Tablename sql.NullString
-	Alias     sql.NullString
+	Tablename string
+	Alias     string
 }
 
 func (q *Queries) AddAlias(ctx context.Context, arg AddAliasParams) error {
@@ -145,6 +145,18 @@ func (q *Queries) AddRegistry(ctx context.Context, arg AddRegistryParams) error 
 	return err
 }
 
+const deleteAlias = `-- name: DeleteAlias :exec
+DELETE FROM
+    alias
+WHERE
+    alias = ?
+`
+
+func (q *Queries) DeleteAlias(ctx context.Context, alias string) error {
+	_, err := q.db.ExecContext(ctx, deleteAlias, alias)
+	return err
+}
+
 const deletePlugin = `-- name: DeletePlugin :exec
 DELETE FROM
     plugin_installed
@@ -209,8 +221,24 @@ WHERE
     tableName = ?
 `
 
-func (q *Queries) GetAlias(ctx context.Context, tablename sql.NullString) (Alias, error) {
+func (q *Queries) GetAlias(ctx context.Context, tablename string) (Alias, error) {
 	row := q.db.QueryRowContext(ctx, getAlias, tablename)
+	var i Alias
+	err := row.Scan(&i.Tablename, &i.Alias)
+	return i, err
+}
+
+const getAliasOf = `-- name: GetAliasOf :one
+SELECT
+    tablename, alias
+FROM
+    alias
+WHERE
+    alias = ?
+`
+
+func (q *Queries) GetAliasOf(ctx context.Context, alias string) (Alias, error) {
+	row := q.db.QueryRowContext(ctx, getAliasOf, alias)
 	var i Alias
 	err := row.Scan(&i.Tablename, &i.Alias)
 	return i, err

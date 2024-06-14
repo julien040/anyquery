@@ -151,6 +151,10 @@ func (o *outputTable) Write(row []interface{}) error {
 	return nil
 }
 
+func (o *outputTable) AddRow(row ...interface{}) {
+	o.Write(row)
+}
+
 func (o *outputTable) WriteRows(rows [][]interface{}) error {
 	for _, row := range rows {
 		if err := o.Write(row); err != nil {

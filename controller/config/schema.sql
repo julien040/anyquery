@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS profile (
 ) WITHOUT ROWID;
 
 CREATE TABLE IF NOT EXISTS alias (
-    tableName TEXT,
-    alias TEXT,
+    tableName TEXT NOT NULL,
+    alias TEXT NOT NULL,
     PRIMARY KEY (tableName, alias)
 ) WITHOUT ROWID;

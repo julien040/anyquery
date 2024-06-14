@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"context"
 	"database/sql"
+	"encoding/json"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -64,4 +66,53 @@ func isNoInputFlagSet(flags *pflag.FlagSet) bool {
 	}
 
 	return noInput
+}
+
+// List all the possible table names
+// based on the format profileName_pluginName_tableName
+func listTableName(queries *model.Queries) ([]string, error) {
+
+	answer := []string{}
+
+	// We get the plugins
+	// For each plugin, we get the profiles, and parse the table name
+	// We return the cartesian product of those three
+	ctx := context.Background()
+	plugins, err := queries.GetPlugins(ctx)
+	if err != nil {
+		return answer, err
+	}
+
+	for _, plugin := range plugins {
+		// We get the table names
+		tables := []string{}
+		err = json.Unmarshal([]byte(plugin.Tablename), &tables)
+		if err != nil {
+			return answer, err
+		}
+
+		// We get the profiles
+		profiles, err := queries.GetProfilesOfPlugin(ctx, model.GetProfilesOfPluginParams{
+			Pluginname: plugin.Name,
+			Registry:   plugin.Registry,
+		})
+		if err != nil {
+			return answer, err
+		}
+
+		for _, profile := range profiles {
+			// If the profile is default, we don't add the prefix
+			// Otherwise, the table name is prefixed by the profile name
+			var prefix string
+			if profile.Name != "default" {
+				prefix = profile.Name + "_"
+			}
+			for _, table := range tables {
+				answer = append(answer, prefix+profile.Pluginname+"_"+table)
+			}
+		}
+
+	}
+
+	return answer, nil
 }
