@@ -358,18 +358,19 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 
 	logger.Debug("getting the plugins from the database")
 	// We get the plugins
-	rows, err := queries.GetPlugins(ctx)
+	plugins, err := queries.GetPlugins(ctx)
 	if err != nil {
 		logger.Error("could not get the plugins from the database", "error", err)
 		return err
 	}
 
-	for _, row := range rows {
-		logger.Debug("loading the plugin", "plugin", row.Name, "registry", row.Registry)
+	for _, plugin := range plugins {
+		logger.Debug("loading the plugin", "plugin", plugin.Name, "registry", plugin.Registry)
 		// We define a plugin manifest that will be used to load the plugin
-		manifest, err := getManifestFromRow(row)
+		manifest, err := getManifestFromRow(plugin)
 		if err != nil {
-			logger.Error("could not load valid data for the plugin", "plugin", row.Name, "registry", row.Registry, "error", err)
+			logger.Error("could not load valid data for the plugin", "plugin", plugin.Name, "registry", plugin.Registry, "error", err)
+			continue
 		}
 
 		// Ensure the checksum is correct
@@ -384,22 +385,23 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 		} */
 
 		// We check if the plugin is a shared object extension (a SQLite extension)
-		if row.Issharedextension == 1 {
+		if plugin.Issharedextension == 1 {
 			// We load it using LoadSharedExtension because it's a SQLite extension
-			err := n.LoadSharedExtension(row.Path, "")
+			err := n.LoadSharedExtension(plugin.Path, "")
 			if err != nil {
-				logger.Error("could not load the shared extension", "plugin", row.Name, "registry", row.Registry, "error", err)
+				logger.Error("could not load the shared extension", "plugin", plugin.Name, "registry", plugin.Registry, "error", err)
 			}
 			continue
 		}
 
 		// We find the profiles for the plugin
 		profiles, err := queries.GetProfilesOfPlugin(ctx, model.GetProfilesOfPluginParams{
-			Pluginname: row.Name,
-			Registry:   row.Registry,
+			Pluginname: plugin.Name,
+			Registry:   plugin.Registry,
 		})
 		if err != nil {
-			logger.Error("could not get the profiles of the plugin", "plugin", row.Name, "error", err)
+			logger.Error("could not get the profiles of the plugin", "plugin", plugin.Name, "error", err)
+			continue
 		}
 
 		// For each profile, we register a new module for the plugin
@@ -421,21 +423,17 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			if profile.Name != "default" {
 				prefix = profile.Name + "_"
 			}
-			prefix += row.Name + "_"
+			prefix += plugin.Name + "_"
 
 			for index, table := range localManifest.Tables {
 
 				fullName := prefix + table
 				// We check if the table is not an alias
-				alias, err := queries.GetAlias(ctx, sql.NullString{String: fullName, Valid: true})
-				if err != nil {
-					logger.Error("could not get the alias of the table", "table", table, "error", err)
-				}
-				if alias.Alias.Valid {
-					localManifest.Tables[index] = alias.Alias.String
-				} else {
-					// profi
+				alias, err := queries.GetAlias(ctx, fullName)
+				if err != nil { // If the alias is not found, we use the full name
 					localManifest.Tables[index] = fullName
+				} else {
+					localManifest.Tables[index] = alias.Alias
 				}
 			}
 
@@ -444,12 +442,13 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			err := json.Unmarshal([]byte(profile.Config), &userConfig)
 			if err != nil {
 				logger.Error("could not unmarshal the user config", "error", err)
+				continue
 			}
 
 			// We load the plugin
-			err = n.LoadAnyqueryPlugin(row.Path, localManifest, userConfig, connectionID)
+			err = n.LoadAnyqueryPlugin(plugin.Path, localManifest, userConfig, connectionID)
 			if err != nil {
-				logger.Error("could not load the plugin", "plugin", row.Name, "error", err)
+				logger.Error("could not load the plugin", "plugin", plugin.Name, "error", err)
 			}
 
 		}
