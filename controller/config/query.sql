@@ -48,6 +48,9 @@ INSERT INTO
 VALUES
     (?, ?);
 
+/* -------------------------------------------------------------------------- */
+/*                                     Get                                    */
+/* -------------------------------------------------------------------------- */
 -- name: GetRegistry :one
 SELECT
     *
@@ -104,6 +107,22 @@ SELECT
 FROM
     plugin_installed;
 
+-- name: GetPluginsOfRegistry :many
+SELECT
+    *
+FROM
+    plugin_installed
+WHERE
+    registry = ?;
+
+-- name: GetProfilesOfRegistry :many
+SELECT
+    *
+FROM
+    profile
+WHERE
+    registry = ?;
+
 -- name: GetProfiles :many
 SELECT
     *
@@ -139,6 +158,43 @@ SET
 WHERE
     name = ?;
 
+-- name: UpdatePlugin :exec
+UPDATE
+    plugin_installed
+SET
+    description = ?,
+    executablePath = ?,
+    version = ?,
+    homepage = ?,
+    config = ?,
+    checksumDir = ?,
+    author = ?,
+    tablename = ?,
+    isSharedExtension = ?
+WHERE
+    name = ?
+    AND registry = ?;
+
+-- name: UpdateProfileConfig :exec
+UPDATE
+    profile
+SET
+    config = ?
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?;
+
+-- name: UpdateProfileName :exec
+UPDATE
+    profile
+SET
+    name = ?
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?;
+
 /* -------------------------------------------------------------------------- */
 /*                                   DELETE                                   */
 /* -------------------------------------------------------------------------- */
@@ -147,3 +203,18 @@ DELETE FROM
     registry
 WHERE
     name = ?;
+
+-- name: DeletePlugin :exec
+DELETE FROM
+    plugin_installed
+WHERE
+    name = ?
+    AND registry = ?;
+
+-- name: DeleteProfile :exec
+DELETE FROM
+    profile
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?;

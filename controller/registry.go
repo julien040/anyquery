@@ -196,7 +196,7 @@ func RegistryRemove(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not remove the registry: %w", err)
 	}
 
-	fmt.Printf("Registry %s removed\n", args[0])
+	fmt.Printf("✅ Registry %s removed\n", args[0])
 
 	return nil
 }
@@ -208,6 +208,27 @@ func RegistryRefresh(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not open the database: %w", err)
 	}
 	defer db.Close()
+
+	ctx := context.Background()
+	// Load the default registry if not installed
+	// Check if the default registry is loaded
+	_, err = querier.GetRegistry(ctx, "default")
+	if err != nil {
+		if err.Error() == "sql: no rows in result set" {
+			s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
+			s.Prefix = "Loading default registry "
+			if isSTDoutAtty() {
+				s.Start()
+			}
+			err := registry.AddDefaultRegistry(querier)
+			s.Stop() // no-op if not started
+			if err != nil {
+				return fmt.Errorf("could not load the default registry: %w", err)
+			}
+		} else {
+			return fmt.Errorf("could not get the registry: %w", err)
+		}
+	}
 
 	if len(args) > 0 {
 		name := args[0]
@@ -232,8 +253,8 @@ func RegistryRefresh(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("could not update the registry: %w", err)
 		}
 
-		fmt.Printf("Registry %s updated\n", name)
-	} else {
+		fmt.Printf("✅ Registry %s updated\n", name)
+	} else { // Otherwise we refresh all the registries
 		// We get the registries
 		ctx := context.Background()
 		registries, err := querier.GetRegistries(ctx)
@@ -255,7 +276,7 @@ func RegistryRefresh(cmd *cobra.Command, args []string) error {
 				return fmt.Errorf("could not update the registry: %w", err)
 			}
 
-			fmt.Printf("Registry %s updated\n", registryL.Name)
+			fmt.Printf("✅ Registry %s updated\n", registryL.Name)
 		}
 	}
 	return nil

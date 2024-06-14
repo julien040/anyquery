@@ -15,6 +15,7 @@ import (
 	"github.com/Masterminds/semver/v3"
 	"github.com/adrg/xdg"
 	"github.com/julien040/anyquery/controller/config/model"
+	"github.com/julien040/go-ternary"
 
 	getter "github.com/hashicorp/go-getter"
 )
@@ -126,7 +127,7 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) (stri
 		},
 		Path:           path,
 		Executablepath: file.Path,
-		Version:        pluginInfo.LastVersion,
+		Version:        version.Version,
 		Homepage: sql.NullString{
 			String: pluginInfo.Homepage,
 			Valid:  true,
@@ -139,8 +140,69 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) (stri
 		Issharedextension: isSharedExtension,
 		Config:            string(configJSON),
 		Tablename:         string(tablesJSON),
+		Checksumdir:       sql.NullString{},
 	})
+}
 
+// Return a list of all the plugins installable from the registries
+// It does not check if the plugin is already installed,
+// neither if the plugin is compatible with the current version of Anyquery
+// nor if the plugin has a file for the current platform
+func ListInstallablePlugins(queries *model.Queries) ([]Plugin, error) {
+	plugins := []Plugin{}
+	// We get the plugins
+	ctx := context.Background()
+	registry, err := queries.GetRegistries(ctx)
+	if err != nil {
+		return plugins, fmt.Errorf("could not get the registries: %w", err)
+	}
+
+	for _, r := range registry {
+		_, p, err := LoadRegistry(queries, r.Name)
+		if err != nil {
+			return plugins, fmt.Errorf("could not load registry %s: %w", r.Name, err)
+		}
+
+		plugins = append(plugins, p.Plugins...)
+	}
+	return plugins, nil
+}
+
+func GetCurrentPlatform() string {
+	return runtime.GOOS + "/" + runtime.GOARCH
+}
+
+// Return a list of all the plugins installable from the registries
+// for the current platform. List also the plugins that are already installed
+func ListInstallablePluginsForPlatform(queries *model.Queries, platform string) ([]Plugin, error) {
+	plugins, err := ListInstallablePlugins(queries)
+	if err != nil {
+		return nil, err
+	}
+	platformPlugins := []Plugin{}
+	for _, plugin := range plugins {
+		for _, version := range plugin.Versions {
+			// Check if the version is compatible with the current version of Anyquery
+			pluginVersion, err := semver.NewVersion(version.MinimumRequiredVersion)
+			if err != nil {
+				continue
+			}
+
+			if pluginVersion.GreaterThan(anyqueryParsedVersion) {
+				continue
+			}
+
+			// Check if the plugin has a file for the platform
+			// and the version is compatible with the current version of Anyquery
+			_, ok := version.Files[platform]
+			if ok {
+				platformPlugins = append(platformPlugins, plugin)
+				break
+			}
+
+		}
+	}
+	return platformPlugins, nil
 }
 
 func downloadZipToPath(url string, path string, checksum string) error {
@@ -166,7 +228,7 @@ const letters = "abcdefghijklmnopqrstuvwxyz1234567890"
 
 // Create a small ID that can be used in the path of a plugin
 // It is 6 characters long and contains only letters and numbers
-// It is not meant to be unique, but it is unlikely to collide
+// It is not meant to be unique, but it is unlikely to have a collision (308 915 776 possibilities)
 // We don't use uppercase letter due to the case-insensitive nature of some filesystems
 func newSmallID() string {
 	str := strings.Builder{}
@@ -174,4 +236,115 @@ func newSmallID() string {
 		str.WriteByte(letters[rand.IntN(len(letters))])
 	}
 	return str.String()
+}
+
+func UninstallPlugin(queries *model.Queries, registry string, plugin string) error {
+	// Get the plugin
+	pluginInfo, err := queries.GetPlugin(context.Background(), model.GetPluginParams{
+		Name:     plugin,
+		Registry: registry,
+	})
+	if err != nil {
+		return fmt.Errorf("could not get the plugin: %w", err)
+	}
+
+	// Ensure the plugin is not linked to any profile
+	linkedProfiles, err := queries.GetProfilesOfPlugin(context.Background(), model.GetProfilesOfPluginParams{
+		Pluginname: plugin,
+		Registry:   registry,
+	})
+	if err != nil {
+		return fmt.Errorf("could not get the linked profiles: %w", err)
+	}
+	if len(linkedProfiles) > 0 {
+		return fmt.Errorf("the plugin is linked to profiles: %v", linkedProfiles)
+	}
+
+	// Uninstall the plugin
+	err = os.RemoveAll(pluginInfo.Path)
+	if err != nil {
+		return fmt.Errorf("could not remove the plugin: %w", err)
+	}
+
+	// Remove the plugin from the database
+	err = queries.DeletePlugin(context.Background(), model.DeletePluginParams{
+		Name:     plugin,
+		Registry: registry,
+	})
+	if err != nil {
+		return fmt.Errorf("could not remove the plugin from the database: %w", err)
+	}
+	return nil
+}
+
+func UpdatePlugin(queries *model.Queries, registry string, plugin string) error {
+	// Get the plugin
+	pluginInfo, err := queries.GetPlugin(context.Background(), model.GetPluginParams{
+		Name:     plugin,
+		Registry: registry,
+	})
+	if err != nil {
+		return fmt.Errorf("could not get the plugin: %w", err)
+	}
+
+	// Find the plugin in the registry
+	_, plugins, err := LoadRegistry(queries, registry)
+	if err != nil {
+		return err
+	}
+	var pluginInfoRegistry *Plugin
+	for _, p := range plugins.Plugins {
+		if p.Name == plugin {
+			pluginInfoRegistry = &p
+			break
+		}
+	}
+
+	if pluginInfoRegistry == nil {
+		return fmt.Errorf("plugin %s not found in registry %s", plugin, registry)
+	}
+
+	// Find a compatible version
+	file, version, err := FindPluginVersionCandidate(*pluginInfoRegistry)
+	if err != nil {
+		return err
+	}
+	// Download the file
+	err = downloadZipToPath(file.URL, pluginInfo.Path, file.Hash)
+	if err != nil {
+		return err
+	}
+
+	// Update the plugin in the database
+	configJSON, err := json.Marshal(version.UserConfig)
+	if err != nil {
+		return err
+	}
+	tablesJSON, err := json.Marshal(version.Tables)
+	if err != nil {
+		return err
+	}
+	err = queries.UpdatePlugin(context.Background(), model.UpdatePluginParams{
+		Name:     plugin,
+		Registry: registry,
+		Description: sql.NullString{
+			String: pluginInfoRegistry.Description,
+			Valid:  true,
+		},
+		Version: version.Version,
+		Homepage: sql.NullString{
+			String: pluginInfoRegistry.Homepage,
+			Valid:  true,
+		},
+		Executablepath: file.Path,
+		Config:         string(configJSON),
+		Checksumdir:    sql.NullString{},
+		Tablename:      string(tablesJSON),
+		Author: sql.NullString{
+			String: pluginInfoRegistry.Author,
+			Valid:  true,
+		},
+		Issharedextension: int64(ternary.If(pluginInfoRegistry.Type == "sharedObject", 1, 0)),
+	})
+	return err
 }

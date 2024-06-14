@@ -8,10 +8,10 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "anyq",
+	Use:   "anyquery",
 	Short: "A tool to query any data source",
-	Long: `Anyquery is a tool that allows you to query any data source
-by writing SQL queries. It is designed to be extended by anyone.`,
+	Long: `Anyquery allows you to query any data source
+by writing SQL queries. It can be extended with plugins`,
 	// Avoid writing help when an error occurs
 	// Thanks https://github.com/spf13/cobra/issues/340#issuecomment-243790200
 	SilenceUsage: true,

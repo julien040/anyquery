@@ -145,6 +145,44 @@ func (q *Queries) AddRegistry(ctx context.Context, arg AddRegistryParams) error 
 	return err
 }
 
+const deletePlugin = `-- name: DeletePlugin :exec
+DELETE FROM
+    plugin_installed
+WHERE
+    name = ?
+    AND registry = ?
+`
+
+type DeletePluginParams struct {
+	Name     string
+	Registry string
+}
+
+func (q *Queries) DeletePlugin(ctx context.Context, arg DeletePluginParams) error {
+	_, err := q.db.ExecContext(ctx, deletePlugin, arg.Name, arg.Registry)
+	return err
+}
+
+const deleteProfile = `-- name: DeleteProfile :exec
+DELETE FROM
+    profile
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?
+`
+
+type DeleteProfileParams struct {
+	Name       string
+	Pluginname string
+	Registry   string
+}
+
+func (q *Queries) DeleteProfile(ctx context.Context, arg DeleteProfileParams) error {
+	_, err := q.db.ExecContext(ctx, deleteProfile, arg.Name, arg.Pluginname, arg.Registry)
+	return err
+}
+
 const deleteRegistry = `-- name: DeleteRegistry :exec
 DELETE FROM
     registry
@@ -288,6 +326,52 @@ func (q *Queries) GetPlugins(ctx context.Context) ([]PluginInstalled, error) {
 	return items, nil
 }
 
+const getPluginsOfRegistry = `-- name: GetPluginsOfRegistry :many
+SELECT
+    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
+FROM
+    plugin_installed
+WHERE
+    registry = ?
+`
+
+func (q *Queries) GetPluginsOfRegistry(ctx context.Context, registry string) ([]PluginInstalled, error) {
+	rows, err := q.db.QueryContext(ctx, getPluginsOfRegistry, registry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []PluginInstalled
+	for rows.Next() {
+		var i PluginInstalled
+		if err := rows.Scan(
+			&i.Name,
+			&i.Description,
+			&i.Path,
+			&i.Executablepath,
+			&i.Version,
+			&i.Homepage,
+			&i.Registry,
+			&i.Config,
+			&i.Checksumdir,
+			&i.Dev,
+			&i.Author,
+			&i.Tablename,
+			&i.Issharedextension,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getProfile = `-- name: GetProfile :one
 SELECT
     name, pluginname, registry, config
@@ -395,6 +479,43 @@ func (q *Queries) GetProfilesOfPlugin(ctx context.Context, arg GetProfilesOfPlug
 	return items, nil
 }
 
+const getProfilesOfRegistry = `-- name: GetProfilesOfRegistry :many
+SELECT
+    name, pluginname, registry, config
+FROM
+    profile
+WHERE
+    registry = ?
+`
+
+func (q *Queries) GetProfilesOfRegistry(ctx context.Context, registry string) ([]Profile, error) {
+	rows, err := q.db.QueryContext(ctx, getProfilesOfRegistry, registry)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Profile
+	for rows.Next() {
+		var i Profile
+		if err := rows.Scan(
+			&i.Name,
+			&i.Pluginname,
+			&i.Registry,
+			&i.Config,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getRegistries = `-- name: GetRegistries :many
 SELECT
     name, url, lastupdated, lastfetched, checksumregistry, registryjson
@@ -441,6 +562,11 @@ WHERE
     name = ?
 `
 
+// --------------------------------------------------------------------------
+//
+//	Get
+//
+// --------------------------------------------------------------------------
 func (q *Queries) GetRegistry(ctx context.Context, name string) (Registry, error) {
 	row := q.db.QueryRowContext(ctx, getRegistry, name)
 	var i Registry
@@ -453,6 +579,111 @@ func (q *Queries) GetRegistry(ctx context.Context, name string) (Registry, error
 		&i.Registryjson,
 	)
 	return i, err
+}
+
+const updatePlugin = `-- name: UpdatePlugin :exec
+UPDATE
+    plugin_installed
+SET
+    description = ?,
+    executablePath = ?,
+    version = ?,
+    homepage = ?,
+    config = ?,
+    checksumDir = ?,
+    author = ?,
+    tablename = ?,
+    isSharedExtension = ?
+WHERE
+    name = ?
+    AND registry = ?
+`
+
+type UpdatePluginParams struct {
+	Description       sql.NullString
+	Executablepath    string
+	Version           string
+	Homepage          sql.NullString
+	Config            string
+	Checksumdir       sql.NullString
+	Author            sql.NullString
+	Tablename         string
+	Issharedextension int64
+	Name              string
+	Registry          string
+}
+
+func (q *Queries) UpdatePlugin(ctx context.Context, arg UpdatePluginParams) error {
+	_, err := q.db.ExecContext(ctx, updatePlugin,
+		arg.Description,
+		arg.Executablepath,
+		arg.Version,
+		arg.Homepage,
+		arg.Config,
+		arg.Checksumdir,
+		arg.Author,
+		arg.Tablename,
+		arg.Issharedextension,
+		arg.Name,
+		arg.Registry,
+	)
+	return err
+}
+
+const updateProfileConfig = `-- name: UpdateProfileConfig :exec
+UPDATE
+    profile
+SET
+    config = ?
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?
+`
+
+type UpdateProfileConfigParams struct {
+	Config     string
+	Name       string
+	Pluginname string
+	Registry   string
+}
+
+func (q *Queries) UpdateProfileConfig(ctx context.Context, arg UpdateProfileConfigParams) error {
+	_, err := q.db.ExecContext(ctx, updateProfileConfig,
+		arg.Config,
+		arg.Name,
+		arg.Pluginname,
+		arg.Registry,
+	)
+	return err
+}
+
+const updateProfileName = `-- name: UpdateProfileName :exec
+UPDATE
+    profile
+SET
+    name = ?
+WHERE
+    name = ?
+    AND pluginName = ?
+    AND registry = ?
+`
+
+type UpdateProfileNameParams struct {
+	Name       string
+	Name_2     string
+	Pluginname string
+	Registry   string
+}
+
+func (q *Queries) UpdateProfileName(ctx context.Context, arg UpdateProfileNameParams) error {
+	_, err := q.db.ExecContext(ctx, updateProfileName,
+		arg.Name,
+		arg.Name_2,
+		arg.Pluginname,
+		arg.Registry,
+	)
+	return err
 }
 
 const updateRegistry = `-- name: UpdateRegistry :exec

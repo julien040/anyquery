@@ -16,6 +16,7 @@ require (
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.0
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1

@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 )
@@ -22,8 +23,10 @@ var DefaultRegistryBasePath = "https://registry.anyquery.dev/"
 
 var anyqueryVersion = "0.0.1"
 
+var anyqueryParsedVersion = semver.MustParse(anyqueryVersion)
+
 // Validates the given JSON string against the schema_registry.json schema.
-func validateSchema(registry []byte) error {
+func ValidateSchema(registry []byte) error {
 	sch, err := jsonschema.CompileString("registry.json", schema)
 	if err != nil {
 		return fmt.Errorf("error compiling schema: %v", err)
@@ -57,7 +60,7 @@ func downloadRegistry(url string) ([]byte, error) {
 	}
 
 	// Validate registry
-	if err := validateSchema(registry); err != nil {
+	if err := ValidateSchema(registry); err != nil {
 		return []byte{}, fmt.Errorf("error validating registry from %s: %v", url, err)
 	}
 
@@ -155,9 +158,9 @@ func UpdateRegistry(queries *model.Queries, name string) error {
 	return nil
 }
 
-func LoadDefaultRegistry(queries *model.Queries) error {
+func AddDefaultRegistry(queries *model.Queries) error {
 	// Compute the path to the default registry
-	path, err := url.JoinPath(DefaultRegistryBasePath, "v0", "registry.json")
+	path, err := url.JoinPath(DefaultRegistryBasePath, "v0", "registry/")
 	if err != nil {
 		return fmt.Errorf("error joining path while loading default registry: %v", err)
 	}
@@ -177,6 +180,11 @@ func LoadRegistry(queries *model.Queries, name string) (model.Registry, Registry
 	err = json.Unmarshal([]byte(registry.Registryjson), &unmarshaled)
 	if err != nil {
 		return model.Registry{}, Registry{}, fmt.Errorf("error unmarshaling registry: %v", err)
+	}
+
+	// Set the registry field in the plugins
+	for i := range unmarshaled.Plugins {
+		unmarshaled.Plugins[i].Registry = name
 	}
 
 	return registry, unmarshaled, nil

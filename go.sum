@@ -425,6 +425,8 @@ github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
 github.com/julien040/go-sqlite3-anyquery v1.17.0 h1:agkknNjaUc9gbTONaMrPvCoJXBoJ84CoRSXaMh+IUv4=
 github.com/julien040/go-sqlite3-anyquery v1.17.0/go.mod h1:9t7/JQ99yNR2b18cBR11VGyrJYg+Q7IQNHMWoCt6yGE=
+github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e h1:q8lhYSYDzN8slDRCVRt2TD2ShyjNcuQU+I9LZNPv4TM=
+github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e/go.mod h1:XXIcjDHL7vyuHA7V0UwaTKMscsqKzFkE9FTGbBeqJHM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
 github.com/klauspost/compress v1.15.11/go.mod h1:QPwzmACJjUTFsnSHH934V6woptycfrDDJnH7hvFVbGM=
 github.com/klauspost/compress v1.17.8 h1:YcnTYrq7MikUT7k0Yb5eceMmALQPYBW/Xltxn0NAMnU=

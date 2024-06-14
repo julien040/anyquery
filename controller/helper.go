@@ -65,12 +65,3 @@ func isNoInputFlagSet(flags *pflag.FlagSet) bool {
 
 	return noInput
 }
-
-// Truncate a string to a given length - 3 (to add "...")
-func strTruncate(s string, length int) string {
-	if len(s) <= length {
-		return s
-	}
-
-	return s[:length-3] + "..."
-}

@@ -55,6 +55,7 @@ type tableEncoder interface {
 	Close() error
 }
 
+// Create a new output table and force the output type
 func newOutputTable(columns []string, outputType outputTableType, writer io.Writer) *outputTable {
 	return &outputTable{
 		Columns: columns,

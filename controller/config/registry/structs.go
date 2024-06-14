@@ -17,7 +17,7 @@ type Plugin struct {
 	Author      string `json:"author"`
 	Homepage    string `json:"homepage"`
 	License     string `json:"license"`
-	LastVersion string `json:"last_version"`
+	Registry    string // This is not a field in the registry, but can be filled for easier access
 	// If type is different than anyquery or SharedObject, it will be ignored
 	Type     string          `json:"type"`
 	Versions []PluginVersion `json:"versions"`
@@ -40,4 +40,7 @@ type PluginFile struct {
 type UserConfig struct {
 	Name     string `json:"name"`
 	Required bool   `json:"required"`
+	// The type of the variable prompted to the user
+	// Can be: string, int, float, bool, []string, []int, []float, []bool
+	Type string `json:"type"`
 }

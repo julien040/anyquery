@@ -182,7 +182,7 @@ func TestValidateSchema(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := validateSchema(tt.registry); (err != nil) != tt.wantErr {
+			if err := ValidateSchema(tt.registry); (err != nil) != tt.wantErr {
 				t.Errorf("validateSchema() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
@@ -250,7 +250,6 @@ func TestRegistry(t *testing.T) {
 		require.Equal(t, "MIT", parsedPlugins.Plugins[0].License)
 		require.Equal(t, "https://github.com/nalgeon/sqlean/releases", parsedPlugins.Plugins[0].Homepage)
 		require.Equal(t, "sharedObject", parsedPlugins.Plugins[0].Type)
-		require.Equal(t, "0.1.2", parsedPlugins.Plugins[0].LastVersion)
 
 		if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
 			file, version, err := FindPluginVersionCandidate(parsedPlugins.Plugins[0])

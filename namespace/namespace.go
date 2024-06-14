@@ -412,23 +412,33 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			localManifest.Tables = make([]string, len(manifest.Tables))
 			copy(localManifest.Tables, manifest.Tables)
 			prefix := ""
-			if profile.Name != "default" {
-				// We add a prefix to the tables
-				prefix = profile.Name + "_"
 
-				for index, table := range localManifest.Tables {
-					// We check if the table is not an alias
-					alias, err := queries.GetAlias(ctx, sql.NullString{String: prefix + table, Valid: true})
-					if err != nil {
-						logger.Error("could not get the alias of the table", "table", table, "error", err)
-					}
-					if alias.Alias.Valid {
-						localManifest.Tables[index] = alias.Alias.String
-					} else {
-						localManifest.Tables[index] = prefix + table
-					}
+			// The table name format is the following:
+			// <profile_name>_<plugin_name>_<table_name>
+			// If the profile is default, we don't add a prefix
+			// so we have <plugin_name>_<table_name>
+
+			if profile.Name != "default" {
+				prefix = profile.Name + "_"
+			}
+			prefix += row.Name + "_"
+
+			for index, table := range localManifest.Tables {
+
+				fullName := prefix + table
+				// We check if the table is not an alias
+				alias, err := queries.GetAlias(ctx, sql.NullString{String: fullName, Valid: true})
+				if err != nil {
+					logger.Error("could not get the alias of the table", "table", table, "error", err)
+				}
+				if alias.Alias.Valid {
+					localManifest.Tables[index] = alias.Alias.String
+				} else {
+					// profi
+					localManifest.Tables[index] = fullName
 				}
 			}
+
 			// We unmarsal the user config
 			var userConfig rpc.PluginConfig
 			err := json.Unmarshal([]byte(profile.Config), &userConfig)
