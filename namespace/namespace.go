@@ -55,6 +55,9 @@ type NamespaceConfig struct {
 
 	// The hclog logger to use from hashicorp/go-hclog
 	Logger hclog.Logger
+
+	// If ReadOnly is set to true, the database will be opened in read-only mode
+	ReadOnly bool
 }
 
 type Namespace struct {
@@ -112,6 +115,8 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 		// Open the database in memory if needed
 		if config.InMemory {
 			connectionStringBuilder.WriteString("&mode=memory")
+		} else if config.ReadOnly {
+			connectionStringBuilder.WriteString("&mode=ro")
 		}
 
 		// Set the page cache size

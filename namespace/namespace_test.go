@@ -70,8 +70,29 @@ func TestNamespace(t *testing.T) {
 			namespace.connectionString, "The connection string should be correct")
 	})
 
+	t.Run("The connection string is set correctly for a read-only file DB", func(t *testing.T) {
+		var err error
+		namespace, err = NewNamespace(NamespaceConfig{
+			ReadOnly: true,
+		})
+		require.NoError(t, err, "The namespace should be initialized")
+		require.Equal(t, "file:anyquery.db?cache=shared&mode=ro&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+			namespace.connectionString, "The connection string should be correct")
+	})
+
+	t.Run("The read only flag is ignored for in-memory DB", func(t *testing.T) {
+		var err error
+		namespace, err = NewNamespace(NamespaceConfig{
+			ReadOnly: true,
+			InMemory: true,
+		})
+		require.NoError(t, err, "The namespace should be initialized")
+		require.Equal(t, "file:anyquery.db?cache=shared&mode=memory&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+			namespace.connectionString, "The connection string should be correct")
+	})
+
 	t.Run("The GetConnectionString method works", func(t *testing.T) {
-		require.Equal(t, "file:mytest.db?cache=shared&_foreign_keys=OFF",
+		require.Equal(t, "file:anyquery.db?cache=shared&mode=memory&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
 			namespace.GetConnectionString(), "The connection string should be correct")
 		require.Equal(t, namespace.connectionString, namespace.GetConnectionString(), "The connection string should be correct")
 	})
