@@ -1,4 +1,3 @@
-
 # VisualStudioCode template downloaded with gut
 .vscode/*
 !.vscode/settings.json
@@ -57,3 +56,5 @@ fabric.properties
 .idea/*
 !.idea/codeStyles
 !.idea/runConfigurations
+
+.DS_Store
