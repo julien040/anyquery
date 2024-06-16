@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	stdpath "path"
 	"strconv"
 	"strings"
 
@@ -211,6 +212,7 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 
 	// Load the plugin
 	for index, table := range manifest.Tables {
+		n.logger.Debug("registering table", "table", table, "plugin", manifest.Name, "connection", connectionID)
 		plugin := &module.SQLiteModule{
 			ConnectionPool:  n.pool,
 			ConnectionIndex: connectionID,
@@ -369,6 +371,8 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 		return err
 	}
 
+	logger.Debug("retrieved the plugins from the database", "count", len(plugins))
+
 	for _, plugin := range plugins {
 		logger.Debug("loading the plugin", "plugin", plugin.Name, "registry", plugin.Registry)
 		// We define a plugin manifest that will be used to load the plugin
@@ -389,10 +393,13 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			continue
 		} */
 
+		// We merge the directory path with the name of the executable
+		pluginPath := stdpath.Join(plugin.Path, plugin.Executablepath)
+
 		// We check if the plugin is a shared object extension (a SQLite extension)
 		if plugin.Issharedextension == 1 {
 			// We load it using LoadSharedExtension because it's a SQLite extension
-			err := n.LoadSharedExtension(plugin.Path, "")
+			err := n.LoadSharedExtension(pluginPath, "")
 			if err != nil {
 				logger.Error("could not load the shared extension", "plugin", plugin.Name, "registry", plugin.Registry, "error", err)
 			}
@@ -443,15 +450,17 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			}
 
 			// We unmarsal the user config
-			var userConfig rpc.PluginConfig
-			err := json.Unmarshal([]byte(profile.Config), &userConfig)
+			userConfig, err := extractUserConf(profile, localManifest)
 			if err != nil {
 				logger.Error("could not unmarshal the user config", "error", err)
 				continue
 			}
 
+			logger.Debug("loading the profile", "profile", profile.Name, "plugin", plugin.Name, "registry", plugin.Registry,
+				"table count", len(localManifest.Tables), "plugin path", pluginPath, "connection", connectionID)
+
 			// We load the plugin
-			err = n.LoadAnyqueryPlugin(plugin.Path, localManifest, userConfig, connectionID)
+			err = n.LoadAnyqueryPlugin(pluginPath, localManifest, userConfig, connectionID)
 			if err != nil {
 				logger.Error("could not load the plugin", "plugin", plugin.Name, "error", err)
 			}
@@ -462,4 +471,145 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 
 	return nil
 
+}
+
+// Extract the user config from the profile
+// and keep only the fields that are in the manifest
+func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.PluginConfig, error) {
+	// The first approach for the user config is to simply unmarshal it
+	// Unfortunately, this approach has several issues:
+	// - The user config may contain fields that are not in the manifest
+	//   if the database is modified by external tools
+	// - encoding/json unmarshal arrays as []interface{} but the gob encoding which is used between the CLI and the server
+	//   returns gob: type not registered for interface: []interface {} as an error when passing []interface{} to the plugin
+	//
+	// To solve these issues, we will build the user config from the manifest manually
+	// It's less efficient but it's safer
+	//
+	// If we don't find a required field, we return an error
+	// If we find an unrequired field, we ignore it
+	var userConfig rpc.PluginConfig = make(map[string]interface{})
+
+	// We unmarshal the user config into a temporary map
+	tempUnmarshal := make(map[string]interface{})
+	err := json.Unmarshal([]byte(profile.Config), &tempUnmarshal)
+	if err != nil {
+		return userConfig, err
+	}
+
+	// We iterate over the fields of the manifest
+	// and for each field, we add it to the user config
+	// that we'll return
+	for _, field := range manifest.UserConfig {
+		var value interface{}
+		// Ensure the field is in the temporary unmarshal if required
+		if field.Required {
+			_, ok := tempUnmarshal[field.Name]
+			if !ok {
+				return userConfig, fmt.Errorf("the required field %s is not found in the user config", field.Name)
+			}
+		}
+
+		switch field.Type {
+		// If the field is of wrong type, we return an error
+		// Otherwise, we leave the zero value
+		case "string":
+			value = ""
+			tempVal, ok := tempUnmarshal[field.Name].(string)
+			if ok {
+				value = tempVal
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not a string", field.Name)
+			}
+		case "int":
+			value = 0
+			// encoding/json unmarshal numbers as float64
+			tempVal, ok := tempUnmarshal[field.Name].(float64)
+			if ok {
+				value = int(tempVal)
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not an int", field.Name)
+			}
+		case "float":
+			value = 0.0
+			tempVal, ok := tempUnmarshal[field.Name].(float64)
+			if ok {
+				value = tempVal
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not a float", field.Name)
+			}
+		case "bool":
+			value = false
+			tempVal, ok := tempUnmarshal[field.Name].(bool)
+			if ok {
+				value = tempVal
+			}
+		case "[]string":
+			value = []string{}
+			tempVal, ok := tempUnmarshal[field.Name].([]interface{})
+			if ok {
+				for i, v := range tempVal {
+					str, ok := v.(string)
+					if !ok {
+						return userConfig, fmt.Errorf("the field %s at index %d is not a string", field.Name, i)
+					}
+					value = append(value.([]string), str)
+				}
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not an array of strings", field.Name)
+			}
+		case "[]int":
+			value = []int{}
+			tempVal, ok := tempUnmarshal[field.Name].([]interface{})
+			if ok {
+				for i, v := range tempVal {
+					num, ok := v.(float64)
+					if !ok {
+						return userConfig, fmt.Errorf("the field %s at index %d is not an int", field.Name, i)
+					}
+					value = append(value.([]int), int(num))
+				}
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not an array of ints", field.Name)
+			}
+		case "[]float":
+			value = []float64{}
+			tempVal, ok := tempUnmarshal[field.Name].([]interface{})
+			if ok {
+				for i, v := range tempVal {
+					num, ok := v.(float64)
+					if !ok {
+						return userConfig, fmt.Errorf("the field %s at index %d is not a float", field.Name, i)
+					}
+					value = append(value.([]float64), num)
+				}
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not an array of floats", field.Name)
+			}
+
+		case "[]bool":
+			value = []bool{}
+			tempVal, ok := tempUnmarshal[field.Name].([]interface{})
+			if ok {
+				for i, v := range tempVal {
+					b, ok := v.(bool)
+					if !ok {
+						return userConfig, fmt.Errorf("the field %s at index %d is not a bool", field.Name, i)
+					}
+					value = append(value.([]bool), b)
+				}
+			} else if field.Required {
+				return userConfig, fmt.Errorf("the field %s is not an array of bools", field.Name)
+			}
+		default:
+			return userConfig, fmt.Errorf("the field %s (type %s) is not recognized by the current version of Anyquery", field.Name, field.Type)
+
+		}
+
+		// We add the value to the user config
+		userConfig[field.Name] = value
+
+	}
+
+	return userConfig, err
 }

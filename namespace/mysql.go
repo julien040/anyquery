@@ -148,7 +148,7 @@ func (s *MySQLServer) Start() error {
 	// I have set default values that I'm not sure to properly understand
 	// Feel free to open a pull request for more sensible values
 	listener, err := mysql.NewListener("tcp", s.Address, authServer, handler,
-		60*time.Second, 60*time.Second, false, true, 1*time.Hour, 60*time.Second)
+		0, 0, false, true, 1*time.Hour, 60*time.Second)
 
 	if err != nil {
 		return fmt.Errorf("error creating listener: %v", err)
