@@ -1,6 +1,7 @@
 package namespace
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"sort"
@@ -39,6 +40,8 @@ type handler struct {
 	RewriteMySQLQueries bool
 	databaseInited      bool
 	Logger              *log.Logger
+	// Allow each MySQL connection to have its own SQLite connection
+	connectionMapper map[uint32]*sql.Conn
 }
 
 func (h *handler) NewConnection(c *mysql.Conn) {
@@ -50,12 +53,42 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 		} else {
 			h.databaseInited = true
 		}
+
+		// We create a new connection for the MySQL connection
+		// This is useful to have a separate connection for each MySQL connection
+		// so that BEGIN and COMMIT can be used
+		ctx := context.Background()
+
+		conn, err := h.DB.Conn(ctx)
+		if err != nil {
+			h.Logger.Error("Error creating connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
+			return
+		}
+
+		if h.connectionMapper == nil {
+			h.connectionMapper = make(map[uint32]*sql.Conn)
+		}
+
+		h.connectionMapper[c.ConnectionID] = conn
+
 	}
 
 }
 
 func (h *handler) ConnectionClosed(c *mysql.Conn) {
 	h.Logger.Info("Connection closed", "connectionID", c.ConnectionID, "username", c.User)
+
+	// Close the connection associated with the MySQL connection
+	if conn, ok := h.connectionMapper[c.ConnectionID]; ok {
+		err := conn.Close()
+		if err != nil {
+			h.Logger.Error("Error closing connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
+		}
+		delete(h.connectionMapper, c.ConnectionID)
+	} else {
+		h.Logger.Error("SQLite connection not found", "connectionID", c.ConnectionID, "username", c.User)
+	}
+
 }
 
 func (h *handler) ComPrepare(c *mysql.Conn, query string, bindVars map[string]*querypb.BindVariable) ([]*querypb.Field, error) {
@@ -64,7 +97,7 @@ func (h *handler) ComPrepare(c *mysql.Conn, query string, bindVars map[string]*q
 }
 
 func (h *handler) ComStmtExecute(c *mysql.Conn, f *mysql.PrepareData, callback func(*sqltypes.Result) error) error {
-	h.Logger.Debug("Execute prepared statement", "connectionID", c.ConnectionID, "username", c.User)
+	h.Logger.Debug("Execute prepared statement", "connectionID", c.ConnectionID, "username", c.User, "prepareStmt", f.PrepareStmt)
 
 	// We create a slice of interfaces to pass to the Query method
 	// They represent the arguments of the prepared statement
@@ -101,7 +134,7 @@ func (h *handler) ComStmtExecute(c *mysql.Conn, f *mysql.PrepareData, callback f
 		}
 
 	}
-	res, err := h.runQuery(f.PrepareStmt, values...)
+	res, err := h.runQuery(c.ConnectionID, f.PrepareStmt, values...)
 	if err != nil {
 		return err
 	}
@@ -131,7 +164,7 @@ func (h *handler) Env() *vtenv.Environment {
 
 func (h *handler) ComQuery(c *mysql.Conn, query string, callback func(*sqltypes.Result) error) error {
 	h.Logger.Debug("Received query: ", "query", query, "connectionID", c.ConnectionID, "username", c.User)
-	res, err := h.runQuery(query)
+	res, err := h.runQuery(c.ConnectionID, query)
 	if err != nil {
 		return err
 	}
@@ -158,20 +191,28 @@ func (h *handler) ConnectionReady(c *mysql.Conn) {}
 // Run a SQL query and return the result as a sqltypes.Result
 //
 // If specified, the query will be rewritten to be compatible with MySQL
-func (h *handler) runQuery(query string, args ...interface{}) (*sqltypes.Result, error) {
+func (h *handler) runQuery(connectionID uint32, query string, args ...interface{}) (*sqltypes.Result, error) {
 	if !h.RewriteMySQLQueries {
-		return h.runSimpleQuery(query, args...)
+		return h.runSimpleQuery(connectionID, query, args...)
 	} else {
-		return h.runQueryWithMySQLSpecific(query, args...)
+		return h.runQueryWithMySQLSpecific(connectionID, query, args...)
 	}
 
 }
 
 // Run a SQL query to the h.DB connection, bypasing the MySQL compatibility layer,
 // convert the result to a sqltypes.Result and return it
-func (h *handler) runSimpleQuery(query string, args ...any) (*sqltypes.Result, error) {
+func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any) (*sqltypes.Result, error) {
 	h.Logger.Debug("Running query: ", "query", query)
-	rows, err := h.DB.Query(query, args...)
+
+	// Retrieve the connection associated with the MySQL connection
+	conn, ok := h.connectionMapper[connectionID]
+	if !ok {
+		h.Logger.Error("SQLite connection not found", "connectionID", connectionID)
+		return nil, fmt.Errorf("SQLite connection not found")
+	}
+
+	rows, err := conn.QueryContext(context.Background(), query, args...)
 	if err != nil {
 		return nil, err
 	}

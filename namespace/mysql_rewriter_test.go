@@ -88,7 +88,7 @@ func TestSelectRewriter(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			stmtType, stmt, err := getQueryType(tt.query)
+			stmtType, stmt, err := GetQueryType(tt.query)
 			if err != nil {
 				t.Fatalf("unexpected error while parsing: %v", err)
 			}
@@ -154,7 +154,7 @@ func TestQueryTypeDetection(t *testing.T) {
 
 	for _, tt := range tests {
 
-		queryType, _, err := getQueryType(tt.query)
+		queryType, _, err := GetQueryType(tt.query)
 		if err != nil {
 			t.Fatalf("unexpected error while parsing: %v", err)
 		}

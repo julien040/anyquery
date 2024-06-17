@@ -5,17 +5,16 @@ import (
 	"strings"
 
 	"vitess.io/vitess/go/sqltypes"
-	"vitess.io/vitess/go/vt/proto/query"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
-// getQueryType returns the type of the query
+// GetQueryType returns the type of the query
 // (e.g. SELECT, INSERT, SHOW, SET, etc.)
 // Internally, it uses the sqlparser from the vitess project
 // to parse the query and return the type.
 //
 // If a syntax error is found, it returns an unknown type. Therefore, error will be nil.
-func getQueryType(query string) (sqlparser.StatementType, sqlparser.Statement, error) {
+func GetQueryType(query string) (sqlparser.StatementType, sqlparser.Statement, error) {
 	parser, err := sqlparser.New(sqlparser.Options{
 		MySQLServerVersion: "8.0.30",
 	})
@@ -49,7 +48,8 @@ func getQueryType(query string) (sqlparser.StatementType, sqlparser.Statement, e
 const showDatabasesQuery = "SELECT name as Database FROM pragma_database_list()"
 
 // showTablesQuery emulates the "SHOW TABLES" query
-const showTablesQuery = "SELECT name as \"Tables_in_main\" FROM pragma_table_list() WHERE schema LIKE ? AND name LIKE ?"
+const showTablesQuery = "SELECT name as \"Tables_in_main\" FROM pragma_table_list() WHERE schema LIKE ? AND name LIKE ?" +
+	" UNION SELECT name as \"Tables_in_main\" FROM pragma_module_list()"
 
 // showFullTablesQuery emulates the "SHOW FULL TABLES" query
 const showFullTablesQuery = `
@@ -229,12 +229,29 @@ SELECT
 	? as "Database",
 	'CREATE DATABASE "' || ? || '" COLLATE utf8mb4_general_ci' as "Create Database"`
 
+const showWarningsQuery = `
+SELECT
+	'Note' AS Level,
+	0 AS Code,
+	'' AS Message
+FROM
+	dual
+WHERE FALSE`
+
+// emptyResultSet is an empty result set
+const showEmptyResultSet = `
+SELECT
+	'' AS "Empty"
+FROM
+	dual
+WHERE FALSE`
+
 // Run a query on the database
 // but rewrite, or provide special handling for MySQL specific queries
-func (h *handler) runQueryWithMySQLSpecific(query string, args ...interface{}) (*sqltypes.Result, error) {
-	// Find the type of the query and parse it
+func (h *handler) runQueryWithMySQLSpecific(connectionID uint32, query string, args ...interface{}) (*sqltypes.Result, error) {
 
-	queryType, parsedQuery, err := getQueryType(query)
+	// Find the type of the query and parse it
+	queryType, parsedQuery, err := GetQueryType(query)
 	if err != nil {
 		return emptyResultSet, err
 	}
@@ -242,7 +259,8 @@ func (h *handler) runQueryWithMySQLSpecific(query string, args ...interface{}) (
 	// Handle the query based on its type
 	switch queryType {
 	case sqlparser.StmtShow:
-		return h.runShowStatement(parsedQuery.(*sqlparser.Show))
+		query, args := RewriteShowStatement(parsedQuery.(*sqlparser.Show))
+		return h.runSimpleQuery(connectionID, query, args...)
 	case sqlparser.StmtUse:
 		return emptyResultSet, nil
 	case sqlparser.StmtSet:
@@ -256,27 +274,27 @@ func (h *handler) runQueryWithMySQLSpecific(query string, args ...interface{}) (
 			h.Logger.Warnf("Unexpected type for EXPLAIN statement: %T", parsedQuery)
 			return emptyResultSet, nil
 		}
-		return h.runSimpleQuery(showColumnsQuery, val.Table.Name.String(), "%")
+		return h.runSimpleQuery(connectionID, showColumnsQuery, val.Table.Name.String(), "%")
 
 	case sqlparser.StmtSelect:
 		// We rewrite the query to be SQLite compatible
 		rewriteSelectStatement(&parsedQuery)
-		return h.runSimpleQuery(sqlparser.String(parsedQuery), args...)
+		return h.runSimpleQuery(connectionID, sqlparser.String(parsedQuery), args...)
 
 	case sqlparser.StmtUnknown:
 		// If the query is not recognized (e.g. syntax error), we run it as is
-		return h.runSimpleQuery(query, args...)
+		return h.runSimpleQuery(connectionID, query, args...)
 
 	// However, for all the other cases, we run the parsed query
 	// For instance, it helps transforming START TRANSACTION into BEGIN
 	default:
-		return h.runSimpleQuery(sqlparser.String(parsedQuery), args...)
+		return h.runSimpleQuery(connectionID, sqlparser.String(parsedQuery), args...)
 	}
 
 }
 
-// Handle a SHOW statement and returns the result for the mysql server
-func (h *handler) runShowStatement(parsedQuery *sqlparser.Show) (*sqltypes.Result, error) {
+// Take a SHOW statement and return the corresponding SQLite query
+func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 	// Find the like clause in the SHOW statement
 	// If there is no like clause, we return a wildcard
 	findLike := func(showStmt *sqlparser.ShowBasic) string {
@@ -302,14 +320,14 @@ func (h *handler) runShowStatement(parsedQuery *sqlparser.Show) (*sqltypes.Resul
 			// Because SHOW FULL TABLES returns a different result than SHOW TABLES
 			// we need to use a different query
 			if showType.Full {
-				return h.runSimpleQuery(showFullTablesQuery, dbName, like)
+				return showFullTablesQuery, []interface{}{dbName, like}
 			} else {
-				return h.runSimpleQuery(showTablesQuery, dbName, like)
+				return showTablesQuery, []interface{}{dbName, like}
 			}
 		// SHOW SESSION STATUS and SHOW GLOBAL STATUS
 		case sqlparser.StatusGlobal, sqlparser.StatusSession:
 			like := findLike(showType)
-			return h.runSimpleQuery(showSessionQuery, like)
+			return showSessionQuery, []interface{}{like}
 		// SHOW VARIABLES, SHOW GLOBAL VARIABLES, SHOW SESSION VARIABLES
 		case sqlparser.VariableGlobal, sqlparser.VariableSession:
 			// We build a custom select query from the map of variables
@@ -334,25 +352,25 @@ func (h *handler) runShowStatement(parsedQuery *sqlparser.Show) (*sqltypes.Resul
 				i++
 			}
 			query.WriteString(") WHERE Variable_name LIKE ?")
-			return h.runSimpleQuery(query.String(), like)
+			return query.String(), []interface{}{like}
 
 		// SHOW DATABASES, SHOW SCHEMAS
 		case sqlparser.Database:
-			return h.runSimpleQuery(showDatabasesQuery)
+			return showDatabasesQuery, nil
 
 		// SHOW ENGINES
 		case sqlparser.Engines:
-			return h.runSimpleQuery(showEnginesQuery)
+			return showEnginesQuery, nil
 
 		// SHOW COLLATION
 		case sqlparser.Collation:
 			like := findLike(showType)
-			return h.runSimpleQuery(showCollationsQuery, like)
+			return showCollationsQuery, []interface{}{like}
 
 		// SHOW CHARACTER SET
 		case sqlparser.Charset:
 			like := findLike(showType)
-			return h.runSimpleQuery(showCharacterSetsQuery, like)
+			return showCharacterSetsQuery, []interface{}{like}
 
 		// SHOW TABLE STATUS
 		case sqlparser.TableStatus:
@@ -361,57 +379,51 @@ func (h *handler) runShowStatement(parsedQuery *sqlparser.Show) (*sqltypes.Resul
 			if showType.DbName.String() != "" {
 				dbName = showType.DbName.String()
 			}
-			return h.runSimpleQuery(showTableStatusQuery, dbName, like)
+			return showTableStatusQuery, []interface{}{dbName, like}
 
 		// SHOW INDEXES
 		case sqlparser.Index:
-			return h.runSimpleQuery(showIndexesQuery)
+			return showIndexesQuery, nil
 
 		// SHOW COLUMNS, SHOW FIELDS
 		case sqlparser.Column:
 			like := findLike(showType)
-			return h.runSimpleQuery(showColumnsQuery, showType.Tbl.Name.String(), like)
+			return showColumnsQuery, []interface{}{showType.Tbl.Name.String(), like}
 
 		// SHOW WARNINGS
 		case sqlparser.Warnings:
 			// Return an empty table but with the correct fields
-			return &sqltypes.Result{
-				Fields: []*query.Field{
-					{Name: "Level", Type: sqltypes.VarChar},
-					{Name: "Code", Type: sqltypes.Int32},
-					{Name: "Message", Type: sqltypes.VarChar},
-				},
-			}, nil
+			return showWarningsQuery, nil
 
 		// SHOW CREATE TABLE
 		case sqlparser.CreateTbl:
 			tblName := showType.Tbl.Name.String()
-			return h.runSimpleQuery(showCreateTableQuery, tblName, tblName)
+			return showCreateTableQuery, []interface{}{tblName, tblName}
 
 		// SHOW CREATE VIEW
 		case sqlparser.CreateV:
 			vName := showType.Tbl.Name.String()
-			return h.runSimpleQuery(showCreateTableQuery, vName, vName)
+			return showCreateTableQuery, []interface{}{vName, vName}
 
 		default:
 			// Because it's a show statement we don't handle, we return an empty result
-			return emptyResultSet, nil
+			return showEmptyResultSet, nil
 		}
 	case *sqlparser.ShowCreate:
 		// We only handle the SHOW CREATE TABLE statement
 		switch showType.Command {
 		case sqlparser.CreateTbl, sqlparser.CreateV:
 			tableName := showType.Op.Name.String()
-			return h.runSimpleQuery(showCreateTableQuery, tableName, tableName)
+			return showCreateTableQuery, []interface{}{tableName, tableName}
 		case sqlparser.CreateDb:
 			dbName := showType.Op.Name.String()
-			return h.runSimpleQuery(showCreateDatabaseQuery, dbName, dbName)
+			return showCreateDatabaseQuery, []interface{}{dbName, dbName}
 		default:
-			return emptyResultSet, nil
+			return showEmptyResultSet, nil
 		}
 	default:
 		// Because it's a show statement we don't handle, we return an empty result
-		return emptyResultSet, nil
+		return showEmptyResultSet, nil
 	}
 }
 
@@ -488,10 +500,9 @@ var selectFunctionDeleteRemapper = map[string]interface{}{}
 //
 // # Non exhaustive list of things rewritten:
 //
-// - Collations (e.g. "utf8mb4_general_ci" -> "BINARY")
-// - SELECT @@myvar -> SELECT 'default value of myvar'
-// - SELECT database(), user(), system_user() -> SELECT 'main', 'root', 'root'
-// - SELECT
+//   - Collations (e.g. "utf8mb4_general_ci" -> "BINARY")
+//   - SELECT @@myvar -> SELECT 'default value of myvar'
+//   - SELECT database(), user(), system_user() -> SELECT 'main', 'root', 'root'
 func rewriteSelectStatement(parsedQuery *sqlparser.Statement) {
 	// We need to set the func to post because we need to traverse the leaf nodes
 	sqlparser.Rewrite(*parsedQuery, nil, func(cursor *sqlparser.Cursor) bool {
