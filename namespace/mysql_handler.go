@@ -53,25 +53,23 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 		} else {
 			h.databaseInited = true
 		}
-
-		// We create a new connection for the MySQL connection
-		// This is useful to have a separate connection for each MySQL connection
-		// so that BEGIN and COMMIT can be used
-		ctx := context.Background()
-
-		conn, err := h.DB.Conn(ctx)
-		if err != nil {
-			h.Logger.Error("Error creating connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
-			return
-		}
-
-		if h.connectionMapper == nil {
-			h.connectionMapper = make(map[uint32]*sql.Conn)
-		}
-
-		h.connectionMapper[c.ConnectionID] = conn
-
 	}
+	// We create a new connection for the MySQL connection
+	// This is useful to have a separate connection for each MySQL connection
+	// so that BEGIN and COMMIT can be used
+	ctx := context.Background()
+	conn, err := h.DB.Conn(ctx)
+	h.Logger.Debug("Connection created", "connectionID", c.ConnectionID, "username", c.User)
+	if err != nil {
+		h.Logger.Error("Error creating connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
+		return
+	}
+
+	if h.connectionMapper == nil {
+		h.connectionMapper = make(map[uint32]*sql.Conn)
+	}
+
+	h.connectionMapper[c.ConnectionID] = conn
 
 }
 
@@ -166,6 +164,7 @@ func (h *handler) ComQuery(c *mysql.Conn, query string, callback func(*sqltypes.
 	h.Logger.Debug("Received query: ", "query", query, "connectionID", c.ConnectionID, "username", c.User)
 	res, err := h.runQuery(c.ConnectionID, query)
 	if err != nil {
+		h.Logger.Debug("Error running query", "err", err, "query", query, "connectionID", c.ConnectionID, "username", c.User)
 		return err
 	}
 

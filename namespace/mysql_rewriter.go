@@ -48,8 +48,22 @@ func GetQueryType(query string) (sqlparser.StatementType, sqlparser.Statement, e
 const showDatabasesQuery = "SELECT name as Database FROM pragma_database_list()"
 
 // showTablesQuery emulates the "SHOW TABLES" query
-const showTablesQuery = "SELECT name as \"Tables_in_main\" FROM pragma_table_list() WHERE schema LIKE ? AND name LIKE ?" +
-	" UNION SELECT name as \"Tables_in_main\" FROM pragma_module_list()"
+const showTablesQuery = `
+SELECT
+	name AS "Tables_in_main"
+FROM
+	pragma_table_list()
+WHERE
+	SCHEMA LIKE ?
+	AND name LIKE ?
+UNION
+SELECT
+	name AS Tables_in_main
+FROM
+	pragma_module_list()
+WHERE name NOT LIKE 'fts%'
+AND name NOT LIKE 'rtree%'
+AND name LIKE ?`
 
 // showFullTablesQuery emulates the "SHOW FULL TABLES" query
 const showFullTablesQuery = `
@@ -63,10 +77,18 @@ SELECT
 	END AS "Table_type"
 FROM
 	pragma_table_list()
-
 WHERE 
 	schema LIKE ? 
-	AND name LIKE ?`
+	AND name LIKE ?
+UNION
+SELECT
+	name AS Tables_in_main,
+	'BASE TABLE' AS Table_type
+FROM
+	pragma_module_list()
+WHERE name NOT LIKE 'fts%'
+AND name NOT LIKE 'rtree%'
+AND name LIKE ?`
 
 // showColumnsQuery emulates the "SHOW COLUMNS" query
 // Must be used in a prepared statement with the table name as a parameter
@@ -320,9 +342,9 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 			// Because SHOW FULL TABLES returns a different result than SHOW TABLES
 			// we need to use a different query
 			if showType.Full {
-				return showFullTablesQuery, []interface{}{dbName, like}
+				return showFullTablesQuery, []interface{}{dbName, like, like}
 			} else {
-				return showTablesQuery, []interface{}{dbName, like}
+				return showTablesQuery, []interface{}{dbName, like, like}
 			}
 		// SHOW SESSION STATUS and SHOW GLOBAL STATUS
 		case sqlparser.StatusGlobal, sqlparser.StatusSession:

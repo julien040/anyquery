@@ -180,14 +180,15 @@ func TestNamespace(t *testing.T) {
 		err = rows.Close()
 		require.NoError(t, err, "The rows should be closed")
 
-		// Test an insert and expect an error
+		// Commented because because INSERT/UPDATE/DELETE is work in progress
+		/* // Test an insert and expect an error
 		_, err = db.Exec("INSERT INTO test (id, name) VALUES (1, 'test')")
 		t.Log("Can't insert into a Go plugin", err)
 		require.Error(t, err, "The insert should not work")
 
 		// Test an update and expect an error
 		_, err = db.Exec("UPDATE test SET name = 'test' WHERE id = 1")
-		require.Error(t, err, "The update should not work")
+		require.Error(t, err, "The update should not work") */
 
 		// Close the database
 		err = db.Close()

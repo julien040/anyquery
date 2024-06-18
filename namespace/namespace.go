@@ -285,9 +285,6 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 		return nil, err
 	}
 
-	// go-sqlite3 is not thread-safe for writing
-	db.SetMaxOpenConns(1)
-
 	n.registered = true
 
 	return db, nil

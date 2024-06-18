@@ -100,12 +100,50 @@ func prepareDatabaseForMySQL(db *sql.DB) error {
     '' AS NODEGROUP,
     NULL AS TABLESPACE_NAME
   FROM
-    pragma_table_list tl;
+    pragma_table_list tl
+  UNION
+  SELECT
+    "def" AS TABLE_CATALOG,
+  	"main" AS TABLE_SCHEMA,
+    ml.name AS TABLE_NAME,
+    'BASE TABLE' AS TABLE_TYPE,
+    NULL AS PARTITION_NAME,
+	NULL AS SUBPARTITION_NAME,
+    NULL AS PARTITION_ORDINAL_POSITION,
+	NULL AS SUBPARTITION_ORDINAL_POSITION,
+    NULL AS PARTITION_METHOD,
+	NULL AS SUBPARTITION_METHOD,
+    NULL AS PARTITION_EXPRESSION,
+	NULL AS SUBPARTITION_EXPRESSION,
+    NULL AS PARTITION_DESCRIPTION,
+    0 AS TABLE_ROWS,
+    0 AS AVG_ROW_LENGTH,
+    0 AS DATA_LENGTH,
+    0 AS MAX_DATA_LENGTH,
+    0 AS INDEX_LENGTH,
+    0 AS DATA_FREE,
+    '1970-01-01 00:00:00' AS CREATE_TIME,
+    '1970-01-01 00:00:00' AS UPDATE_TIME,
+    NULL AS CHECK_TIME,
+    NULL AS CHECKSUM,
+    '' AS PARTITION_COMMENT,
+    '' AS NODEGROUP,
+    NULL AS TABLESPACE_NAME
+	  FROM
+	  		pragma_module_list ml
+	  WHERE ml.name NOT LIKE 'fts%'
+	  AND ml.name NOT LIKE 'rtree%';
+
 
 	-- INFORMATION_SCHEMA.COLUMNS
 CREATE VIEW INFORMATION_SCHEMA.COLUMNS AS WITH RECURSIVE table_list AS (
   SELECT name, schema
   FROM pragma_table_list()
+  UNION
+  SELECT name, "main"
+  FROM pragma_module_list()
+  WHERE name NOT LIKE 'fts%'
+  AND name NOT LIKE 'rtree%'
 ),
 table_info AS (
   SELECT
@@ -178,6 +216,11 @@ SELECT * FROM table_info;`)
 		SELECT name, schema
 		FROM pragma_table_list()
 		WHERE "type" = 'table'
+		UNION
+		SELECT name, "main"
+		FROM pragma_module_list()
+		WHERE name NOT LIKE 'fts%'
+		AND name NOT LIKE 'rtree%'
 	  ),
 	  table_info AS (
 		SELECT
@@ -223,7 +266,35 @@ SELECT * FROM table_info;`)
 		  '' AS CREATE_OPTIONS,
 		  '' AS TABLE_COMMENT
 		FROM
-		  pragma_table_list tl;`)
+		  pragma_table_list tl
+		UNION
+		SELECT
+		  "def" AS TABLE_CATALOG,
+		  "main" AS TABLE_SCHEMA,
+		  ml.name AS TABLE_NAME,
+		  'BASE TABLE' AS TABLE_TYPE,
+		  'SQLite' as ENGINE,
+		  10 AS VERSION,
+		  'Dynamic' AS ROW_FORMAT,
+		  0 AS TABLE_ROWS,
+		  0 AS AVG_ROW_LENGTH,
+		  0 AS DATA_LENGTH,
+		  0 AS MAX_DATA_LENGTH,
+		  0 AS INDEX_LENGTH,
+		  0 AS DATA_FREE,
+		  NULL AS AUTO_INCREMENT,
+		  '1970-01-01 00:00:00' AS CREATE_TIME,
+		  '1970-01-01 00:00:00' AS UPDATE_TIME,
+		  NULL AS CHECK_TIME,
+		  'BINARY' AS TABLE_COLLATION,
+		  NULL AS CHECKSUM,
+		  '' AS CREATE_OPTIONS,
+		  '' AS TABLE_COMMENT
+		FROM
+		  pragma_module_list ml
+		WHERE ml.name NOT LIKE 'fts%'
+		AND ml.name NOT LIKE 'rtree%';`)
+
 	if err != nil {
 		return fmt.Errorf("error creating view INFORMATION_SCHEMA.TABLES: %w", err)
 	}
@@ -249,6 +320,11 @@ SELECT * FROM table_info;`)
 		SELECT name, schema
 		FROM pragma_table_list()
 		WHERE "type" = 'table'
+		UNION
+		SELECT name, "main"
+		FROM pragma_module_list()
+		WHERE name NOT LIKE 'fts%'
+		AND name NOT LIKE 'rtree%'
 	  ),
 	  table_info AS (
 		SELECT DISTINCT
@@ -291,6 +367,11 @@ SELECT * FROM table_info;`)
 		SELECT name, schema
 		FROM pragma_table_list()
 		WHERE "type" = 'table'
+		UNION
+		SELECT name, "main"
+		FROM pragma_module_list()
+		WHERE name NOT LIKE 'fts%'
+		AND name NOT LIKE 'rtree%'
 	  ),
 	  table_info AS (
 		SELECT
