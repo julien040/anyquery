@@ -3,7 +3,6 @@ package rpc
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	rpcPlugin "github.com/hashicorp/go-plugin"
 )
@@ -150,8 +149,6 @@ func (p *Plugin) RegisterTable(tableIndex int, tableCreator TableCreator) error 
 	}
 	p.table[tableIndex] = tableCreator
 
-	log.Printf("Table %d registered", tableIndex)
-	log.Printf("Table %v", p.table)
 	return nil
 }
 
