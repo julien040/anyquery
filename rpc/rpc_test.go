@@ -34,6 +34,10 @@ func TestRPCPlugin(t *testing.T) {
 	t.Run("Create a connection to the plugin", func(t *testing.T) {
 		client, err = pool.NewClient("_test/plugin.out", hclog.Default())
 		require.NoError(t, err, "The plugin should be created without errors")
+		require.NotNil(t, client, "The client should not be nil")
+
+		// We close the connection
+		pool.CloseConnection("_test/plugin.out", 0)
 	})
 
 	t.Run("Initialize the plugin", func(t *testing.T) {

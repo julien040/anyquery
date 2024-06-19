@@ -16,7 +16,6 @@ package rpc
 import (
 	"errors"
 	"net/rpc"
-	"os"
 	"os/exec"
 	"sync"
 	"sync/atomic"
@@ -230,8 +229,6 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 		},
 		Cmd:    exec.Command(executableLocation),
 		Logger: logger,
-		// I know it's bad
-		Stderr: os.Stderr,
 	})
 
 	// We get the RPC client
@@ -263,6 +260,9 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 		connectionCount: atomic.Int32{},
 	}
 
+	// We increment the connection count
+	c.connections[executableLocation].connectionCount.Add(1)
+
 	return client, nil
 }
 
@@ -288,6 +288,7 @@ func (c *ConnectionPool) CloseConnection(executableLocation string, connectionID
 		case <-chanClose:
 			break
 		}
+
 		// If there are no more connections, we kill the client
 		// Those two functions can be safely called concurrently
 		// - delete is a no-op if the key doesn't exist

@@ -41,7 +41,19 @@ type handler struct {
 	databaseInited      bool
 	Logger              *log.Logger
 	// Allow each MySQL connection to have its own SQLite connection
-	connectionMapper map[uint32]*sql.Conn
+	connectionMapperSQLite map[uint32]*sql.Conn
+
+	// Track each MySQL connection in a slice
+	//
+	// You might wonder why we need to keep track of the MySQL connections
+	// It's because when we close the MySQL server, the connections are not closed
+	// Therefore, handler.ConnectionClosed is never called resulting in the SQLite connections not being closed
+	// If we don't close the SQLite connections manually opened by db.Conn, the method db.Close will not call
+	// the destructor of virtual plugins, resulting in not killing the plugin process, leaking processes
+	//
+	// To conclude, leaving MySQL connections open will result in zombie processes, butterfly effect in action
+	// An afternoon was lost to find this bug
+	connections []*mysql.Conn
 }
 
 func (h *handler) NewConnection(c *mysql.Conn) {
@@ -65,11 +77,15 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 		return
 	}
 
-	if h.connectionMapper == nil {
-		h.connectionMapper = make(map[uint32]*sql.Conn)
+	// We store the connection in a map
+	if h.connectionMapperSQLite == nil {
+		h.connectionMapperSQLite = make(map[uint32]*sql.Conn)
 	}
 
-	h.connectionMapper[c.ConnectionID] = conn
+	h.connectionMapperSQLite[c.ConnectionID] = conn
+
+	// We append the MySQL connection to the list of connections
+	h.connections = append(h.connections, c)
 
 }
 
@@ -77,12 +93,13 @@ func (h *handler) ConnectionClosed(c *mysql.Conn) {
 	h.Logger.Info("Connection closed", "connectionID", c.ConnectionID, "username", c.User)
 
 	// Close the connection associated with the MySQL connection
-	if conn, ok := h.connectionMapper[c.ConnectionID]; ok {
+	if conn, ok := h.connectionMapperSQLite[c.ConnectionID]; ok {
+		fmt.Println("Closing connection MySQL", c.ConnectionID)
 		err := conn.Close()
 		if err != nil {
 			h.Logger.Error("Error closing connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
 		}
-		delete(h.connectionMapper, c.ConnectionID)
+		delete(h.connectionMapperSQLite, c.ConnectionID)
 	} else {
 		h.Logger.Error("SQLite connection not found", "connectionID", c.ConnectionID, "username", c.User)
 	}
@@ -205,7 +222,7 @@ func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any)
 	h.Logger.Debug("Running query: ", "query", query)
 
 	// Retrieve the connection associated with the MySQL connection
-	conn, ok := h.connectionMapper[connectionID]
+	conn, ok := h.connectionMapperSQLite[connectionID]
 	if !ok {
 		h.Logger.Error("SQLite connection not found", "connectionID", connectionID)
 		return nil, fmt.Errorf("SQLite connection not found")

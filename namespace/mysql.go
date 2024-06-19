@@ -66,6 +66,9 @@ type MySQLServer struct {
 	// This is used to prevent the server from being started multiple times
 	serverStarted bool
 
+	// The handler that will be passed to the listener
+	handler handler
+
 	// The database connection to SQLite used by the server
 	//
 	// When the server is closed, the connection will not be closed
@@ -138,7 +141,7 @@ func (s *MySQLServer) Start() error {
 	}
 
 	// We create a new handler with the database connection
-	handler := &handler{
+	s.handler = handler{
 		DB:                  s.DB,
 		RewriteMySQLQueries: s.MustCatchMySQLSpecific,
 		Logger:              s.Logger,
@@ -147,7 +150,7 @@ func (s *MySQLServer) Start() error {
 	// We create a new listener with the auth server
 	// I have set default values that I'm not sure to properly understand
 	// Feel free to open a pull request for more sensible values
-	listener, err := mysql.NewListener("tcp", s.Address, authServer, handler,
+	listener, err := mysql.NewListener("tcp", s.Address, authServer, &s.handler,
 		0, 0, false, true, 1*time.Hour, 60*time.Second)
 
 	if err != nil {
@@ -169,7 +172,16 @@ func (s *MySQLServer) Stop() error {
 		return fmt.Errorf("server not started")
 	}
 
-	s.listener.Close()
+	s.listener.Shutdown()
+
+	// Iterate over the connections and close them
+	// This is necessary because the listener doesn't close the connections
+
+	for _, conn := range s.handler.connections {
+		if !conn.IsClosed() {
+			conn.Close()
+		}
+	}
 
 	return nil
 }
