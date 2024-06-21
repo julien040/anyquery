@@ -3,6 +3,7 @@ package cmd
 import (
 	"os"
 
+	"github.com/julien040/anyquery/controller"
 	"github.com/spf13/cobra"
 )
 
@@ -15,6 +16,7 @@ by writing SQL queries. It can be extended with plugins`,
 	// Avoid writing help when an error occurs
 	// Thanks https://github.com/spf13/cobra/issues/340#issuecomment-243790200
 	SilenceUsage: true,
+	RunE:         controller.Query,
 }
 
 func Execute() {

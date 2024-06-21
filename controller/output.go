@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"fmt"
+	"html"
 	"io"
 	"os"
 	"strings"
@@ -28,6 +29,7 @@ const (
 	outputTableTypePlainWithHeader
 	outputTableTypeMarkdown
 	outputTableTypeLineByLine
+	outputTableTypeHtml
 )
 
 type outputTable struct {
@@ -53,6 +55,20 @@ type tableEncoder interface {
 
 	// Close flushes the output
 	Close() error
+}
+
+var formatName map[string]outputTableType = map[string]outputTableType{
+	"plain":       outputTableTypePlain,
+	"tsv":         outputTableTypePlainWithHeader,
+	"csv":         outputTableTypeCsv,
+	"json":        outputTableTypeJsonPretty,
+	"uglyjson":    outputTableTypeJson,
+	"jsonl":       outputTableTypeJsonLines,
+	"pretty":      outputTableTypePretty,
+	"plainheader": outputTableTypePlainWithHeader,
+	"markdown":    outputTableTypeMarkdown,
+	"linebyline":  outputTableTypeLineByLine,
+	"html":        outputTableTypeHtml,
 }
 
 // Create a new output table and force the output type
@@ -121,6 +137,11 @@ func (o *outputTable) SetEncoder() {
 		}
 	case outputTableTypeLineByLine:
 		o.encoder = &lineByLineTableEncoder{
+			Columns: o.Columns,
+			Writer:  o.Writer,
+		}
+	case outputTableTypeHtml:
+		o.encoder = &htmlTableEncoder{
 			Columns: o.Columns,
 			Writer:  o.Writer,
 		}
@@ -206,18 +227,6 @@ func (o *outputTable) WriteSQLRows(rows *sql.Rows) error {
 	}
 
 	return nil
-}
-
-var formatName map[string]outputTableType = map[string]outputTableType{
-	"plain":       outputTableTypePlain,
-	"csv":         outputTableTypeCsv,
-	"json":        outputTableTypeJsonPretty,
-	"uglyjson":    outputTableTypeJson,
-	"jsonl":       outputTableTypeJsonLines,
-	"pretty":      outputTableTypePretty,
-	"plainheader": outputTableTypePlainWithHeader,
-	"markdown":    outputTableTypeMarkdown,
-	"linebyline":  outputTableTypeLineByLine,
 }
 
 // InferFlags scans the flags and modifies the output configuration accordingly
@@ -488,6 +497,7 @@ func (p *prettyTableEncoder) Write(row []interface{}) error {
 	if p.internalTable == nil {
 		p.internalTable = tablewriter.NewWriter(p.Writer)
 		p.internalTable.SetHeader(p.Columns)
+		p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
 	}
 
 	// To have a pretty table that doesn't break, we will check if the writer is a terminal
@@ -647,5 +657,44 @@ func (l *lineByLineTableEncoder) Write(row []interface{}) error {
 }
 
 func (l *lineByLineTableEncoder) Close() error {
+	return nil
+}
+
+type htmlTableEncoder struct {
+	Columns         []string
+	Writer          io.Writer
+	firstRowWritten bool
+}
+
+func (h *htmlTableEncoder) Write(row []interface{}) error {
+	if !h.firstRowWritten {
+		h.firstRowWritten = true
+
+		// Write the header
+		fmt.Fprintln(h.Writer, "<table>")
+		fmt.Fprintln(h.Writer, "    <tr>")
+		for _, col := range h.Columns {
+			fmt.Fprintf(h.Writer, "        <th>%s</th>\n", html.EscapeString(col))
+		}
+		fmt.Fprintln(h.Writer, "    </tr>")
+
+		fmt.Fprintln(h.Writer, "    <tbody>")
+	}
+
+	// Write the row
+	fmt.Fprintln(h.Writer, "    <tr>")
+	toPrint := convertValueToStrSlice(row)
+	for _, val := range toPrint {
+		fmt.Fprintf(h.Writer, "        <td>%s</td>\n", html.EscapeString(val))
+	}
+	fmt.Fprintln(h.Writer, "    </tr>")
+	return nil
+}
+
+func (h *htmlTableEncoder) Close() error {
+	if h.firstRowWritten {
+		fmt.Fprintln(h.Writer, "\t</tbody>")
+		fmt.Fprintln(h.Writer, "</table>")
+	}
 	return nil
 }

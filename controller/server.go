@@ -155,7 +155,7 @@ func Server(cmd *cobra.Command, args []string) error {
 		lo.Info("Server stopped")
 	}
 
-	lo.Info("Exiting in 10 seconds")
+	lo.Info("Exiting in 5 seconds")
 
 	go func() {
 		err = db.Close()
@@ -166,7 +166,7 @@ func Server(cmd *cobra.Command, args []string) error {
 
 	// We wait 10 seconds before exiting
 	// to give the server time to close
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 
 	return nil
 }
