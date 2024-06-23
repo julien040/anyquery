@@ -24,7 +24,10 @@ func TestRPCPlugin(t *testing.T) {
 		logger.SetLevel(hclog.Debug)
 	}
 
-	client, err = pool.NewClient("_test/plugin.out", hclog.Default())
+	client, err = pool.NewClient(NewClientParams{
+		ExecutableLocation: "_test/plugin.out",
+		Logger:             logger,
+	})
 	if err != nil {
 		t.Fatal("Could not create a new client", err)
 	}
@@ -32,7 +35,10 @@ func TestRPCPlugin(t *testing.T) {
 	defer pool.CloseConnection("_test/plugin.out", 0)
 
 	t.Run("Create a connection to the plugin", func(t *testing.T) {
-		client, err = pool.NewClient("_test/plugin.out", hclog.Default())
+		client, err = pool.NewClient(NewClientParams{
+			ExecutableLocation: "_test/plugin.out",
+			Logger:             logger,
+		})
 		require.NoError(t, err, "The plugin should be created without errors")
 		require.NotNil(t, client, "The client should not be nil")
 

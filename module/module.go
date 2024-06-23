@@ -3,6 +3,7 @@ package module
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	rand "math/rand/v2"
 	"reflect"
 	"strings"
@@ -27,6 +28,7 @@ const (
 // should be created and registered in the main program
 type SQLiteModule struct {
 	PluginPath      string
+	PluginArgs      []string
 	PluginManifest  rpc.PluginManifest
 	ConnectionIndex int
 	TableIndex      int
@@ -34,6 +36,7 @@ type SQLiteModule struct {
 	UserConfig      rpc.PluginConfig
 	Logger          hclog.Logger
 	ConnectionPool  *rpc.ConnectionPool
+	Stderr          io.Writer
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
@@ -72,7 +75,12 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	// Create a new plugin instance
 	// and store the client in the module
-	rpcClient, err := m.ConnectionPool.NewClient(m.PluginPath, m.Logger)
+	rpcClient, err := m.ConnectionPool.NewClient(rpc.NewClientParams{
+		ExecutableLocation: m.PluginPath,
+		ExecutableArg:      m.PluginArgs,
+		Logger:             m.Logger,
+		Stderr:             m.Stderr,
+	})
 	if err != nil {
 		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
 	}

@@ -15,6 +15,7 @@ package rpc
 
 import (
 	"errors"
+	"io"
 	"net/rpc"
 	"os/exec"
 	"sync"
@@ -197,9 +198,16 @@ func NewConnectionPool() *ConnectionPool {
 	}
 }
 
+type NewClientParams struct {
+	ExecutableLocation string
+	Logger             hclog.Logger
+	ExecutableArg      []string
+	Stderr             io.Writer
+}
+
 // Request a new client from the connection pool. Each NewClient must be followed by a CloseConnection.
 // If these requirements are not met, the executable will not be killed
-func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logger) (*InternalClient, error) {
+func (c *ConnectionPool) NewClient(params NewClientParams) (*InternalClient, error) {
 
 	// We create a new client if it doesn't exist
 	// To ensure we are not creating multiple connections at the same time
@@ -208,16 +216,17 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 	defer c.mu.Unlock()
 
 	// We check if the client already exists
-	if client, ok := c.connections[executableLocation]; ok {
+	if client, ok := c.connections[params.ExecutableLocation]; ok {
 		client.connectionCount.Add(1)
 		return client.client, nil
 	}
 
 	client := new(InternalClient)
 
+	command := exec.Command(params.ExecutableLocation, params.ExecutableArg...)
+
 	// We use the same magic cookie as the main program
 	// to ensure that the plugin is compatible with the main program
-
 	client.Client = go_plugin.NewClient(&go_plugin.ClientConfig{
 		HandshakeConfig: go_plugin.HandshakeConfig{
 			ProtocolVersion:  ProtocolVersion,
@@ -227,8 +236,9 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 		Plugins: map[string]go_plugin.Plugin{
 			"plugin": &InternalPlugin{},
 		},
-		Cmd:    exec.Command(executableLocation),
-		Logger: logger,
+		Cmd:    command,
+		Logger: params.Logger,
+		Stderr: params.Stderr,
 	})
 
 	// We get the RPC client
@@ -252,7 +262,7 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 	client.Plugin = plugin
 
 	// We add the client to the connection pool
-	c.connections[executableLocation] = &struct {
+	c.connections[params.ExecutableLocation] = &struct {
 		client          *InternalClient
 		connectionCount atomic.Int32
 	}{
@@ -261,7 +271,7 @@ func (c *ConnectionPool) NewClient(executableLocation string, logger hclog.Logge
 	}
 
 	// We increment the connection count
-	c.connections[executableLocation].connectionCount.Add(1)
+	c.connections[params.ExecutableLocation].connectionCount.Add(1)
 
 	return client, nil
 }
