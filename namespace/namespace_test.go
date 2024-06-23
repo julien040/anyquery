@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/julien040/anyquery/rpc"
@@ -242,7 +243,118 @@ func TestNamespace(t *testing.T) {
 
 	})
 
+	t.Run("Test dev functions", func(t *testing.T) {
+		namespace, err := NewNamespace(NamespaceConfig{
+			InMemory: true,
+			DevMode:  true,
+		})
+		require.NoError(t, err, "The namespace should be initialized")
+
+		// Register the namespace
+		db, err := namespace.Register("mydb2")
+		require.NoError(t, err, "The connection should be registered")
+		defer db.Close()
+
+		// Save the dev manifest to disk
+		err = os.WriteFile("_test/devManifest.json", []byte(devManifestTesting), 0777)
+		require.NoError(t, err, "The dev manifest should be saved")
+		defer os.Remove("_test/devManifest.json")
+
+		// Run a dev function
+		rows, err := db.Query("SELECT load_dev_plugin(\"test1\", \"_test/devManifest.json\")")
+		require.NoError(t, err, "The query should work")
+
+		// Check the result
+		require.True(t, rows.Next(), "There should be a row")
+		var result string
+		err = rows.Scan(&result)
+		require.True(t, strings.Contains(result, "Successfully"), "The result should be correct")
+		require.NoError(t, err, "The scan should work")
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+		// Do queries on the plugin
+		rows, err = db.Query("SELECT A.id, A.name FROM test1_test A")
+		require.NoError(t, err, "The query should work")
+
+		// Check the result
+		i := 0
+		for rows.Next() {
+			i++
+		}
+		require.Equal(t, 2, i, "The number of rows should be correct")
+
+		// Close the rows
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+		// Unload the plugin
+		rows, err = db.Query("SELECT unload_dev_plugin(\"test1\")")
+		require.NoError(t, err, "The query should work")
+		for rows.Next() {
+		} // We have to call Next, otherwise the SELECT statement is not executed
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+		// Test that we can't query the table anymore
+		_, err = db.Query("SELECT A.id, A.name FROM test1_test A")
+		require.Error(t, err, "The query should not work")
+
+		// Test that we can load the plugin again
+		rows, err = db.Query("SELECT load_dev_plugin(\"test1\", \"_test/devManifest.json\")")
+		require.NoError(t, err, "The query should work")
+		for rows.Next() {
+		} // We have to call Next, otherwise the SELECT statement is not executed
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+		// Query the plugin again
+		rows, err = db.Query("SELECT A.id, A.name FROM test1_test A")
+		require.NoError(t, err, "The query should work")
+		// Check the result
+		i = 0
+		for rows.Next() {
+			i++
+		}
+		require.Equal(t, 2, i, "The number of rows should be correct")
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+		// Reload the plugin
+		rows, err = db.Query("SELECT reload_dev_plugin(\"test1\")")
+		require.NoError(t, err, "The query should work")
+		rows.Close()
+
+		// Query the plugin again
+		rows, err = db.Query("SELECT A.id, A.name FROM test1_test A")
+		require.NoError(t, err, "The query should work")
+		// Check the result
+		i = 0
+		for rows.Next() {
+			i++
+		}
+		require.Equal(t, 2, i, "The number of rows should be correct")
+		err = rows.Close()
+		require.NoError(t, err, "The rows should be closed")
+
+	})
+
 }
+
+var devManifestTesting string = `
+{
+	"executable": "_test/normalplugin.out",
+	"tables": [
+		"test",
+		"test2"
+	],
+	"user_config": {
+		"default": {
+			"notInteresting": "value"
+		}
+	}
+}
+`
 
 func downloadSQLean() error {
 	// Find the right URL according to the OS and architecture

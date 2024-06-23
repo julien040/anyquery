@@ -59,6 +59,12 @@ type NamespaceConfig struct {
 
 	// If ReadOnly is set to true, the database will be opened in read-only mode
 	ReadOnly bool
+
+	// If DevMode is set to true, the namespace will be in development mode
+	// Some functions will be available to load and unload plugins
+	// This can represent a security risk if the server is exposed to the internet
+	// Therefore, it's recommended to disable it in production
+	DevMode bool
 }
 
 type Namespace struct {
@@ -84,6 +90,8 @@ type Namespace struct {
 
 	// The connection pool of the anyquery plugins
 	pool *rpc.ConnectionPool
+
+	devMode bool
 }
 
 type sharedObjectExtension struct {
@@ -154,6 +162,9 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 	} else {
 		n.logger = config.Logger
 	}
+
+	// Set the dev mode
+	n.devMode = config.DevMode
 
 	// Create the connection pool
 	n.pool = rpc.NewConnectionPool()
@@ -273,6 +284,20 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				if err != nil {
 					return err
 				}
+			}
+			if n.devMode {
+				devFunction := &devFunction{
+					conn:      conn,
+					manifests: make(map[string]manifest),
+					// dev plugins get their own connection pool
+					// so that they don't interfere with the main connection pool
+					connectionPool: rpc.NewConnectionPool(),
+				}
+
+				// We load the development functions
+				conn.RegisterFunc("unload_dev_plugin", devFunction.UnloadDevPlugin, false)
+				conn.RegisterFunc("load_dev_plugin", devFunction.LoadDevPlugin, false)
+				conn.RegisterFunc("reload_dev_plugin", devFunction.ReloadDevPlugin, false)
 			}
 
 			return nil

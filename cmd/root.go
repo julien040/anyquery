@@ -29,4 +29,21 @@ func Execute() {
 func init() {
 	rootCmd.Flags().Bool("no-input", false, "Do not launch an interactive input")
 	rootCmd.Flags().BoolP("version", "v", false, "Print the version of the program")
+
+	addFlag_commandModifiesConfiguration(rootCmd)
+	addFlag_commandPrintsData(rootCmd)
+	rootCmd.Flags().StringP("database", "d", "anyquery.db", "Database to connect to (a path or :memory:)")
+	rootCmd.Flags().Bool("in-memory", false, "Use an in-memory database")
+	rootCmd.Flags().Bool("readonly", false, "Start the server in read-only mode")
+	rootCmd.Flags().Bool("read-only", false, "Start the server in read-only mode")
+	rootCmd.Flags().StringArray("init", []string{}, "Run SQL commands in a file before the query. You can specify multiple files.")
+	rootCmd.Flags().Bool("dev", false, "Run the program in developer mode")
+
+	// Query flags
+	rootCmd.Flags().StringP("query", "q", "", "Query to run")
+
+	// Log flags
+	rootCmd.Flags().String("log-file", "", "Log file")
+	rootCmd.Flags().String("log-level", "info", "Log level (trace, debug, info, warn, error, off)")
+	rootCmd.Flags().String("log-format", "text", "Log format (text, json)")
 }

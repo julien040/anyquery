@@ -22,7 +22,7 @@ CREATE VIEW IF NOT EXISTS dual AS SELECT 'x' AS dummy;
 
 func Query(cmd *cobra.Command, args []string) error {
 	path := "anyquery.db"
-	var inMemory, readOnly bool
+	var inMemory, readOnly, devMode bool
 
 	// Get the flags
 	path, _ = cmd.Flags().GetString("database")
@@ -54,6 +54,8 @@ func Query(cmd *cobra.Command, args []string) error {
 		path = "myrandom.db"
 	}
 
+	devMode, _ = cmd.Flags().GetBool("dev")
+
 	// Create the logger
 	var outputLog io.Writer
 	logFile, _ := cmd.Flags().GetString("log-file")
@@ -83,6 +85,7 @@ func Query(cmd *cobra.Command, args []string) error {
 				Level:      logLevel,
 			},
 		),
+		DevMode: devMode,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create namespace: %w", err)
