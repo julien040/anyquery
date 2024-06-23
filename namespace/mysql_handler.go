@@ -7,6 +7,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/mysql/collations"
@@ -43,6 +44,9 @@ type handler struct {
 	// Allow each MySQL connection to have its own SQLite connection
 	connectionMapperSQLite map[uint32]*sql.Conn
 
+	// A mutex to protect the connectionMapperSQLite map
+	mutexConnectionMapperSQLite sync.Mutex
+
 	// Track each MySQL connection in a slice
 	//
 	// You might wonder why we need to keep track of the MySQL connections
@@ -57,6 +61,8 @@ type handler struct {
 }
 
 func (h *handler) NewConnection(c *mysql.Conn) {
+	h.mutexConnectionMapperSQLite.Lock()
+	defer h.mutexConnectionMapperSQLite.Unlock()
 	h.Logger.Info("New connection", "connectionID", c.ConnectionID, "username", c.User, "charset", c.CharacterSet)
 	if h.RewriteMySQLQueries && !h.databaseInited {
 		err := prepareDatabaseForMySQL(h.DB)
