@@ -142,7 +142,7 @@ func Query(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run the init scripts
-	initScripts, _ := cmd.Flags().GetStringSlice("init")
+	initScripts, _ := cmd.Flags().GetStringArray("init")
 	for _, script := range initScripts {
 		// Read the file
 		file, err := os.Open(script)

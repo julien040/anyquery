@@ -9,7 +9,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "anyquery",
+	Use:   "anyquery [database] [query]",
 	Short: "A tool to query any data source",
 	Long: `Anyquery allows you to query any data source
 by writing SQL queries. It can be extended with plugins`,
@@ -32,7 +32,7 @@ func init() {
 
 	addFlag_commandModifiesConfiguration(rootCmd)
 	addFlag_commandPrintsData(rootCmd)
-	rootCmd.Flags().StringP("database", "d", "anyquery.db", "Database to connect to (a path or :memory:)")
+	rootCmd.Flags().StringP("database", "d", "", "Database to connect to (a path or :memory:)")
 	rootCmd.Flags().Bool("in-memory", false, "Use an in-memory database")
 	rootCmd.Flags().Bool("readonly", false, "Start the server in read-only mode")
 	rootCmd.Flags().Bool("read-only", false, "Start the server in read-only mode")
