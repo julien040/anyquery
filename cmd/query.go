@@ -11,14 +11,15 @@ var queryCmd = &cobra.Command{
 	Long: `Run a SQL query on the data sources installed on the system.
 The query can be specified as an argument or read from stdin.
 If no query is provided, the command will launch an interactive input.`,
-	RunE: controller.Query,
+	RunE:    controller.Query,
+	Aliases: []string{"q", "run"},
 }
 
 func init() {
 	rootCmd.AddCommand(queryCmd)
 	addFlag_commandModifiesConfiguration(queryCmd)
 	addFlag_commandPrintsData(queryCmd)
-	queryCmd.Flags().StringP("database", "d", "anyquery.db", "Database to connect to (a path or :memory:)")
+	queryCmd.Flags().StringP("database", "d", "", "Database to connect to (a path or :memory:)")
 	queryCmd.Flags().Bool("in-memory", false, "Use an in-memory database")
 	queryCmd.Flags().Bool("readonly", false, "Start the server in read-only mode")
 	queryCmd.Flags().Bool("read-only", false, "Start the server in read-only mode")
