@@ -226,6 +226,11 @@ func (o *outputTable) WriteSQLRows(rows *sql.Rows) error {
 
 	}
 
+	// Close the rows
+	if err := rows.Close(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -508,7 +513,7 @@ func (p *prettyTableEncoder) Write(row []interface{}) error {
 		if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
 			width, _, err := term.GetSize(int(f.Fd()))
 			if err == nil {
-				p.columnLength = width / len(p.Columns)
+				p.columnLength = width / max(1, len(p.Columns)) // We don't want to divide by 0
 			}
 		}
 
@@ -672,11 +677,13 @@ func (h *htmlTableEncoder) Write(row []interface{}) error {
 
 		// Write the header
 		fmt.Fprintln(h.Writer, "<table>")
+		fmt.Fprintln(h.Writer, "    <thead>")
 		fmt.Fprintln(h.Writer, "    <tr>")
 		for _, col := range h.Columns {
 			fmt.Fprintf(h.Writer, "        <th>%s</th>\n", html.EscapeString(col))
 		}
 		fmt.Fprintln(h.Writer, "    </tr>")
+		fmt.Fprintln(h.Writer, "    </thead>")
 
 		fmt.Fprintln(h.Writer, "    <tbody>")
 	}
