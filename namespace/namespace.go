@@ -300,6 +300,10 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				conn.RegisterFunc("reload_dev_plugin", devFunction.ReloadDevPlugin, false)
 			}
 
+			// Register JSON and CSV modules
+			conn.CreateModule("json_reader", &module.JSONModule{})
+			conn.CreateModule("csv_reader", &module.CsvModule{})
+
 			return nil
 		},
 	})

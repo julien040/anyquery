@@ -1,0 +1,62 @@
+package module
+
+import "github.com/mattn/go-sqlite3"
+
+type TemplateModule struct {
+}
+
+type TemplateTable struct {
+}
+
+type TemplateCursor struct {
+}
+
+func (m *TemplateModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
+	return &TemplateTable{}, nil
+}
+
+func (v *TemplateModule) DestroyModule() {}
+
+func (m *TemplateModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
+	return &TemplateTable{}, nil
+}
+
+func (t *TemplateTable) Open() (sqlite3.VTabCursor, error) {
+	return &TemplateCursor{}, nil
+}
+
+func (t *TemplateTable) Disconnect() error {
+	return nil
+}
+
+func (t *TemplateTable) Destroy() error {
+	return nil
+}
+
+func (t *TemplateTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+	return nil, nil
+}
+
+func (t *TemplateCursor) Filter(idxNum int, idxStr string, vals []interface{}) error {
+	return nil
+}
+
+func (t *TemplateCursor) Next() error {
+	return nil
+}
+
+func (t *TemplateCursor) Column(context *sqlite3.SQLiteContext, col int) error {
+	return nil
+}
+
+func (t *TemplateCursor) EOF() bool {
+	return true
+}
+
+func (t *TemplateCursor) Rowid() (int64, error) {
+	return 0, nil
+}
+
+func (t *TemplateCursor) Close() error {
+	return nil
+}
