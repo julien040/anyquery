@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/julien040/anyquery/namespace"
+	"github.com/julien040/go-ternary"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
@@ -234,15 +235,53 @@ func middlewareQuery(queryData *QueryData) bool {
 		return true
 	}
 
-	// We run the query
-	rows, err := queryData.DB.Query(queryData.SQLQuery, queryData.Args...)
-	if err != nil {
-		queryData.Message = err.Error()
-		queryData.StatusCode = 2
-		return false
+	// Check if the query is empty
+	// If we wouldn't do that, an empty query would hang forever
+	if queryData.SQLQuery == "" {
+		return true
 	}
 
-	queryData.Result = rows
+	// Check whether the query must be run with Query or Exec
+	// We need to check that because, for example, a CREATE VIRTUAL TABLE statement run with Query
+	// will not return an error if it fails
+	runWithQuery := true
+
+	queryType, _, _ := namespace.GetQueryType(queryData.SQLQuery)
+	switch queryType {
+	case sqlparser.StmtSelect:
+		runWithQuery = true
+	case sqlparser.StmtUnknown:
+		if strings.HasPrefix(strings.TrimSpace(strings.ToLower(queryData.SQLQuery)), "create virtual table") {
+			runWithQuery = false
+		} else {
+			runWithQuery = true
+		}
+	default:
+		runWithQuery = false
+	}
+
+	if runWithQuery {
+		rows, err := queryData.DB.Query(queryData.SQLQuery, queryData.Args...)
+		if err != nil {
+			queryData.Message = err.Error()
+			queryData.StatusCode = 2
+			return false
+		}
+		queryData.Result = rows
+	} else {
+		res, err := queryData.DB.Exec(queryData.SQLQuery, queryData.Args...)
+		if err != nil {
+			queryData.Message = err.Error()
+			queryData.StatusCode = 2
+			return false
+		}
+		rowsAffected, err := res.RowsAffected()
+		if err != nil {
+			queryData.Message = "Successfully executed the query"
+		} else {
+			queryData.Message = fmt.Sprintf("Query executed successfully (%d %s affected)", rowsAffected, ternary.If(rowsAffected > 1, "rows", "row"))
+		}
+	}
 	return true
 }
 

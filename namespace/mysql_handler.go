@@ -15,6 +15,7 @@ import (
 	"vitess.io/vitess/go/sqltypes"
 
 	querypb "vitess.io/vitess/go/vt/proto/query"
+	"vitess.io/vitess/go/vt/sqlparser"
 	"vitess.io/vitess/go/vt/vtenv"
 
 	log "github.com/charmbracelet/log"
@@ -234,13 +235,61 @@ func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any)
 		return nil, fmt.Errorf("SQLite connection not found")
 	}
 
-	rows, err := conn.QueryContext(context.Background(), query, args...)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
+	// Check whether the query must be run with Query or Exec
+	// We need to check that because, for example, a CREATE VIRTUAL TABLE statement run with Query
+	// will not return an error if it fails
+	runWithQuery := true
 
-	return convertSQLRowsToSQLResult(rows)
+	queryType, _, _ := GetQueryType(query)
+	switch queryType {
+	case sqlparser.StmtSelect, sqlparser.StmtExplain, sqlparser.StmtShow:
+		runWithQuery = true
+	case sqlparser.StmtUnknown:
+		if strings.HasPrefix(query, "CREATE VIRTUAL TABLE") {
+			runWithQuery = false
+		} else {
+			// Like PRAGMA
+			runWithQuery = true
+		}
+	default:
+		// Like INSERT, UPDATE, DELETE, CREATE TABLE
+		runWithQuery = false
+	}
+
+	if runWithQuery {
+		rows, err := conn.QueryContext(context.Background(), query, args...)
+		if err != nil {
+			return nil, err
+		}
+		defer rows.Close()
+
+		return convertSQLRowsToSQLResult(rows)
+	} else {
+		res, err := conn.ExecContext(context.Background(), query, args...)
+		if err != nil {
+			return nil, err
+		}
+
+		var insertedRows uint64
+		var insertID uint64
+
+		stat, err := res.RowsAffected()
+		if err == nil {
+			insertedRows = uint64(stat)
+		}
+		stat, err = res.LastInsertId()
+		if err == nil {
+			insertID = uint64(stat)
+		}
+
+		return &sqltypes.Result{
+			RowsAffected: insertedRows,
+			InsertID:     insertID,
+			Fields:       make([]*querypb.Field, 0),
+			Rows:         make([]sqltypes.Row, 0),
+		}, nil
+
+	}
 }
 
 const numberRowsToAnalyze = 10
