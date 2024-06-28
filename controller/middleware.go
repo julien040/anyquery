@@ -4,6 +4,7 @@ package controller
 
 import (
 	"fmt"
+	"math/rand/v2"
 	"os"
 	"os/exec"
 	"strconv"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/julien040/anyquery/namespace"
 	"github.com/julien040/go-ternary"
+	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
@@ -219,11 +221,17 @@ func middlewareMySQL(queryData *QueryData) bool {
 
 	queryType, stmt, err := namespace.GetQueryType(queryData.SQLQuery)
 	if err != nil {
-		// If we wan't parse the query, we just pass it
+		// If we can't parse the query, we just pass it to the next middleware
 		return true
 	}
 	if queryType == sqlparser.StmtShow {
 		queryData.SQLQuery, queryData.Args = namespace.RewriteShowStatement(stmt.(*sqlparser.Show))
+	} else if queryType == sqlparser.StmtExplain {
+		// We rewrite the EXPLAIN/DESCRIBE statement
+		if explain, ok := stmt.(*sqlparser.ExplainTab); ok {
+			queryData.SQLQuery = "SELECT * FROM pragma_table_info(?);"
+			queryData.Args = append(queryData.Args, explain.Table.Name.String())
+		}
 	}
 
 	return true
@@ -239,6 +247,16 @@ func middlewareQuery(queryData *QueryData) bool {
 	// If we wouldn't do that, an empty query would hang forever
 	if queryData.SQLQuery == "" {
 		return true
+	}
+
+	// Run the pre-execution statements
+	for i, preExec := range queryData.PreExec {
+		_, err := queryData.DB.Exec(preExec)
+		if err != nil {
+			queryData.Message = fmt.Sprintf("Error in pre-execution statement %d: %s", i, err.Error())
+			queryData.StatusCode = 2
+			return false
+		}
 	}
 
 	// Check whether the query must be run with Query or Exec
@@ -282,6 +300,12 @@ func middlewareQuery(queryData *QueryData) bool {
 			queryData.Message = fmt.Sprintf("Query executed successfully (%d %s affected)", rowsAffected, ternary.If(rowsAffected > 1, "rows", "row"))
 		}
 	}
+
+	// Note: we can't run the post-execution statements here
+	// because the result is not yet processed
+	//
+	// The post-execution statements are run at the end of the pipeline
+	// after the output was printed
 	return true
 }
 
@@ -347,4 +371,285 @@ func middlewareSlashCommand(queryData *QueryData) bool {
 
 	return false
 
+}
+
+type tableFunction struct {
+	name     string
+	args     []string
+	position int
+	alias    string
+}
+
+// Extract the table functions from the query parsed by pg_query
+func extractTableFunctions(fromClause []*pg_query.Node) []tableFunction {
+	result := []tableFunction{}
+
+	for ithTable, item := range fromClause {
+		funcCall := item.GetRangeFunction()
+		if funcCall == nil {
+			continue
+		}
+		alias := ""
+		if funcCall.Alias != nil {
+			alias = funcCall.Alias.Aliasname
+		}
+		for _, function1 := range funcCall.Functions {
+			// Get the function name
+			nodeList, ok := function1.Node.(*pg_query.Node_List)
+			if !ok {
+				continue
+			}
+
+			for _, item := range nodeList.List.Items {
+				funcCall := item.GetFuncCall()
+				if funcCall != nil {
+					if len(funcCall.Funcname) < 1 {
+						continue
+					}
+					// Get the table name
+					tableName := funcCall.Funcname[0].GetString_().Sval
+					// Get args
+					args := []string{}
+					for _, arg := range funcCall.Args {
+						// e.g. "foo", "bar"
+						columnRef := arg.GetColumnRef()
+						if columnRef != nil {
+							args = append(args, columnRef.Fields[0].GetString_().Sval)
+						}
+
+						// e.g. 1, 'a", 1.0, true
+						constRef := arg.GetAConst()
+						if constRef != nil {
+							svalStr := constRef.GetSval()
+							if svalStr != nil {
+								args = append(args, svalStr.Sval)
+							}
+							svalBool := constRef.GetBoolval()
+							if svalBool != nil {
+								if svalBool.Boolval {
+									args = append(args, "true")
+								} else {
+									args = append(args, "false")
+								}
+							}
+							svalInt := constRef.GetIval()
+							if svalInt != nil {
+								args = append(args, strconv.Itoa(int(svalInt.Ival)))
+							}
+							svalFloat := constRef.GetFval()
+							if svalFloat != nil {
+								args = append(args, svalFloat.Fval)
+							}
+						}
+
+						// e.g. foo = bar
+						exprRef := arg.GetAExpr()
+						if exprRef != nil {
+							leftSide := ""
+							rightSide := ""
+							// Get the left side of the expression
+							left := exprRef.GetLexpr()
+							if left != nil && left.GetColumnRef() != nil && len(left.GetColumnRef().Fields) > 0 {
+								leftSide = left.GetColumnRef().Fields[0].GetString_().Sval
+							} else if left != nil && left.GetAConst() != nil {
+								if left.GetAConst() != nil {
+									if left.GetAConst().GetIval() != nil {
+										leftSide = strconv.Itoa(int(left.GetAConst().GetIval().Ival))
+									} else if left.GetAConst().GetFval() != nil {
+										leftSide = left.GetAConst().GetFval().Fval
+									} else if left.GetAConst().GetSval() != nil {
+										leftSide = left.GetAConst().GetSval().Sval
+									} else if left.GetAConst().GetBoolval() != nil {
+										if left.GetAConst().GetBoolval().Boolval {
+											leftSide = "true"
+										} else {
+											leftSide = "false"
+										}
+									} else {
+										leftSide = "NULL"
+									}
+								}
+							}
+
+							// Get the right side of the expression
+							right := exprRef.GetRexpr()
+							if right != nil && right.GetColumnRef() != nil && len(right.GetColumnRef().Fields) > 0 {
+								rightSide = right.GetColumnRef().Fields[0].GetString_().Sval
+							} else if right != nil && right.GetAConst() != nil {
+								if right.GetAConst() != nil {
+									if right.GetAConst().GetIval() != nil {
+										rightSide = strconv.Itoa(int(right.GetAConst().GetIval().Ival))
+									} else if right.GetAConst().GetFval() != nil {
+										rightSide = right.GetAConst().GetFval().Fval
+									} else if right.GetAConst().GetSval() != nil {
+										rightSide = right.GetAConst().GetSval().Sval
+									} else if right.GetAConst().GetBoolval() != nil {
+										if right.GetAConst().GetBoolval().Boolval {
+											rightSide = "true"
+										} else {
+											rightSide = "false"
+										}
+									} else {
+										rightSide = "NULL"
+									}
+
+								}
+							}
+
+							args = append(args, leftSide+" = "+rightSide)
+
+						}
+
+					}
+
+					result = append(result, tableFunction{
+						name:     tableName,
+						args:     args,
+						position: ithTable,
+						alias:    alias,
+					})
+				}
+			}
+		}
+	}
+
+	return result
+}
+
+const alphabet = "abcdefghijklmnopqrstuvwxyz"
+
+func generateRandomString(size int) string {
+	result := strings.Builder{}
+	for i := 0; i < size; i++ {
+		result.WriteByte(alphabet[rand.IntN(len(alphabet))])
+	}
+	return result.String()
+
+}
+
+// Prefix the query like SELECT * FROM read_json with a CREATE VIRTUAL TABLE statement
+func middlewareFileQuery(queryData *QueryData) bool {
+	// # The problem
+	//
+	// To explain what this middleware does, let's take an example
+	// SELECT * FROM read_json('file.json') WHERE name = 'John'
+	//
+	// file.json has a schema that is not known by the database
+	// and SQLite does not support dynamic schema
+	// Therefore, we need to register a virtual table that will read the file
+	// and then we can query it
+	//
+	// # The solution
+	//
+	// The process is quite cumbersome. Therefore, we use a parser that detects
+	// the table functions and replaces them with a random table name
+	// Before running the query, we create a virtual table with the random name
+	// and once the query is executed, we drop the table
+	// That's a workaround around the limitation of SQLite
+	//
+	// # Implementation issues
+	//
+	// The vitess's parser is not able to parse queries
+	// with table functions like read_json() or read_csv()
+	//
+	// At first, I wanted to modify the parser to support
+	// these functions, but it was too complicated
+	// My knowledge of YACC is extremely limited
+	//
+	// As a temporary solution, I decided to parse these queries
+	// with pg_query (it adds 6MB to the binary size so it's not ideal)
+	// As the old saying goes, there is nothing more permanent than a temporary solution
+	// I hope this is not the case here
+	//
+	// There is quite a lot of spaghetti code in this middleware to explore the AST
+	// Couldn't find a better way to do it
+
+	// Parse the query
+	Result, err := pg_query.Parse(queryData.SQLQuery)
+	if err != nil {
+		return true
+	}
+
+	if Result == nil || len(Result.Stmts) == 0 || Result.Stmts[0].Stmt == nil {
+		return true
+	}
+
+	selectStmt := Result.Stmts[0].Stmt.GetSelectStmt()
+	if selectStmt == nil {
+		// To handle INSERT INTO SELECT
+		insertStmt := Result.Stmts[0].Stmt.GetInsertStmt()
+		if insertStmt == nil {
+			// To handle CREATE TABLE AS SELECT
+			createTableStmt := Result.Stmts[0].Stmt.GetCreateTableAsStmt()
+			if createTableStmt == nil {
+				return true
+			} else {
+				selectStmt = createTableStmt.Query.GetSelectStmt()
+				if selectStmt == nil {
+					return true
+				}
+			}
+		} else {
+			selectStmt = insertStmt.SelectStmt.GetSelectStmt()
+			if selectStmt == nil {
+				return true
+			}
+		}
+
+	}
+
+	// Get the from clause
+	tableFunctions := extractTableFunctions(selectStmt.FromClause)
+	for _, tableFunction := range tableFunctions {
+		// Check if the table function is a file module
+		if tableFunction.name != "read_json" && tableFunction.name != "read_csv" {
+			continue
+		}
+
+		// Replace the table function with a random one
+		tableName := generateRandomString(16)
+		preExecBuilder := strings.Builder{}
+		preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
+		preExecBuilder.WriteString(tableName)
+		preExecBuilder.WriteString(" USING ")
+		if tableFunction.name == "read_json" {
+			preExecBuilder.WriteString("json_reader")
+		} else if tableFunction.name == "read_csv" {
+			preExecBuilder.WriteString("csv_reader")
+		}
+		preExecBuilder.WriteString("(")
+		for i, arg := range tableFunction.args {
+			if i > 0 {
+				preExecBuilder.WriteString(", ")
+			}
+			preExecBuilder.WriteRune('"')
+			preExecBuilder.WriteString(arg)
+			preExecBuilder.WriteRune('"')
+		}
+		preExecBuilder.WriteString(");")
+
+		// Add the pre-execution statement
+		queryData.PreExec = append(queryData.PreExec, preExecBuilder.String())
+
+		// Add a post-execution statement to drop the table
+		queryData.PostExec = append(queryData.PostExec, "DROP TABLE "+tableName+";")
+
+		// Replace the table function with the new table name
+		var tempTableName *pg_query.Node
+		if tableFunction.alias == "" {
+			tempTableName = pg_query.MakeSimpleRangeVarNode(tableName, int32(tableFunction.position))
+		} else {
+			tempTableName = pg_query.MakeFullRangeVarNode("", tableName, tableFunction.alias, int32(tableFunction.position))
+		}
+		selectStmt.FromClause[tableFunction.position] = tempTableName
+
+	}
+
+	newQuery, err := pg_query.Deparse(Result)
+	if err != nil {
+		return true
+	}
+	queryData.SQLQuery = newQuery
+
+	return true
 }

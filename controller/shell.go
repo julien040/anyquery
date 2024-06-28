@@ -26,7 +26,7 @@ type QueryData struct {
 
 	// The query to exec before/after the query
 	// Useful to create temporary tables
-	preExec, postExec string
+	PreExec, PostExec []string
 
 	// The query to run
 	SQLQuery string
@@ -300,6 +300,14 @@ func (p *shell) Run(rawQuery string) bool {
 				fmt.Fprintf(tempOutput, "Error closing the table: %s\n", err.Error())
 			}
 
+		}
+
+		// Run all the post exec queries
+		for _, postExec := range queryData.PostExec {
+			_, err := queryData.DB.Exec(postExec)
+			if err != nil {
+				fmt.Fprintf(tempOutput, "Error running post exec query: %s\n", err.Error())
+			}
 		}
 
 		// We print a newline to separate the queries

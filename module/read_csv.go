@@ -84,6 +84,10 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 	fileName := ""
 	schema := ""
 
+	if len(args) >= 4 {
+		fileName = strings.Trim(args[3], "' \"")
+	}
+
 	params := []argParam{
 		{"file", &fileName},
 		{"header", &useHeaderStr},
@@ -171,8 +175,6 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		if err != nil {
 			return nil, fmt.Errorf("failed to read the first row: %s", err)
 		}
-
-		fmt.Println("Header: ", row)
 
 		for i, col := range row {
 			colName := fmt.Sprintf("col%d", i)

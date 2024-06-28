@@ -130,7 +130,7 @@ func Query(cmd *cobra.Command, args []string) error {
 	// Create the shell
 	shell := shell{
 		DB:          db,
-		Middlewares: []middleware{middlewareSlashCommand, middlewareDotCommand, middlewareMySQL, middlewareQuery},
+		Middlewares: []middleware{middlewareSlashCommand, middlewareDotCommand, middlewareMySQL, middlewareFileQuery, middlewareQuery},
 		Config: middlewareConfiguration{
 			"dot-command":   true,
 			"mysql":         true,
