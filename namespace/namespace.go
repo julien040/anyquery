@@ -303,6 +303,11 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			// Register JSON and CSV modules
 			conn.CreateModule("json_reader", &module.JSONModule{})
 			conn.CreateModule("csv_reader", &module.CsvModule{})
+			conn.CreateModule("parquet_reader", &module.ParquetModule{})
+			conn.CreateModule("html_reader", &module.HtmlModule{})
+			conn.CreateModule("yaml_reader", &module.YamlModule{})
+			conn.CreateModule("toml_reader", &module.TomlModule{})
+			conn.CreateModule("jsonl_reader", &module.JSONlModule{})
 
 			return nil
 		},

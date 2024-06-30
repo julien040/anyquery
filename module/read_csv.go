@@ -112,6 +112,15 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 
 	useHeader, _ = strconv.ParseBool(useHeaderStr)
 
+	// Parse the separator
+	if fieldSeparator == "" {
+		fieldSeparator = ","
+	}
+
+	if fieldSeparator == "tab" || fieldSeparator == "\\t" {
+		fieldSeparator = "\t"
+	}
+
 	// Open the file
 	if fileName == "" {
 		return nil, fmt.Errorf("missing file argument. Check the validity of the arguments")

@@ -14,9 +14,14 @@ import (
 	"github.com/hashicorp/go-getter"
 )
 
+// downloadFile downloads a file from a source URL to a destination path
+// If the destination file already exists and its size is superior to 0,
+// the file is not downloaded again
+//
+// The destination path is created if it doesn't exist
 func downloadFile(src string, dst string) error {
 	// Create the directory if it doesn't exist
-	err := os.MkdirAll(path.Dir(src), 0755)
+	err := os.MkdirAll(path.Dir(dst), 0755)
 	if err != nil {
 		return err
 	}
@@ -25,6 +30,16 @@ func downloadFile(src string, dst string) error {
 	if err != nil {
 		return err
 	}
+
+	needToDownload := true
+
+	// Check if the file is already downloaded and its size superior to 0
+	// If so, we don't need to download it again
+	info, err := os.Stat(dst)
+	if err == nil && info.Size() > 0 {
+		needToDownload = false
+	}
+
 	// Download the file
 	client := &getter.Client{
 		Src:  src,
@@ -33,9 +48,11 @@ func downloadFile(src string, dst string) error {
 		Pwd:  wd,
 	}
 
-	err = client.Get()
-	if err != nil {
-		return fmt.Errorf("failed to download file: %s", err)
+	if needToDownload {
+		err = client.Get()
+		if err != nil {
+			return fmt.Errorf("failed to download file: %s", err)
+		}
 	}
 
 	return nil
@@ -58,20 +75,9 @@ func openMmapedFile(src string) (mmap.MMap, error) {
 	// Find the cached destination
 	filePath, err := findCachedDestination(src)
 
-	needToDownload := true
-
-	// Check if the file is already downloaded and its size superior to 0
-	// If so, we don't need to download it again
-	info, err := os.Stat(filePath)
-	if err == nil && info.Size() > 0 {
-		needToDownload = false
-	}
-
-	if needToDownload {
-		err = downloadFile(src, filePath)
-		if err != nil {
-			return nil, err
-		}
+	err = downloadFile(src, filePath)
+	if err != nil {
+		return nil, err
 	}
 
 	// Open the file

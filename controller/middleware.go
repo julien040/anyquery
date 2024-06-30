@@ -602,7 +602,12 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	tableFunctions := extractTableFunctions(selectStmt.FromClause)
 	for _, tableFunction := range tableFunctions {
 		// Check if the table function is a file module
-		if tableFunction.name != "read_json" && tableFunction.name != "read_csv" {
+		/* if tableFunction.name != "read_json" && tableFunction.name != "read_csv" && tableFunction.name != "read_parquet" &&
+			tableFunction.name != "read_html" && tableFunction.name != "read_yaml" && tableFunction.name != "read_toml" &&
+			tableFunction.name != "read_jsonl" && tableFunction.name != "read_ndjson" {
+			continue
+		} */
+		if !strings.HasPrefix(tableFunction.name, "read_") {
 			continue
 		}
 
@@ -612,11 +617,27 @@ func middlewareFileQuery(queryData *QueryData) bool {
 		preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
 		preExecBuilder.WriteString(tableName)
 		preExecBuilder.WriteString(" USING ")
-		if tableFunction.name == "read_json" {
+		switch tableFunction.name {
+		case "read_json":
 			preExecBuilder.WriteString("json_reader")
-		} else if tableFunction.name == "read_csv" {
+		case "read_csv":
 			preExecBuilder.WriteString("csv_reader")
+		case "read_parquet":
+			preExecBuilder.WriteString("parquet_reader")
+		case "read_html":
+			preExecBuilder.WriteString("html_reader")
+		case "read_yaml":
+			preExecBuilder.WriteString("yaml_reader")
+		case "read_toml":
+			preExecBuilder.WriteString("toml_reader")
+		case "read_jsonl", "read_ndjson":
+			preExecBuilder.WriteString("jsonl_reader")
+		default:
+			// If the user writes read_foo, and we don't have a reader for foo
+			// we skip the table function
+			continue
 		}
+
 		preExecBuilder.WriteString("(")
 		for i, arg := range tableFunction.args {
 			if i > 0 {
