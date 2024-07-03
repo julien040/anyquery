@@ -129,8 +129,13 @@ func Query(cmd *cobra.Command, args []string) error {
 
 	// Create the shell
 	shell := shell{
-		DB:          db,
-		Middlewares: []middleware{middlewareSlashCommand, middlewareDotCommand, middlewareMySQL, middlewareFileQuery, middlewareQuery},
+		DB: db,
+		Middlewares: []middleware{
+			middlewareSlashCommand, middlewareDotCommand,
+			middlewarePRQL, middlewarePQL,
+			middlewareMySQL, middlewareFileQuery,
+			middlewareQuery,
+		},
 		Config: middlewareConfiguration{
 			"dot-command":   true,
 			"mysql":         true,
@@ -139,6 +144,25 @@ func Query(cmd *cobra.Command, args []string) error {
 		Namespace:      namespace,
 		OutputFile:     "stdout",
 		OutputFileDesc: os.Stdout,
+	}
+
+	// Check if an alternative language is provided
+	language, _ := cmd.Flags().GetString("language")
+	if language == "prql" || language == "pql" {
+		shell.Config.SetString("language", language)
+	}
+
+	prql, _ := cmd.Flags().GetBool("prql")
+	if prql {
+		shell.Config.SetString("language", "prql")
+	}
+
+	pql, _ := cmd.Flags().GetBool("pql")
+	if pql {
+		if prql {
+			return fmt.Errorf("cannot use both PRQL and PQL at the same time")
+		}
+		shell.Config.SetString("language", "pql")
 	}
 
 	// Run the init scripts

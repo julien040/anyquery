@@ -46,4 +46,9 @@ func init() {
 	rootCmd.Flags().String("log-file", "", "Log file")
 	rootCmd.Flags().String("log-level", "info", "Log level (trace, debug, info, warn, error, off)")
 	rootCmd.Flags().String("log-format", "text", "Log format (text, json)")
+
+	// Alternative language flags
+	rootCmd.Flags().String("language", "", "Alternative language to use")
+	rootCmd.Flags().Bool("prql", false, "Use the PRQL language")
+	rootCmd.Flags().Bool("pql", false, "Use the PQL language")
 }

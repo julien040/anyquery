@@ -11,8 +11,10 @@ import (
 	"strings"
 
 	"github.com/julien040/anyquery/namespace"
+	"github.com/julien040/anyquery/other/prql"
 	"github.com/julien040/go-ternary"
 	pg_query "github.com/pganalyze/pg_query_go/v5"
+	"github.com/runreveal/pql"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 
@@ -174,6 +176,48 @@ func middlewareDotCommand(queryData *QueryData) bool {
 		queryData.SQLQuery = "SELECT name FROM pragma_table_list UNION SELECT name FROM pragma_module_list" +
 			" WHERE name NOT LIKE 'fts%' AND name NOT LIKE 'rtree%'"
 		return true
+	case "languages", "language":
+		if len(args) == 0 {
+			queryData.Message = "Switching back to SQL"
+			queryData.Config.SetString("language", "")
+			queryData.StatusCode = 0
+		} else {
+			switch strings.ToLower(args[0]) {
+			case "prql":
+				queryData.Config.SetString("language", "prql")
+				queryData.Message = "Switched to PRQL"
+				queryData.StatusCode = 0
+			case "pql":
+				queryData.Config.SetString("language", "pql")
+				queryData.Message = "Switched to PQL"
+				queryData.StatusCode = 0
+			default:
+				queryData.Message = "Unknown language"
+				queryData.StatusCode = 2
+			}
+		}
+	case "prql":
+		if queryData.Config.GetString("language", "") == "prql" {
+			queryData.Message = "Already using PRQL. Use .language to switch back to SQL"
+			queryData.StatusCode = 1
+		} else {
+			queryData.Config.SetString("language", "prql")
+			queryData.Message = "Switched to PRQL"
+			queryData.StatusCode = 0
+		}
+	case "pql":
+		if queryData.Config.GetString("language", "") == "pql" {
+			queryData.Message = "Already using PQL. Use .language to switch back to SQL"
+			queryData.StatusCode = 1
+		} else {
+			queryData.Config.SetString("language", "pql")
+			queryData.Message = "Switched to PQL"
+			queryData.StatusCode = 0
+		}
+	case "sql":
+		queryData.Config.SetString("language", "")
+		queryData.Message = "Switched back to SQL"
+		queryData.StatusCode = 0
 	}
 
 	return false
@@ -248,7 +292,6 @@ func middlewareQuery(queryData *QueryData) bool {
 	if queryData.SQLQuery == "" {
 		return true
 	}
-
 	// Run the pre-execution statements
 	for i, preExec := range queryData.PreExec {
 		_, err := queryData.DB.Exec(preExec)
@@ -672,5 +715,47 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	}
 	queryData.SQLQuery = newQuery
 
+	return true
+}
+
+func middlewarePRQL(query *QueryData) bool {
+	if query.Config.GetString("language", "") != "prql" {
+		return true
+	}
+
+	// Transform the query
+	sqlQuery, messages := prql.ToSQL(query.SQLQuery)
+	// If there are messages, the query is invalid
+	if len(messages) > 0 {
+		for _, message := range messages {
+			query.Message = query.Message + message.Display + "\n"
+			query.StatusCode = 2
+		}
+		return false
+	}
+
+	query.SQLQuery = sqlQuery
+	return true
+}
+
+func middlewarePQL(query *QueryData) bool {
+	if query.Config.GetString("language", "") != "pql" {
+		return true
+	}
+
+	// Transform the query
+	sqlQuery, err := pql.Compile(query.SQLQuery)
+	if err != nil {
+		query.Message = fmt.Sprintf("Error in PQL: %s", err.Error())
+		query.StatusCode = 2
+		return false
+	}
+
+	// Remove the semicolon at the end
+	if strings.HasSuffix(sqlQuery, ";") {
+		sqlQuery = sqlQuery[:len(sqlQuery)-1]
+	}
+
+	query.SQLQuery = sqlQuery
 	return true
 }

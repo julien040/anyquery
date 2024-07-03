@@ -15,7 +15,7 @@ import (
 //
 // If the function has multiple alias, please specify the different names in the comment
 
-func register_crypto_functions(conn *sqlite3.SQLiteConn) {
+func registerCryptoFunctions(conn *sqlite3.SQLiteConn) {
 	var cryptoFunctions = []struct {
 		name     string
 		function any

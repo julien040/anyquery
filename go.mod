@@ -5,8 +5,11 @@ go 1.22.3
 replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.1
 
 require (
+	github.com/BurntSushi/toml v1.4.0
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/PuerkitoBio/goquery v1.9.2
 	github.com/adrg/xdg v0.4.0
+	github.com/andybalholm/cascadia v1.3.2
 	github.com/briandowns/spinner v1.23.0
 	github.com/charmbracelet/huh v0.4.2
 	github.com/charmbracelet/lipgloss v0.11.0
@@ -23,14 +26,19 @@ require (
 	github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e
 	github.com/mattn/go-sqlite3 v1.14.22
 	github.com/olekukonko/tablewriter v0.0.5
+	github.com/parquet-go/parquet-go v0.22.0
 	github.com/pganalyze/pg_query_go/v5 v5.1.0
+	github.com/runreveal/pql v0.1.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.9.0
+	golang.org/x/crypto v0.24.0
 	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8
 	golang.org/x/mod v0.18.0
+	golang.org/x/net v0.26.0
 	golang.org/x/term v0.21.0
+	gopkg.in/yaml.v3 v3.0.1
 	vitess.io/vitess v0.19.4
 )
 
@@ -42,10 +50,7 @@ require (
 	cloud.google.com/go/storage v1.39.0 // indirect
 	filippo.io/edwards25519 v1.1.0 // indirect
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230811130428-ced1acdcaa24 // indirect
-	github.com/BurntSushi/toml v1.4.0 // indirect
-	github.com/PuerkitoBio/goquery v1.9.2 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go v1.50.32 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
@@ -66,7 +71,6 @@ require (
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
 	github.com/go-logr/logr v1.4.1 // indirect
 	github.com/go-logr/stdr v1.2.2 // indirect
-	github.com/goccy/go-yaml v1.11.3 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
@@ -93,7 +97,6 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/termenv v0.15.2 // indirect
 	github.com/oklog/run v1.0.0 // indirect
-	github.com/parquet-go/parquet-go v0.22.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.18 // indirect
 	github.com/pires/go-proxyproto v0.7.0 // indirect
 	github.com/pkg/term v1.2.0-beta.2 // indirect
@@ -108,14 +111,11 @@ require (
 	go.opentelemetry.io/otel v1.24.0 // indirect
 	go.opentelemetry.io/otel/metric v1.24.0 // indirect
 	go.opentelemetry.io/otel/trace v1.24.0 // indirect
-	golang.org/x/crypto v0.24.0 // indirect
-	golang.org/x/net v0.26.0 // indirect
 	golang.org/x/oauth2 v0.18.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
-	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	google.golang.org/api v0.168.0 // indirect
 	google.golang.org/appengine v1.6.8 // indirect
 	google.golang.org/genproto v0.0.0-20240304212257-790db918fca8 // indirect
@@ -123,5 +123,4 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240304212257-790db918fca8 // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

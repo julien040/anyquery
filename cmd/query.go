@@ -33,4 +33,9 @@ func init() {
 	queryCmd.Flags().String("log-file", "", "Log file")
 	queryCmd.Flags().String("log-level", "info", "Log level (trace, debug, info, warn, error, off)")
 	queryCmd.Flags().String("log-format", "text", "Log format (text, json)")
+
+	// Alternative language flags
+	queryCmd.Flags().String("language", "", "Alternative language to use")
+	queryCmd.Flags().Bool("prql", false, "Use the PRQL language")
+	queryCmd.Flags().Bool("pql", false, "Use the PQL language")
 }
