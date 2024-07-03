@@ -1,6 +1,7 @@
 package module
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -15,15 +16,17 @@ type HtmlModule struct {
 }
 
 type HtmlTable struct {
-	table *html.Node
-	file  *os.File
-	rows  *goquery.Selection
+	table   *html.Node
+	file    *os.File
+	rows    *goquery.Selection
+	isTable bool // Whether the rows node is a table or not
 }
 
 type HtmlCursor struct {
 	rows      *goquery.Selection
 	rowID     int64
 	actualRow []string
+	isTable   bool // Whether we should search for th, td or directly the children
 }
 
 func (m *HtmlModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
@@ -37,11 +40,11 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 	cssSelector := ""
 
 	if len(args) > 3 {
-		fileName = args[3]
+		fileName = strings.Trim(args[3], "' \"")
 	}
 
 	if len(args) > 4 {
-		fileName = args[4]
+		cssSelector = strings.Trim(args[4], "' \"")
 	}
 
 	params := []argParam{
@@ -95,6 +98,8 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		return nil, fmt.Errorf("failed to parse HTML: %s", err)
 	}
 
+	allMatches := []*html.Node{}
+
 	// If a css selector is provided, find the node
 	// Otherwise, we consider the table is the root node
 	if cssSelector != "" {
@@ -104,7 +109,11 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		}
 
 		// Find the node
-		document = cascadia.Query(document, query)
+		allMatches = cascadia.QueryAll(document, query)
+		if len(allMatches) == 0 {
+			return nil, fmt.Errorf("failed to find the node with the CSS selector: %s", cssSelector)
+		}
+		document = allMatches[0]
 		if document == nil {
 			return nil, fmt.Errorf("failed to find the node with the CSS selector: %s", cssSelector)
 		}
@@ -113,57 +122,69 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		return nil, fmt.Errorf("the node found is not an element node")
 	}
 
-	// Ensure the node is a table
-	if document.Data != "table" {
-		return nil, fmt.Errorf("the node found is not a table. The selected node is: %s. Please modify the CSS selector", document.Data)
-	}
+	rows := &goquery.Selection{}
 
-	goqueryDoc := goquery.NewDocumentFromNode(document)
-
-	rows := goqueryDoc.Find("tbody tr")
-
-	// Find the headers
-	columns := []string{}
-	goqueryDoc.Find("thead th").Each(func(i int, s *goquery.Selection) {
-		columns = append(columns, s.Text())
-	})
-
-	// If no headers are found, try to find the first row
-	if len(columns) == 0 {
-		rows.First().Find("td, th").Each(func(i int, s *goquery.Selection) {
-			columns = append(columns, fmt.Sprintf("col%d", i))
-		})
-	}
-
-	// If no columns are found, return an error
-	if len(columns) == 0 {
-		return nil, fmt.Errorf("no columns found in the table")
-	}
-
-	// Create the table
-	schema := strings.Builder{}
-	schema.WriteString("CREATE TABLE x(")
-	for i, col := range columns {
-		if i > 0 {
-			schema.WriteString(", ")
+	// Ensure the node is a table and there is only one match
+	// Otherwise, we will just return a table with all the matches
+	if document.Data != "table" && len(allMatches) != 1 {
+		// Get all the matches
+		for _, match := range allMatches {
+			rows = rows.AddNodes(match)
 		}
-		schema.WriteString(col)
-		schema.WriteString(" TEXT")
-	}
-	schema.WriteString(")")
 
-	c.DeclareVTab(schema.String())
+		// Declare the columns
+		c.DeclareVTab("CREATE TABLE x(tag_name TEXT, content TEXT, attributes TEXT)")
+
+	} else {
+		goqueryDoc := goquery.NewDocumentFromNode(document)
+
+		rows = goqueryDoc.Find("tbody tr")
+
+		// Find the headers
+		columns := []string{}
+		goqueryDoc.Find("thead th").Each(func(i int, s *goquery.Selection) {
+			columns = append(columns, s.Text())
+		})
+
+		// If no headers are found, try to find the first row
+		if len(columns) == 0 {
+			rows.First().Find("td, th").Each(func(i int, s *goquery.Selection) {
+				columns = append(columns, fmt.Sprintf("col%d", i))
+			})
+		}
+
+		// If no columns are found, return an error
+		if len(columns) == 0 {
+			return nil, fmt.Errorf("no columns found in the table")
+		}
+
+		// Create the table
+		schema := strings.Builder{}
+		schema.WriteString("CREATE TABLE x(")
+		for i, col := range columns {
+			if i > 0 {
+				schema.WriteString(", ")
+			}
+			schema.WriteString(col)
+			schema.WriteString(" TEXT")
+		}
+		schema.WriteString(")")
+
+		c.DeclareVTab(schema.String())
+	}
 
 	return &HtmlTable{
-		table: document,
-		rows:  rows,
-		file:  file,
+		table:   document,
+		rows:    rows,
+		isTable: document.Data == "table",
+		file:    file,
 	}, nil
 }
 
 func (t *HtmlTable) Open() (sqlite3.VTabCursor, error) {
 	return &HtmlCursor{
-		rows: t.rows,
+		rows:    t.rows,
+		isTable: t.isTable,
 	}, nil
 }
 
@@ -193,14 +214,38 @@ func (t *HtmlCursor) fillBuffer() {
 	}
 
 	t.actualRow = []string{}
-	// For each th in the actual tr, fill the buffer with the text of the th
-	tr := t.rows.Eq(int(t.rowID))
-	if tr == nil {
-		return
+	if t.isTable {
+		// For each th in the actual tr, fill the buffer with the text of the th
+		tr := t.rows.Eq(int(t.rowID))
+		if tr == nil {
+			return
+		}
+		tr.Find("th, td").Each(func(i int, s *goquery.Selection) {
+			t.actualRow = append(t.actualRow, s.Text())
+		})
+	} else {
+		// For each child of the actual node, fill the buffer with the tag name, the content and the attributes
+		node := t.rows.Get(int(t.rowID))
+		if node == nil {
+			return
+		}
+		t.actualRow = append(t.actualRow, node.Data)
+
+		// Get the content
+		goqueryNode := goquery.NewDocumentFromNode(node)
+		text := goqueryNode.Text()
+		text = strings.TrimSpace(text)
+		t.actualRow = append(t.actualRow, text)
+
+		// JSON encode the attributes
+		attrJSON, err := json.Marshal(node.Attr)
+		if err != nil {
+			t.actualRow = append(t.actualRow, "")
+		} else {
+			t.actualRow = append(t.actualRow, string(attrJSON))
+		}
+
 	}
-	tr.Find("th, td").Each(func(i int, s *goquery.Selection) {
-		t.actualRow = append(t.actualRow, s.Text())
-	})
 }
 
 func (t *HtmlCursor) Filter(idxNum int, idxStr string, vals []interface{}) error {
