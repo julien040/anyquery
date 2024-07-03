@@ -309,6 +309,19 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("toml_reader", &module.TomlModule{})
 			conn.CreateModule("jsonl_reader", &module.JSONlModule{})
 
+			// Register the string functions
+			// like position, repeat, replace, etc.
+			registerStringFunctions(conn)
+
+			// Register the URL functions
+			registerURLFunctions(conn)
+
+			// Register the crypto functions
+			registerCryptoFunctions(conn)
+
+			// Register the other functions
+			registerOtherFunctions(conn)
+
 			return nil
 		},
 	})
