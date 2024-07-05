@@ -2,7 +2,7 @@ module github.com/julien040/anyquery
 
 go 1.22.3
 
-replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.1
+replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.2
 
 require (
 	github.com/BurntSushi/toml v1.4.0

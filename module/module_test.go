@@ -6,9 +6,9 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -125,24 +125,24 @@ func TestRawPlugin(t *testing.T) {
 
 	// Open a connection
 	db, err := sql.Open("sqlite_custom", ":memory:")
-	assert.NoError(t, err, "Can't open the database")
+	require.NoError(t, err, "Can't open the database")
 
 	defer db.Close()
 
 	t.Run("A query without required parameters should fail", func(t *testing.T) {
 		_, err = db.Query("SELECT * FROM test")
 		// Because we don't have parameters constraints, it should fail
-		assert.Error(t, err, "A query without required parameters should fail")
+		require.Error(t, err, "A query without required parameters should fail")
 	})
 
 	t.Run("A query with required parameters should work", func(t *testing.T) {
 
 		// We run a true query
 		rows, err := db.Query("SELECT id, name, size, is_active FROM test('Franck')")
-		assert.NoError(t, err, "A query with required parameters should work")
+		require.NoError(t, err, "A query with required parameters should work")
 
 		_, err = rows.Columns()
-		assert.NoError(t, err, "Columns should be retrieved")
+		require.NoError(t, err, "Columns should be retrieved")
 		i := 0
 		for rows.Next() {
 			i++
@@ -151,24 +151,24 @@ func TestRawPlugin(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&id, &name, &size, &isActive)
-			assert.NoError(t, err, "A scan should work")
-			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+			require.NoError(t, err, "A scan should work")
+			require.Greater(t, id, int64(0), "The id should be greater than 0")
 			if name.Valid {
-				assert.NotEmpty(t, name, "The name should not be empty")
+				require.NotEmpty(t, name, "The name should not be empty")
 			}
 		}
-		assert.Equal(t, 20, i, "The number of rows should be 20")
+		require.Equal(t, 20, i, "The number of rows should be 20")
 
 		err = rows.Close()
-		assert.NoError(t, err, "Rows should be closed")
+		require.NoError(t, err, "Rows should be closed")
 	})
 	t.Run("A query where constraints are removed by SQLite", func(t *testing.T) {
 		// We run a true query
 		rows, err := db.Query("SELECT id, name, size, is_active FROM test('Franck') WHERE (size IS NULL OR id IS NOT NULL) OR size IS NOT NULL")
-		assert.NoError(t, err, "A query with required parameters should work")
+		require.NoError(t, err, "A query with required parameters should work")
 
 		_, err = rows.Columns()
-		assert.NoError(t, err, "Columns should be retrieved")
+		require.NoError(t, err, "Columns should be retrieved")
 		i := 0
 		for rows.Next() {
 			i++
@@ -177,16 +177,16 @@ func TestRawPlugin(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&id, &name, &size, &isActive)
-			assert.NoError(t, err, "A scan should work")
-			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+			require.NoError(t, err, "A scan should work")
+			require.Greater(t, id, int64(0), "The id should be greater than 0")
 			if name.Valid {
-				assert.NotEmpty(t, name, "The name should not be empty")
+				require.NotEmpty(t, name, "The name should not be empty")
 			}
 		}
-		assert.Equal(t, 20, i, "The number of rows should be 20")
+		require.Equal(t, 20, i, "The number of rows should be 20")
 
 		err = rows.Close()
-		assert.NoError(t, err, "Rows should be closed")
+		require.NoError(t, err, "Rows should be closed")
 	})
 
 }
@@ -212,13 +212,13 @@ func TestRawPlugin2(t *testing.T) {
 
 	// Open a connection
 	db, err := sql.Open("sqlite_custom2", ":memory:")
-	assert.NoError(t, err, "Can't open the database")
+	require.NoError(t, err, "Can't open the database")
 
 	defer db.Close()
 
 	t.Run("A query without primary key must have a rowid", func(t *testing.T) {
 		rows, err := db.Query("SELECT rowid, * FROM test")
-		assert.NoError(t, err, "A query without primary key must have a rowid")
+		require.NoError(t, err, "A query without primary key must have a rowid")
 
 		i := 0
 		for rows.Next() {
@@ -228,15 +228,15 @@ func TestRawPlugin2(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&rowid, &id, &name, &size, &isActive)
-			assert.NoError(t, err, "A scan should work")
-			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+			require.NoError(t, err, "A scan should work")
+			require.Greater(t, id, int64(0), "The id should be greater than 0")
 			if name.Valid && i < 4 { // The name must be not null for the first 4 rows
-				assert.NotEmpty(t, name, "The name should not be empty")
+				require.NotEmpty(t, name, "The name should not be empty")
 			}
 			if i >= 4 { // We check that the fields are null
-				assert.False(t, name.Valid, "The name should be null")
-				assert.False(t, size.Valid, "The size should be null")
-				assert.False(t, isActive.Valid, "The isActive should be null")
+				require.False(t, name.Valid, "The name should be null")
+				require.False(t, size.Valid, "The size should be null")
+				require.False(t, isActive.Valid, "The isActive should be null")
 			}
 			i++
 		}
@@ -246,7 +246,7 @@ func TestRawPlugin2(t *testing.T) {
 
 	t.Run("A query with LIMIT and OFFSET", func(t *testing.T) {
 		rows, err := db.Query("SELECT rowid, * FROM test LIMIT 3 OFFSET 2")
-		assert.NoError(t, err, "A query without primary key must have a rowid")
+		require.NoError(t, err, "A query without primary key must have a rowid")
 
 		i := 0
 		for rows.Next() {
@@ -256,21 +256,21 @@ func TestRawPlugin2(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&rowid, &id, &name, &size, &isActive)
-			assert.NoError(t, err, "A scan should work")
-			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+			require.NoError(t, err, "A scan should work")
+			require.Greater(t, id, int64(0), "The id should be greater than 0")
 			if i == 0 {
-				assert.Equal(t, "Julien", name.String, "The name should be Julien")
+				require.Equal(t, "Julien", name.String, "The name should be Julien")
 			}
 			i++
 		}
-		assert.Equal(t, 3, i, "The number of rows should be 3")
+		require.Equal(t, 3, i, "The number of rows should be 3")
 		rows.Close()
 
 	})
 
 	t.Run("A query with LIKE must work", func(t *testing.T) {
 		rows, err := db.Query("SELECT rowid, * FROM test WHERE name LIKE '%n%'")
-		assert.NoError(t, err, "A query without primary key must have a rowid")
+		require.NoError(t, err, "A query without primary key must have a rowid")
 		for rows.Next() {
 			var rowid int64
 			var id int64
@@ -278,8 +278,8 @@ func TestRawPlugin2(t *testing.T) {
 			var size sql.NullFloat64
 			var isActive sql.NullBool
 			err = rows.Scan(&rowid, &id, &name, &size, &isActive)
-			assert.NoError(t, err, "A scan should work")
-			assert.Greater(t, id, int64(0), "The id should be greater than 0")
+			require.NoError(t, err, "A scan should work")
+			require.Greater(t, id, int64(0), "The id should be greater than 0")
 		}
 		rows.Close()
 
@@ -310,24 +310,24 @@ func TestLibPlugin(t *testing.T) {
 
 	// Open a connection
 	db, err := sql.Open("sqlite_custom3", ":memory:")
-	assert.NoError(t, err, "Can't open the database")
+	require.NoError(t, err, "Can't open the database")
 
 	// Run a simple query
 	rows, err := db.Query("SELECT * FROM test")
-	assert.NoError(t, err, "A query must work")
+	require.NoError(t, err, "A query must work")
 	i := 0
 	for rows.Next() {
 		var id int64
 		var name sql.NullString
 		rows.Scan(&id, &name)
 
-		assert.Greater(t, id, int64(0), "The id should be greater than 0")
+		require.Greater(t, id, int64(0), "The id should be greater than 0")
 		if name.Valid {
-			assert.NotEmpty(t, name, "The name should not be empty")
+			require.NotEmpty(t, name, "The name should not be empty")
 		}
 		i++
 	}
-	assert.Equal(t, 2, i, "The number of rows should be 2")
+	require.Equal(t, 2, i, "The number of rows should be 2")
 
 	defer db.Close()
 
@@ -337,17 +337,17 @@ func TestOpCode(t *testing.T) {
 	t.Parallel()
 	// This test ensure that the go-sqlite3 keeps the same opcode
 
-	assert.Equal(t, int(sqlite3.OpEQ), int(rpc.OperatorEqual), "The opcode EQ must be the same")
-	assert.Equal(t, int(sqlite3.OpLT), int(rpc.OperatorLess), "The opcode LT must be the same")
-	assert.Equal(t, int(sqlite3.OpLE), int(rpc.OperatorLessOrEqual), "The opcode LE must be the same")
-	assert.Equal(t, int(sqlite3.OpGT), int(rpc.OperatorGreater), "The opcode GT must be the same")
-	assert.Equal(t, int(sqlite3.OpGE), int(rpc.OperatorGreaterOrEqual), "The opcode GE must be the same")
-	assert.Equal(t, int(sqlite3.OpLIKE), int(rpc.OperatorLike), "The opcode LIKE must be the same")
-	assert.Equal(t, int(sqlite3.OpGLOB), int(rpc.OperatorGlob), "The opcode GLOB must be the same")
-	assert.Equal(t, int(sqlite3.OpMATCH), int(rpc.OperatorMatch), "The opcode MATCH must be the same")
-	assert.Equal(t, int(sqlite3.OpREGEXP), int(rpc.OperatorRegexp), "The opcode REGEXP must be the same")
-	assert.Equal(t, int(sqlite3.OpLIMIT), int(rpc.OperatorLimit), "The opcode LIMIT must be the same")
-	assert.Equal(t, int(sqlite3.OpOFFSET), int(rpc.OperatorOffset), "The opcode OFFSET must be the same")
+	require.Equal(t, int(sqlite3.OpEQ), int(rpc.OperatorEqual), "The opcode EQ must be the same")
+	require.Equal(t, int(sqlite3.OpLT), int(rpc.OperatorLess), "The opcode LT must be the same")
+	require.Equal(t, int(sqlite3.OpLE), int(rpc.OperatorLessOrEqual), "The opcode LE must be the same")
+	require.Equal(t, int(sqlite3.OpGT), int(rpc.OperatorGreater), "The opcode GT must be the same")
+	require.Equal(t, int(sqlite3.OpGE), int(rpc.OperatorGreaterOrEqual), "The opcode GE must be the same")
+	require.Equal(t, int(sqlite3.OpLIKE), int(rpc.OperatorLike), "The opcode LIKE must be the same")
+	require.Equal(t, int(sqlite3.OpGLOB), int(rpc.OperatorGlob), "The opcode GLOB must be the same")
+	require.Equal(t, int(sqlite3.OpMATCH), int(rpc.OperatorMatch), "The opcode MATCH must be the same")
+	require.Equal(t, int(sqlite3.OpREGEXP), int(rpc.OperatorRegexp), "The opcode REGEXP must be the same")
+	require.Equal(t, int(sqlite3.OpLIMIT), int(rpc.OperatorLimit), "The opcode LIMIT must be the same")
+	require.Equal(t, int(sqlite3.OpOFFSET), int(rpc.OperatorOffset), "The opcode OFFSET must be the same")
 
 }
 
@@ -443,4 +443,73 @@ func TestXBestIndexConstraintsValidation(t *testing.T) {
 		require.NoError(t, err, "The query should work")
 	})
 
+}
+
+func TestCUDOperations(t *testing.T) {
+	t.Parallel()
+	// Build the raw plugin
+	os.Mkdir("_test", 0755)
+	err := exec.Command("go", "build", "-o", "_test/insertplugin.out", "../test/insertplugin.go").Run()
+	if err != nil {
+		t.Fatalf("Can't build the plugin: %v", err)
+	}
+
+	// Register a db connection
+	sql.Register("sqlite_custom_insert", &sqlite3.SQLiteDriver{
+		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+			return conn.CreateModule("test_insert", &SQLiteModule{
+				PluginPath:     "./_test/insertplugin.out",
+				ConnectionPool: rpc.NewConnectionPool(),
+			})
+		},
+	})
+
+	// Open a connection
+	db, err := sql.Open("sqlite_custom_insert", ":memory:")
+	require.NoError(t, err, "Can't open the database")
+	defer db.Close()
+
+	dbx := sqlx.NewDb(db, "sqlite_custom_insert")
+
+	t.Run("Insert a row", func(t *testing.T) {
+		_, err = db.Exec("INSERT INTO test_insert(id, name, age, address) VALUES(6, 'Julien', 30, 'Paris')")
+		require.NoError(t, err, "The insert should work")
+
+		// We check that the row is inserted
+		var name string
+		err = dbx.Get(&name, "SELECT name FROM test_insert WHERE id=6")
+		require.NoError(t, err, "The row should be inserted")
+		require.Equal(t, "Julien", name, "The name should be Julien")
+	})
+
+	t.Run("Update a row", func(t *testing.T) {
+		t.Log("Try to update a row")
+		_, err = db.Exec("UPDATE test_insert SET name='Franck' WHERE id=1")
+		require.NoError(t, err, "The update should work")
+
+		// We check that the row is updated
+		var name string
+		err = dbx.Get(&name, "SELECT name FROM test_insert WHERE id=1")
+		require.NoError(t, err, "The row should be updated")
+		require.Equal(t, "Franck", name, "The name should be Franck")
+
+		_, err = db.Exec("UPDATE test_insert SET name='Michel', id=12 WHERE id=1")
+		require.NoError(t, err, "The update should work")
+
+		// We check that the row is updated
+		err = dbx.Get(&name, "SELECT name FROM test_insert WHERE id=12")
+		require.NoError(t, err, "The row should be updated")
+		require.Equal(t, "Michel", name, "The name should be Michel")
+	})
+
+	t.Run("Delete a row", func(t *testing.T) {
+		t.Log("Try to delete a row")
+		_, err = db.Exec("DELETE FROM test_insert WHERE id=2")
+		require.NoError(t, err, "The delete should work")
+
+		// We check that the row is deleted
+		var name string
+		err = dbx.Get(&name, "SELECT name FROM test_insert WHERE id=2")
+		require.Error(t, err, "The row should be deleted")
+	})
 }

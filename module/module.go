@@ -48,6 +48,12 @@ type SQLiteTable struct {
 	schema          rpc.DatabaseSchema
 	client          *rpc.InternalClient
 	ConnectionPool  *rpc.ConnectionPool
+	insertBuffer    *deque.Deque[[]interface{}]
+	maxBufferInsert uint
+	updateBuffer    *deque.Deque[updateItem]
+	maxBufferUpdate uint
+	deleteBuffer    *deque.Deque[interface{}]
+	maxBufferDelete uint
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
@@ -61,6 +67,11 @@ type SQLiteCursor struct {
 	rows            *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
 	nextCursor      *int
 	constraints     rpc.QueryConstraint
+}
+
+type updateItem struct {
+	id   any
+	vals []any
 }
 
 // EponymousOnlyModule is a method that is used to mark the table as eponymous-only
@@ -105,6 +116,12 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		dbSchema,
 		m.client,
 		m.ConnectionPool,
+		&deque.Deque[[]interface{}]{},
+		dbSchema.BufferInsert,
+		&deque.Deque[updateItem]{},
+		dbSchema.BufferUpdate,
+		&deque.Deque[interface{}]{},
+		dbSchema.BufferDelete,
 	}
 
 	return table, nil
@@ -223,6 +240,24 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 //
 // It should return a new cursor
 func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
+	// For coherence, we flush the buffers of inserts, updates and deletes
+	// before running any SELECT query
+	// If any of the flush fails, we return an error and therefore stop the query
+
+	err := t.flushInsert()
+	if err != nil {
+		return nil, errors.Join(errors.New("recent inserts were not saved, and an attempt to flush them failed. Please retry the query"), err)
+	}
+	err = t.flushUpdate()
+	if err != nil {
+		return nil, errors.Join(errors.New("recent updates were not saved, and an attempt to flush them failed. Please retry the query"), err)
+	}
+	err = t.flushDelete()
+	if err != nil {
+		return nil, errors.Join(errors.New("recent deletes were not saved, and an attempt to flush them failed. Please retry the query"), err)
+	}
+
+	// We create a new cursor
 	cursor := &SQLiteCursor{
 		t.connectionIndex,
 		t.tableIndex,
@@ -242,15 +277,150 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 }
 
 func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
-	return 0, errors.New("not implemented")
+	if t.schema.PrimaryKey == -1 {
+		return 0, errors.New("the table does not support INSERT because it has no primary key")
+	}
+
+	if !t.schema.HandlesInsert {
+		return 0, errors.New("the table does not support INSERT")
+	}
+
+	// We add the row to the buffer
+	t.insertBuffer.PushBack(vals)
+
+	// If the buffer is full, we flush it
+	if uint(t.insertBuffer.Len()) >= t.maxBufferInsert {
+		err := t.flushInsert()
+		if err != nil {
+			return 0, errors.Join(errors.New("could not flush the insert buffer"), err)
+		}
+	}
+
+	// We return a random number as the row ID
+	// but it's a fail safe because a table that supports INSERT must have a primary key
+	// and therefore no row ID is needed
+	randomID := rand.Int64()
+
+	return randomID, nil
 }
 
-func (t *SQLiteTable) Update(id any, vals []any) (int64, error) {
-	return 0, errors.New("not implemented")
+func (t *SQLiteTable) Update(id any, vals []any) error {
+	if t.schema.PrimaryKey == -1 {
+		return errors.New("the table does not support UPDATE because it has no primary key")
+	}
+
+	if !t.schema.HandlesUpdate {
+		return errors.New("the table does not support UPDATE")
+	}
+
+	t.updateBuffer.PushBack(updateItem{id, vals})
+
+	if uint(t.updateBuffer.Len()) >= t.maxBufferUpdate {
+		err := t.flushUpdate()
+		if err != nil {
+			return errors.Join(errors.New("could not flush the update buffer"), err)
+		}
+	}
+
+	return nil
 }
 
-func (t *SQLiteTable) Delete(id any) (int64, error) {
-	return 0, errors.New("not implemented")
+func (t *SQLiteTable) Delete(id any) error {
+	if t.schema.PrimaryKey == -1 {
+		return errors.New("the table does not support DELETE because it has no primary key")
+	}
+
+	if !t.schema.HandlesDelete {
+		return errors.New("the table does not support DELETE")
+	}
+
+	t.deleteBuffer.PushBack(id)
+
+	if uint(t.deleteBuffer.Len()) >= t.maxBufferDelete {
+		err := t.flushDelete()
+		if err != nil {
+			return errors.Join(errors.New("could not flush the delete buffer"), err)
+		}
+	}
+	return nil
+}
+
+// Flush the buffer of inserts to the plugin
+//
+// If the plugin rejects the inserts, the functions returns an error
+// and keeps the rows in the buffer for a later retry
+func (t *SQLiteTable) flushInsert() error {
+	if t.insertBuffer.Len() == 0 {
+		return nil
+	}
+
+	// We request the plugin to insert the rows
+	rows := make([][]interface{}, t.insertBuffer.Len())
+	for i := 0; i < t.insertBuffer.Len(); i++ {
+		rows[i] = t.insertBuffer.At(i)
+	}
+	err := t.client.Plugin.Insert(t.connectionIndex, t.tableIndex, rows)
+	if err != nil {
+		return errors.Join(errors.New("could not insert the rows in the plugin"), err)
+	}
+
+	// We clear the buffer
+	t.insertBuffer.Clear()
+	return nil
+}
+
+// Flush the buffer of updates to the plugin
+//
+// If the plugin rejects the updates, the functions returns an error
+// and keeps the rows in the buffer for a later retry
+func (t *SQLiteTable) flushUpdate() error {
+	if t.updateBuffer.Len() == 0 {
+		return nil
+	}
+
+	// We request the plugin to update the rows
+	rows := make([][]interface{}, t.updateBuffer.Len())
+	// The format for a row update is [id, ...vals]
+	for i := 0; i < t.updateBuffer.Len(); i++ {
+		item := t.updateBuffer.At(i)
+		rows[i] = append([]interface{}{item.id}, item.vals...)
+	}
+
+	err := t.client.Plugin.Update(t.connectionIndex, t.tableIndex, rows)
+	if err != nil {
+		return errors.Join(errors.New("could not update the rows in the plugin"), err)
+	}
+
+	// We clear the buffer
+	t.updateBuffer.Clear()
+
+	return nil
+}
+
+// Flush the buffer of deletes to the plugin
+//
+// If the plugin rejects the deletes, the functions returns an error
+// and keeps the rows in the buffer for a later retry
+func (t *SQLiteTable) flushDelete() error {
+	if t.deleteBuffer.Len() == 0 {
+		return nil
+	}
+
+	// We request the plugin to delete the rows
+	rows := make([]interface{}, t.deleteBuffer.Len())
+	for i := 0; i < t.deleteBuffer.Len(); i++ {
+		rows[i] = t.deleteBuffer.At(i)
+	}
+
+	err := t.client.Plugin.Delete(t.connectionIndex, t.tableIndex, rows)
+	if err != nil {
+		return errors.Join(errors.New("could not delete the rows in the plugin"), err)
+	}
+
+	// We clear the buffer
+	t.deleteBuffer.Clear()
+
+	return nil
 }
 
 // Close is called when the cursor is no longer needed
@@ -391,7 +561,7 @@ func (c *SQLiteCursor) Filter(idxNum int, idxStr string, vals []interface{}) err
 	//
 	// Moreover, for the sake of simplicity, we will create a new cursor on the plugin side,
 	// which means the cursorIndex must be incremented while not yelding any conflict
-	// How to fix this? We must have access to the parent struct (SQLiteTable).
+	// This is why we store a reference to the nextCursor field of the table
 
 	// Reset the cursor to its initial state
 	resetCursor(c)

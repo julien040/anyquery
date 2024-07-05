@@ -12,7 +12,10 @@ import (
 func TestRPCPlugin(t *testing.T) {
 	// Build the normal plugin
 	os.Mkdir("_test", 0755)
-	err := exec.Command("go", "build", "-o", "_test/plugin.out", "../test/normalplugin.go").Run()
+	output, err := exec.Command("go", "build", "-o", "_test/plugin.out", "../test/normalplugin.go").CombinedOutput()
+	if testing.Verbose() && len(output) > 0 && err != nil {
+		t.Logf("Output build: %s", output)
+	}
 	require.NoError(t, err, "The plugin should be built without errors")
 
 	var client *InternalClient

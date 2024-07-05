@@ -51,7 +51,10 @@ type Table interface {
 	//
 	// The rows are passed as a 2D slice of interface{} where each row is a slice
 	// and each element in the row is an interface{} representing the value.
-	// The primary key is at the index specified in the schema
+	//
+	// The primary key is at the index specified in the schema and is also at the first index of the row.
+	// It is used to update the value of the primary key in the row. The first value is the former value
+	// and the second value is the new value.
 	//
 	// interface{} can be an int, string, int64, float64, []byte or nil
 	Update(rows [][]interface{}) error
