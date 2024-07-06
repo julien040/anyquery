@@ -209,7 +209,7 @@ func (p *shell) Run(rawQuery string) bool {
 
 		// Where the output will be written for this loop
 		tempOutput := os.Stdout
-		tempOutputMustClose := false
+		/* tempOutputMustClose := false */
 
 		// If the output file is specified, we write the result to it
 		// and save it for later execution in p.OutputFileDesc
@@ -244,7 +244,7 @@ func (p *shell) Run(rawQuery string) bool {
 		tempOutput = p.OutputFileDesc
 
 		// We check also if the output must be displayed only once somewhere
-		if p.Config.GetString("onceOutputFile", "") != "" {
+		/* if p.Config.GetString("onceOutputFile", "") != "" {
 			// We open the file
 			file, err := os.OpenFile(p.Config.GetString("onceOutputFile", ""), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 			if err != nil {
@@ -258,7 +258,7 @@ func (p *shell) Run(rawQuery string) bool {
 				// We close the file after writing to it
 				tempOutputMustClose = true
 			}
-		}
+		} */
 
 		// If the result is nil, we print the message
 		if queryData.Result == nil {
@@ -316,10 +316,17 @@ func (p *shell) Run(rawQuery string) bool {
 			fmt.Fprintln(tempOutput)
 		}
 
-		// If the output must be closed, we close it
+		/* // If the output must be closed, we close it
 		if tempOutputMustClose {
 			tempOutput.Close()
-		}
+			// We set the output to the former output
+			if p.OutputFileDesc != nil {
+				tempOutput = p.OutputFileDesc
+			} else {
+				tempOutput = os.Stdout
+			}
+			p.Config.SetString("onceOutputFile", "")
+		} */
 
 	}
 

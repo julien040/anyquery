@@ -88,7 +88,7 @@ func middlewareDotCommand(queryData *QueryData) bool {
 				queryData.Config.SetInt("maxRows", val)
 			}
 		}
-	case "mode":
+	case "mode", "format":
 		if len(args) == 0 {
 			queryData.Message = "No mode provided"
 			queryData.StatusCode = 2
@@ -103,16 +103,30 @@ func middlewareDotCommand(queryData *QueryData) bool {
 				queryData.StatusCode = 0
 			}
 		}
+	case "json":
+		queryData.Config.SetString("outputMode", "json")
+		queryData.Message = "Output mode set to JSON"
+		queryData.StatusCode = 0
 
-	case "once":
-		if len(args) == 0 {
-			queryData.Message = "No output file provided"
-			queryData.StatusCode = 2
-		} else {
-			queryData.Config.SetString("onceOutputFile", args[0])
-			// We don't set the message because it would be outputted
-			// to the file
-		}
+	case "jsonl":
+		queryData.Config.SetString("outputMode", "jsonl")
+		queryData.Message = "Output mode set to JSONL"
+		queryData.StatusCode = 0
+
+	case "csv":
+		queryData.Config.SetString("outputMode", "csv")
+		queryData.Message = "Output mode set to CSV"
+		queryData.StatusCode = 0
+
+	/* case "once":
+	if len(args) == 0 {
+		queryData.Message = "No output file provided"
+		queryData.StatusCode = 2
+	} else {
+		queryData.Config.SetString("onceOutputFile", args[0])
+		// We don't set the message because it would be outputted
+		// to the file
+	} */
 
 	case "output":
 		if len(args) == 0 {
