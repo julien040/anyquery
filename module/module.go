@@ -103,9 +103,17 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		return nil, errors.Join(errors.New("could not request the schema of the table from the plugin "+m.PluginPath), err)
 	}
 
+	// Verify that the schema is correct
+	if len(dbSchema.Columns) == 0 {
+		return nil, errors.New("the schema of the table is empty")
+	}
+
 	// Create the schema in SQLite
 	stringSchema := createSQLiteSchema(dbSchema)
-	c.DeclareVTab(stringSchema)
+	err = c.DeclareVTab(stringSchema)
+	if err != nil {
+		return nil, errors.Join(errors.New("could not declare the virtual table in SQLite"), err, errors.New("Schema: "+stringSchema))
+	}
 
 	// Initialize a new table
 	table := &SQLiteTable{
@@ -138,7 +146,11 @@ func createSQLiteSchema(arg rpc.DatabaseSchema) string {
 
 	// We iterate over the columns and add them to the schema
 	for i, col := range arg.Columns {
-		schema.WriteString(col.Name)
+		// To escape the column name, we wrap it in double quotes
+		// and replace any double quote in the column name with two double quotes
+		schema.WriteRune('"')
+		schema.WriteString(strings.ReplaceAll(col.Name, `"`, `""`))
+		schema.WriteRune('"')
 		schema.WriteByte(' ')
 		switch col.Type {
 		case rpc.ColumnTypeInt:
@@ -428,6 +440,11 @@ func (c *SQLiteCursor) Close() error { return nil }
 
 // These methods are not used in this plugin
 func (v *SQLiteTable) Disconnect() error {
+	// Flush the buffers before closing the client
+	v.flushInsert()
+	v.flushUpdate()
+	v.flushDelete()
+	time.Sleep(30 * time.Millisecond)
 	// We close the client
 	v.ConnectionPool.CloseConnection(v.PluginPath, v.connectionIndex)
 	return nil
@@ -528,7 +545,7 @@ func (c *SQLiteCursor) Next() error {
 		}
 		_, err := c.requestRowsFromPlugin()
 		if err != nil {
-			return errors.Join(errors.New("could not request the rows from the plugin"), err)
+			return err
 		}
 	}
 	// We move the cursor to the next row
@@ -577,7 +594,7 @@ func (c *SQLiteCursor) Filter(idxNum int, idxStr string, vals []interface{}) err
 	// We request the rows from the plugin
 	_, err = c.requestRowsFromPlugin()
 	if err != nil {
-		return errors.Join(errors.New("could not request the rows from the plugin"), err)
+		return err
 	}
 
 	return nil

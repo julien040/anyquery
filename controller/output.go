@@ -225,6 +225,9 @@ func (o *outputTable) WriteSQLRows(rows *sql.Rows) error {
 		}
 
 	}
+	if rows.Err() != nil {
+		return rows.Err()
+	}
 
 	// Close the rows
 	if err := rows.Close(); err != nil {

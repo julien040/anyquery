@@ -262,21 +262,14 @@ func (p *shell) Run(rawQuery string) bool {
 
 		// If the result is nil, we print the message
 		if queryData.Result == nil {
-			renderer := lipgloss.NewRenderer(tempOutput)
-			if queryData.StatusCode <= 0 {
-				success := renderer.NewStyle().Bold(true).
-					Foreground(lipgloss.Color("35"))
-				io.WriteString(tempOutput, success.Render(queryData.Message))
-			} else if queryData.StatusCode == 1 {
-				warning := renderer.NewStyle().Bold(true).
-					Foreground(lipgloss.Color("214"))
-				io.WriteString(tempOutput, warning.Render(queryData.Message))
-			} else {
-				errorS := renderer.NewStyle().Bold(true).
-					Foreground(lipgloss.Color("160"))
-				io.WriteString(tempOutput, errorS.Render(queryData.Message))
+			switch {
+			case queryData.StatusCode <= 0:
+				writeSuccessMessage(queryData.Message, tempOutput)
+			case queryData.StatusCode == 1:
+				writeWarningMessage(queryData.Message, tempOutput)
+			default:
+				writeErrorMessage(queryData.Message, tempOutput)
 			}
-			fmt.Fprintln(tempOutput) // Add a newline
 		} else {
 			// Create an output table and print it to the specified output
 			table := outputTable{
@@ -292,12 +285,12 @@ func (p *shell) Run(rawQuery string) bool {
 			// Write the SQL rows to the output
 			err := table.WriteSQLRows(queryData.Result)
 			if err != nil {
-				fmt.Fprintf(tempOutput, "Error writing the result: %s\n", err.Error())
+				writeErrorMessage(err.Error(), tempOutput)
 			}
 
 			err = table.Close()
 			if err != nil {
-				fmt.Fprintf(tempOutput, "Error closing the table: %s\n", err.Error())
+				writeErrorMessage(fmt.Sprintf("Error closing table: %s", err.Error()), tempOutput)
 			}
 
 		}
@@ -331,6 +324,27 @@ func (p *shell) Run(rawQuery string) bool {
 	}
 
 	return false
+}
+
+func writeSuccessMessage(message string, output io.Writer) {
+	renderer := lipgloss.NewRenderer(output)
+	success := renderer.NewStyle().Bold(true).Foreground(lipgloss.Color("35"))
+	io.WriteString(output, success.Render(message))
+	fmt.Fprintln(output)
+}
+
+func writeWarningMessage(message string, output io.Writer) {
+	renderer := lipgloss.NewRenderer(output)
+	warning := renderer.NewStyle().Bold(true).Foreground(lipgloss.Color("214"))
+	io.WriteString(output, warning.Render(message))
+	fmt.Fprintln(output)
+}
+
+func writeErrorMessage(message string, output io.Writer) {
+	renderer := lipgloss.NewRenderer(output)
+	errorS := renderer.NewStyle().Bold(true).Foreground(lipgloss.Color("160"))
+	io.WriteString(output, errorS.Render(message))
+	fmt.Fprintln(output)
 }
 
 func (p *shell) InputQuery() string {
