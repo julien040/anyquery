@@ -1,0 +1,5 @@
+devManifest.json
+*.out
+*.log
+
+dist/
