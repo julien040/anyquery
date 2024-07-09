@@ -23,6 +23,10 @@ type TableCreatorArgs struct {
 
 	// TableIndex is the index of the table in the manifest (0-based)
 	TableIndex int
+
+	// ConnectionID is the index of the connection.
+	// It is used to identify the connection in the plugin and can change between restarts
+	ConnectionID int
 }
 
 // TableCreator is a function that creates a new table interface
@@ -211,8 +215,9 @@ func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, conf
 	}
 
 	table, schema, err := funcToCall(TableCreatorArgs{
-		UserConfig: config,
-		TableIndex: tableIndex,
+		UserConfig:   config,
+		TableIndex:   tableIndex,
+		ConnectionID: connectionIndex,
 	})
 	if err != nil {
 		return DatabaseSchema{}, fmt.Errorf("plugin did not initialize the table. Error: %v", err)
