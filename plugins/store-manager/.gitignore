@@ -1,0 +1,11 @@
+
+# Go template downloaded with gut
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+.gut
