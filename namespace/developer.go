@@ -2,13 +2,14 @@
 package namespace
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
+	pathlib "path"
 	"strings"
 
 	"github.com/hashicorp/go-hclog"
+	"github.com/hjson/hjson-go/v4"
 	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
@@ -62,7 +63,7 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 	}
 
 	var unmarshaled map[string]interface{}
-	err = json.Unmarshal(rawManifest, &unmarshaled)
+	err = hjson.Unmarshal(rawManifest, &unmarshaled)
 	if err != nil {
 		return fmt.Sprintf("error reading json manifest\n%v", err)
 	}
@@ -73,7 +74,7 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 
 	// Load the manifest properly
 	var m manifest
-	json.Unmarshal(rawManifest, &m)
+	hjson.Unmarshal(rawManifest, &m)
 	m.Name = pluginName
 	m.ManifestPath = pluginManifestPath
 
@@ -105,6 +106,18 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 
 	i := 0
 	tableNames := []string{}
+	wd, err := os.Getwd()
+	if err != nil {
+		return fmt.Sprintf("error getting working directory\n%v", err)
+	}
+
+	pluginPath := ""
+	if pathlib.IsAbs(path) {
+		pluginPath = path
+	} else {
+		pluginPath = pathlib.Join(wd, path)
+	}
+
 	for profileName, profile := range m.UserConfig {
 		// Table name is <profile_name>_<plugin_name>_<table_name>
 		// unless the profile name is "default"
@@ -116,7 +129,7 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 		for tableIndex, tableName := range m.TableNames {
 			tableName = tableNamePrefix + pluginName + "_" + tableName
 			moduleToLoad := &module.SQLiteModule{
-				PluginPath: path,
+				PluginPath: pluginPath,
 				PluginArgs: args,
 				UserConfig: profile,
 				PluginManifest: rpc.PluginManifest{
@@ -184,6 +197,13 @@ func (f *devFunction) UnloadDevPlugin(name string) string {
 }
 
 func (f *devFunction) ReloadDevPlugin(name string) string {
+	manifest := f.manifests[name]
+	if manifest.Name == "" {
+		return "Dev plugin " + name + " not found"
+	}
+
+	manifestPath := manifest.ManifestPath
+
 	// Unload the plugin
 	unloadMessage := f.UnloadDevPlugin(name)
 	if !strings.Contains(unloadMessage, "Successfully unloaded plugin") {
@@ -191,7 +211,7 @@ func (f *devFunction) ReloadDevPlugin(name string) string {
 	}
 
 	// Load the plugin
-	loadMessage := f.LoadDevPlugin(name, name+".json")
+	loadMessage := f.LoadDevPlugin(name, manifestPath)
 	if !strings.Contains(loadMessage, "Successfully loaded plugin") {
 		return loadMessage
 	}
