@@ -41,32 +41,34 @@ type SQLiteModule struct {
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
 type SQLiteTable struct {
-	PluginPath      string
-	connectionIndex int
-	nextCursor      int
-	tableIndex      int
-	schema          rpc.DatabaseSchema
-	client          *rpc.InternalClient
-	ConnectionPool  *rpc.ConnectionPool
-	insertBuffer    *deque.Deque[[]interface{}]
-	maxBufferInsert uint
-	updateBuffer    *deque.Deque[updateItem]
-	maxBufferUpdate uint
-	deleteBuffer    *deque.Deque[interface{}]
-	maxBufferDelete uint
+	PluginPath              string
+	connectionIndex         int
+	nextCursor              int
+	tableIndex              int
+	schema                  rpc.DatabaseSchema
+	client                  *rpc.InternalClient
+	ConnectionPool          *rpc.ConnectionPool
+	insertBuffer            *deque.Deque[[]interface{}]
+	maxBufferInsert         uint
+	updateBuffer            *deque.Deque[updateItem]
+	maxBufferUpdate         uint
+	deleteBuffer            *deque.Deque[interface{}]
+	maxBufferDelete         uint
+	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
 type SQLiteCursor struct {
-	connectionIndex int
-	tableIndex      int
-	cursorIndex     int
-	schema          rpc.DatabaseSchema
-	client          *rpc.InternalClient
-	noMoreRows      bool
-	rows            *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
-	nextCursor      *int
-	constraints     rpc.QueryConstraint
+	connectionIndex         int
+	tableIndex              int
+	cursorIndex             int
+	schema                  rpc.DatabaseSchema
+	client                  *rpc.InternalClient
+	noMoreRows              bool
+	rows                    *deque.Deque[[]interface{}] // A ring buffer to store the rows before sending them to SQLite
+	nextCursor              *int
+	constraints             rpc.QueryConstraint
+	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
 }
 
 type updateItem struct {
@@ -115,6 +117,20 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		return nil, errors.Join(errors.New("could not declare the virtual table in SQLite"), err, errors.New("Schema: "+stringSchema))
 	}
 
+	// Compute the mapColPositionColPlugin so that we can map the position of the column in SQLite
+	// to the position of the column in the rows returned by the plugin
+	//
+	// We don't have a 1:1 map because some columns are parameters and are not returned by the plugin
+	colMapper := make(map[int]int)
+	drift := 0
+	for i, col := range dbSchema.Columns {
+		if col.IsParameter {
+			drift++
+		} else {
+			colMapper[i] = i - drift
+		}
+	}
+
 	// Initialize a new table
 	table := &SQLiteTable{
 		m.PluginPath,
@@ -130,6 +146,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		dbSchema.BufferUpdate,
 		&deque.Deque[interface{}]{},
 		dbSchema.BufferDelete,
+		colMapper,
 	}
 
 	return table, nil
@@ -280,6 +297,7 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 		deque.New[[]interface{}](preAllocatedCapacity, minimumCapacityRingBuffer),
 		&t.nextCursor,
 		rpc.QueryConstraint{},
+		t.mapColPositionColPlugin,
 	}
 	// We increment the cursor id for the next cursor by 1
 	// so that the next cursor will have a different id
@@ -475,17 +493,25 @@ func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error {
 			}
 		}
 	} else {
-		// If column is called with an empty row, we return NULL
+		// If column is called with an empty row, we return NULL (fail safe)
 		if c.rows.Len() == 0 {
 			context.ResultNull()
 		}
+		// Get the position of the column in the rows returned by the plugin
+		// and return the value of the column
+		pluginCol, ok := c.mapColPositionColPlugin[col]
+		if !ok {
+			// If the column is not found in the map, we return NULL
+			context.ResultNull()
+		}
+
 		// Otherwise, we return the value of the column from the ring buffer
-		if len(c.rows.Front()) <= col {
+		if len(c.rows.Front()) <= pluginCol {
 			// The plugin did not return enough columns. We return NULL
 			// TODO: Must return a log message
 			context.ResultNull()
 		} else {
-			convertToSQLiteVal(c.rows.Front()[col], context)
+			convertToSQLiteVal(c.rows.Front()[pluginCol], context)
 		}
 	}
 
@@ -499,10 +525,22 @@ func convertToSQLiteVal(val interface{}, c *sqlite3.SQLiteContext) {
 	switch v := val.(type) {
 	case string:
 		c.ResultText(v)
-	case int, int8, int16, int32:
-		c.ResultInt(int(reflect.ValueOf(v).Int()))
-	case uint, uint8, uint16, uint32:
+	case int:
+		c.ResultInt(v)
+	case int8:
+		c.ResultInt(int(v))
+	case int16:
+		c.ResultInt(int(v))
+	case int32:
+		c.ResultInt(int(v))
+	case uint:
 		c.ResultInt(int(reflect.ValueOf(v).Uint()))
+	case uint8:
+		c.ResultInt(int(v))
+	case uint16:
+		c.ResultInt(int(v))
+	case uint32:
+		c.ResultInt(int(v))
 	case []uint, []uint8:
 		c.ResultBlob(reflect.ValueOf(v).Bytes())
 	case int64:
@@ -519,11 +557,28 @@ func convertToSQLiteVal(val interface{}, c *sqlite3.SQLiteContext) {
 		c.ResultDouble(v)
 	case float32:
 		c.ResultDouble(float64(v))
+	case []string, []float64, []float32, []int, []int64, []bool, []interface{}, []uint64,
+		[]uint32, []uint16, []int32, []int16, []int8:
+		// JSON encode the string slice
+		encoded, err := json.Marshal(v)
+		if err != nil {
+			// If the JSON encoding fails, we return NULL
+			c.ResultNull()
+		} else {
+			c.ResultText(string(encoded))
+		}
+
 	case nil:
 		c.ResultNull()
 	default:
-		// TODO: Must return a log message
-		c.ResultNull()
+		// Try to convert the value to JSON
+		encoded, err := json.Marshal(v)
+		if err != nil {
+			c.ResultNull()
+		} else {
+			c.ResultText(string(encoded))
+		}
+
 	}
 
 }

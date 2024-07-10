@@ -55,10 +55,10 @@ func (i *testPlugin) Query(connectionID int, tableIndex int, cursorIndex int, co
 	i.counter++
 	return [][]interface{}{
 
-		{i.counter * 10, "Franck", 3.14, true},
-		{i.counter * 100, "Franck", 6.28, false},
-		{i.counter * 1000, "Julien", 3.14, true},
-		{i.counter * 10000, "Julien", 6.28, false},
+		{i.counter * 10, 3.14, true},
+		{i.counter * 100, 6.28, false},
+		{i.counter * 1000, 3.14, true},
+		{i.counter * 10000, 6.28, false},
 	}, (i.counter > 4), nil
 }
 
