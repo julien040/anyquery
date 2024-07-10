@@ -449,8 +449,14 @@ func (v *SQLiteTable) Disconnect() error {
 	v.ConnectionPool.CloseConnection(v.PluginPath, v.connectionIndex)
 	return nil
 }
-func (v *SQLiteTable) Destroy() error  { return nil }
-func (v *SQLiteModule) DestroyModule() {}
+func (v *SQLiteTable) Destroy() error {
+	return v.Disconnect()
+}
+func (v *SQLiteModule) DestroyModule() {
+	// When a plugin was wrongly initialized and the module is destroyed
+	// destroyModule is called rather than Disconnect
+	v.ConnectionPool.CloseConnection(v.PluginPath, v.ConnectionIndex)
+}
 
 // Column is called when a column is queried
 //
