@@ -1,0 +1,58 @@
+name = "spotify"
+version = "0.1.0"
+description = "Run queries on your Spotify data"
+author = "Julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/plugins/spotify"
+homepage = "https://github.com/julien040/anyquery/plugins/spotify"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["album", "track", "playlist", "search", "history", "saved_tracks"]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "The token returned by the Anyquery Spotify Integration. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+type = "string"
+required = true
+[[userConfig]]
+name = "client_id"
+description = "The client_id returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+type = "string"
+required = true
+[[userConfig]]
+name = "client_secret"
+description = "The client_secret returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+type = "string"
+
+# Results of GoReleaser
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
