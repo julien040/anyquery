@@ -28,8 +28,36 @@ which can be summarized as HEX(SHA1(SHA1(password)))`,
 	RunE:    controller.MySQLPassword,
 }
 
+var toolDevCmd = &cobra.Command{
+	Use:     "dev",
+	Aliases: []string{"development", "developer", "developers"},
+	Short:   "Development tools",
+}
+
+var toolDevInitCmd = &cobra.Command{
+	Use:   "init [module URL] [dir]",
+	Short: "Initialize a new plugin",
+	Long: `Initialize a new plugin in the specified directory. If no directory is specified, the current directory is used.
+	The module URL is the go mod URL of the plugin.`,
+	Args: cobra.RangeArgs(1, 2),
+	RunE: controller.DevInit,
+}
+
+var toolDevNewTableCmd = &cobra.Command{
+	Use:     "new-table [table name]",
+	Short:   "Write the boilerplate for a new table",
+	Aliases: []string{"newtable"},
+	Long: `Write the boilerplate for a new table in the specified file.
+	The table name must only contain alphanumeric characters and underscores. Other characters will be replaced by underscores.`,
+	Args: cobra.ExactArgs(1),
+	RunE: controller.DevNewTable,
+}
+
 func init() {
 	rootCmd.AddCommand(toolCmd)
 	toolCmd.AddCommand(toolHashDirCmd)
 	toolCmd.AddCommand(toolMySQLPasswordCmd)
+	toolCmd.AddCommand(toolDevCmd)
+	toolDevCmd.AddCommand(toolDevInitCmd)
+	toolDevCmd.AddCommand(toolDevNewTableCmd)
 }

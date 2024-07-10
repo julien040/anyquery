@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	pathlib "path"
 	"strings"
 
@@ -35,6 +36,7 @@ type manifest struct {
 	IsSharedExtension bool                              `json:"is_shared_extension"`
 	LogFile           string                            `json:"log_file"`
 	LogLevel          string                            `json:"log_level"`
+	BuildCommand      string                            `json:"build_command"`
 }
 
 type devFunction struct {
@@ -81,6 +83,18 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 	parsedArgs := parseCommands(m.Executable)
 	path := parsedArgs[0]
 	args = parsedArgs[1:]
+
+	// Run the build command if it's present
+	if m.BuildCommand != "" {
+		buildArgs := parseCommands(m.BuildCommand)
+		buildCommand := buildArgs[0]
+		buildArgs = buildArgs[1:]
+
+		content, err := exec.Command(buildCommand, buildArgs...).CombinedOutput()
+		if err != nil {
+			return fmt.Sprintf("error running build command\n%v\n%s", err, content)
+		}
+	}
 
 	outputLog := io.Discard
 
@@ -228,6 +242,7 @@ func (f *devFunction) ListDevPlugins() string {
 	return message.String()
 }
 
+// Parse the command line arguments so that the executable and its arguments are separated properly
 func parseCommands(executableArg string) []string {
 	args := []string{}
 	tempArg := strings.Builder{}

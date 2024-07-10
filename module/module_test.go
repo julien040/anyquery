@@ -81,17 +81,17 @@ func TestCreateSQLiteSchema(t *testing.T) {
 	tests := []args{
 		{
 			schema:   schema1,
-			expected: "CREATE TABLE x(id INTEGER, name TEXT HIDDEN);",
+			expected: `CREATE TABLE x("id" INTEGER, "name" TEXT HIDDEN);`,
 			testName: "No primary key, one column is a parameter",
 		},
 		{
 			schema:   schema2,
-			expected: "CREATE TABLE x(id INTEGER PRIMARY KEY, name TEXT) WITHOUT ROWID;",
+			expected: `CREATE TABLE x("id" INTEGER PRIMARY KEY, "name" TEXT) WITHOUT ROWID;`,
 			testName: "With a primary key",
 		},
 		{
 			schema:   schema3,
-			expected: "CREATE TABLE x(id INTEGER HIDDEN, name TEXT, size REAL, binary BLOB);",
+			expected: `CREATE TABLE x("id" INTEGER HIDDEN, "name" TEXT, "size" REAL, "binary" BLOB);`,
 			testName: "Multiple columns, one is a parameter",
 		},
 	}
