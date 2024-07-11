@@ -22,5 +22,7 @@ func (t *table) Delete(primaryKeys []interface{}) error {
 			return err
 		}
 	}
+
+	clearCache(t.cacheDB)
 	return nil
 }

@@ -67,5 +67,7 @@ func (t *table) Update(rows [][]interface{}) error {
 
 	}
 
+	clearCache(t.cacheDB)
+
 	return nil
 }

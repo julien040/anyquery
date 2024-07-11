@@ -91,5 +91,8 @@ func (t *table) Insert(rows [][]interface{}) error {
 
 	}
 
+	// Clear the cache
+	clearCache(t.cacheDB)
+
 	return nil
 }
