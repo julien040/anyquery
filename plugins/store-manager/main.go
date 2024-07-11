@@ -37,29 +37,31 @@ type File struct {
 	ExecutablePath string `toml:"executablePath" json:"executablePath"`
 }
 
+// Plugin represents a plugin configuration
+// If a field is not set, it will be ignored
 type Plugin struct {
-	Name                   string `toml:"name" json:"name"`
-	DisplayName            string `toml:"displayName" json:"display_name"`
-	Version                string `toml:"version" json:"version"`
-	Description            string `toml:"description" json:"description"`
-	Author                 string `toml:"author" json:"author"`
-	License                string `toml:"license" json:"license"`
-	Repository             string `toml:"repository" json:"repository"`
-	Homepage               string `toml:"homepage" json:"homepage"`
-	Type                   string `toml:"type" json:"type"`
-	MinimumAnyqueryVersion string `toml:"minimumAnyqueryVersion" json:"minimumAnyqueryVersion"`
-	IconURL                string `toml:"iconURL" json:"icon"`
+	Name                   string `toml:"name" json:"name,omitempty"`
+	DisplayName            string `toml:"displayName" json:"display_name,omitempty"`
+	Version                string `toml:"version" json:"version,omitempty"`
+	Description            string `toml:"description" json:"description,omitempty"`
+	Author                 string `toml:"author" json:"author,omitempty"`
+	License                string `toml:"license" json:"license,omitempty"`
+	Repository             string `toml:"repository" json:"repository,omitempty"`
+	Homepage               string `toml:"homepage" json:"homepage,omitempty"`
+	Type                   string `toml:"type" json:"type,omitempty"`
+	MinimumAnyqueryVersion string `toml:"minimumAnyqueryVersion" json:"minimumAnyqueryVersion,omitempty"`
+	IconURL                string `toml:"iconURL" json:"icon,omitempty"`
 
-	Tables []string `toml:"tables" json:"tables"`
+	Tables []string `toml:"tables" json:"tables,omitempty"`
 
-	UserConfig []UserConfig `toml:"userConfig" json:"userConfig"`
+	UserConfig []UserConfig `toml:"userConfig" json:"userConfig,omitempty"`
 
-	File []File `toml:"file" json:"file"`
+	File []File `toml:"file" json:"file,omitempty"`
 
 	// Should only be populated by the server
-	Versions    []string `json:"versions"`
-	ID          string   `json:"id"`
-	PageContent string   `json:"pageContent"`
+	Versions    []string `json:"versions,omitempty"`
+	ID          string   `json:"id,omitempty"`
+	PageContent string   `json:"pageContent,omitempty"`
 }
 
 func main() {
