@@ -39,6 +39,7 @@ type File struct {
 
 type Plugin struct {
 	Name                   string `toml:"name" json:"name"`
+	DisplayName            string `toml:"displayName" json:"display_name"`
 	Version                string `toml:"version" json:"version"`
 	Description            string `toml:"description" json:"description"`
 	Author                 string `toml:"author" json:"author"`
@@ -47,6 +48,7 @@ type Plugin struct {
 	Homepage               string `toml:"homepage" json:"homepage"`
 	Type                   string `toml:"type" json:"type"`
 	MinimumAnyqueryVersion string `toml:"minimumAnyqueryVersion" json:"minimumAnyqueryVersion"`
+	IconURL                string `toml:"iconURL" json:"icon"`
 
 	Tables []string `toml:"tables" json:"tables"`
 
@@ -232,6 +234,7 @@ func main() {
 	remotePlugin.License = plugin.License
 	remotePlugin.Repository = plugin.Repository
 	remotePlugin.Type = plugin.Type
+	remotePlugin.DisplayName = plugin.DisplayName
 
 	// Update the plugin
 	urlUpdate := registryURL + "/api/collections/plugin/records/" + remotePlugin.ID
@@ -294,6 +297,17 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 
 	if len(versionID.String()) != 15 {
 		panic("Version ID is not 15 characters long " + versionID.String() + " " + string(len(versionID.String())))
+	}
+
+	// We do that because the API reject any nil value
+
+	// Set empty slice where nil
+	if len(plugin.Tables) == 0 {
+		plugin.Tables = make([]string, 0)
+	}
+
+	if len(plugin.UserConfig) == 0 {
+		plugin.UserConfig = make([]UserConfig, 0)
 	}
 
 	rawBody := map[string]interface{}{

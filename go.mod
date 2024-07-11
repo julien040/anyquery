@@ -22,6 +22,7 @@ require (
 	github.com/hashicorp/go-getter v1.7.4
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.0
+	github.com/hjson/hjson-go/v4 v4.4.0
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -82,7 +83,6 @@ require (
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
-	github.com/hjson/hjson-go/v4 v4.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
