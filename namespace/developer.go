@@ -58,6 +58,11 @@ func (f *devFunction) LoadDevPlugin(args ...string) string {
 	pluginName := args[0]
 	pluginManifestPath := args[1]
 
+	// Check if the plugin is already loaded
+	if _, ok := f.manifests[pluginName]; ok {
+		return "Plugin " + pluginName + " is already loaded"
+	}
+
 	// Validate the manifest and read it
 	rawManifest, err := os.ReadFile(pluginManifestPath)
 	if err != nil {

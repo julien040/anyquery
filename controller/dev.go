@@ -146,11 +146,12 @@ var templateDevManifest = `
   "build_command": "make",
   "user_config": {
     "default": {
-      my_token: "Bearer",
-    },
+      "my_token": "Bearer"
+    }
   },
   "tables": [
-    "{{.TableName}}",
+    "{{.TableName}}"
+  ],
   "log_file": "dev.log",
   "log_level": "debug"
 }`
