@@ -1,0 +1,68 @@
+
+name = "github"
+version = "0.1.0"
+description = "Query GitHub data"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/plugins/github"
+homepage = "https://github.com/julien040/anyquery/plugins/github"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = [
+    "my_repositories",
+    "repositories_from_user",
+    "commits_from_repository",
+    "issues_from_repository",
+    "pull_requests_from_repository",
+    "releases_from_repository",
+    "branches_from_repository",
+    "contributors_from_repository",
+    "tags_from_repository",
+    "followers_from_user",
+    "my_followers",
+    "following_from_user",
+    "my_following",
+    "stars_from_user",
+    "my_stars",
+    "gists_from_user",
+    "my_gists",
+    "comments_from_issue",
+]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A GitHub personal access token with scopes: repo, read:org, gist, read:packages. See https://github.com/julien040/anyquery/plugins/github for more information."
+type = "string"
+required = true
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
