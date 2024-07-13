@@ -27,30 +27,29 @@ required = true
 [[file]]
 platform = "linux/amd64"
 directory = "dist/anyquery_linux_amd64_v1"
-executablePath = "notion"
+executablePath = "anyquery"
 
 [[file]]
 platform = "linux/arm64"
 directory = "dist/anyquery_linux_arm64"
-executablePath = "notion"
-
+executablePath = "anyquery"
 
 [[file]]
 platform = "darwin/amd64"
 directory = "dist/anyquery_darwin_amd64_v1"
-executablePath = "notion"
+executablePath = "anyquery"
 
 [[file]]
 platform = "darwin/arm64"
 directory = "dist/anyquery_darwin_arm64"
-executablePath = "notion"
+executablePath = "anyquery"
 
 [[file]]
 platform = "windows/amd64"
 directory = "dist/anyquery_windows_amd64_v1"
-executablePath = "notion.exe"
+executablePath = "anyquery.exe"
 
 [[file]]
 platform = "windows/arm64"
 directory = "dist/anyquery_windows_arm64"
-executablePath = "notion.exe"
+executablePath = "anyquery.exe"
