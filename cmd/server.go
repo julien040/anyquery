@@ -24,6 +24,7 @@ func init() {
 	serverCmd.Flags().String("log-format", "text", "Log format (text, json)")
 	serverCmd.Flags().String("log-file", "/dev/stdout", "Log file")
 	serverCmd.Flags().String("auth-file", "", "Path to the authentication file")
+	serverCmd.Flags().Bool("dev", false, "Run the program in developer mode")
 
 	addFlag_commandModifiesConfiguration(serverCmd)
 }

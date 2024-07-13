@@ -93,6 +93,9 @@ func Server(cmd *cobra.Command, args []string) error {
 	// Set the logger for the plugin
 	loPlugin := lo.WithPrefix("plugin")
 
+	// Check if the dev mode is enabled
+	dev, _ := cmd.Flags().GetBool("dev")
+
 	// Create the namespace
 	instance, err := namespace.NewNamespace(namespace.NamespaceConfig{
 		InMemory: inMemory,
@@ -102,6 +105,7 @@ func Server(cmd *cobra.Command, args []string) error {
 			Level:       hclog.LevelFromString(logLevel),
 			DisableTime: true,
 		}),
+		DevMode: dev,
 	})
 	if err != nil {
 		return err
