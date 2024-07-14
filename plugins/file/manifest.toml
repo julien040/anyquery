@@ -1,0 +1,42 @@
+
+name = "file"
+version = "0.1.0"
+description = "List and search file in the system"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/plugins/file"
+homepage = "https://github.com/julien040/anyquery/plugins/file"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["file", "search"]
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
