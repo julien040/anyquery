@@ -2,7 +2,7 @@ module github.com/julien040/anyquery
 
 go 1.22.3
 
-replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.2
+replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.3
 
 require (
 	github.com/BurntSushi/toml v1.4.0
@@ -124,4 +124,5 @@ require (
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240304212257-790db918fca8 // indirect
 	google.golang.org/grpc v1.62.1 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 )
