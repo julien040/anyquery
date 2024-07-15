@@ -363,7 +363,7 @@ func uploadFile(platform string, filePath string, executablePath string, pluginZ
 
 	body := bytes.Buffer{}
 	multiPartWriter := multipart.NewWriter(&body)
-	fileWriter, err := multiPartWriter.CreateFormFile("file", pluginZipName)
+	fileWriterForm, err := multiPartWriter.CreateFormFile("file", pluginZipName)
 	if err != nil {
 		return "", err
 	}
@@ -377,10 +377,18 @@ func uploadFile(platform string, filePath string, executablePath string, pluginZ
 	}
 	zipWriter.Close()
 
-	_, err = io.Copy(fileWriter, fileWriterBuffer)
+	encoder := sha256.New()
+
+	multiWriter := io.MultiWriter(fileWriterForm, encoder)
+	_, err = io.Copy(multiWriter, fileWriterBuffer)
 	if err != nil {
 		return "", err
 	}
+
+	/* 	_, err = io.Copy(fileWriter, fileWriterBuffer)
+	   	if err != nil {
+	   		return "", err
+	   	} */
 
 	// Add the platform
 	err = multiPartWriter.WriteField("platform", platform)
@@ -395,8 +403,7 @@ func uploadFile(platform string, filePath string, executablePath string, pluginZ
 	}
 
 	// Compute the checksum of the file
-	checksum := sha256.Sum256(fileWriterBuffer.Bytes())
-	err = multiPartWriter.WriteField("hash", fmt.Sprintf("%x", checksum))
+	err = multiPartWriter.WriteField("hash", fmt.Sprintf("%x", encoder.Sum(nil)))
 	if err != nil {
 		return "", err
 	}
