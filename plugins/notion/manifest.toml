@@ -3,8 +3,8 @@ version = "0.1.1"
 description = "Query your Notion database with SQL"
 author = "Julien040"
 license = "UNLICENSED"
-repository = "https://github.com/julien040/anyquery/plugins/notion"
-homepage = "https://github.com/julien040/anyquery/plugins/notion"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/notion"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/notion"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
@@ -13,12 +13,12 @@ tables = ["database"]
 # The user configuration schema
 [[userConfig]]
 name = "token"
-description = "The API token to access the Notion API. Tutorial to get it: https://github.com/julien040/anyquery/plugins/notion"
+description = "The API token to access the Notion API. Tutorial to get it: https://github.com/julien040/anyquery/tree/main/plugins/notion"
 type = "string"
 required = true
 [[userConfig]]
 name = "database_id"
-description = "The ID of the database you want to query. Tutorial to get it:https://github.com/julien040/anyquery/plugins/notion"
+description = "The ID of the database you want to query. Tutorial to get it:https://github.com/julien040/anyquery/tree/main/plugins/notion"
 type = "string"
 required = true
 

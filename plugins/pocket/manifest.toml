@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Query, insert and delete your Pocket articles."
 author = "julien040"
 license = "UNLICENSED"
-repository = "https://github.com/julien040/anyquery/plugins/pocket"
-homepage = "https://github.com/julien040/anyquery/plugins/pocket"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/pocket"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/pocket"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
@@ -14,13 +14,13 @@ tables = ["pocket"]
 # The user configuration schema
 [[userConfig]]
 name = "consumer_key"
-description = "The consumer key of your registered Pocket application. See https://github.com/julien040/anyquery/plugins/pocket for more information."
+description = "The consumer key of your registered Pocket application. See https://github.com/julien040/anyquery/tree/main/plugins/pocket for more information."
 type = "string"
 required = true
 
 [[userConfig]]
 name = "token"
-description = "The token returned by integration.anyquery.dev. See https://github.com/julien040/anyquery/plugins/pocket for more information."
+description = "The token returned by integration.anyquery.dev. See https://github.com/julien040/anyquery/tree/main/plugins/pocket for more information."
 type = "string"
 required = true
 

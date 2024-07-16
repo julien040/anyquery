@@ -4,8 +4,8 @@ version = "0.1.0"
 description = "Query GitHub data"
 author = "julien040"
 license = "UNLICENSED"
-repository = "https://github.com/julien040/anyquery/plugins/github"
-homepage = "https://github.com/julien040/anyquery/plugins/github"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/github"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/github"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
@@ -33,7 +33,7 @@ tables = [
 # The user configuration schema
 [[userConfig]]
 name = "token"
-description = "A GitHub personal access token with scopes: repo, read:org, gist, read:packages. See https://github.com/julien040/anyquery/plugins/github for more information."
+description = "A GitHub personal access token with scopes: repo, read:org, gist, read:packages. See https://github.com/julien040/anyquery/tree/main/plugins/github for more information."
 type = "string"
 required = true
 

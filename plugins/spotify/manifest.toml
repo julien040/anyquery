@@ -3,8 +3,8 @@ version = "0.1.0"
 description = "Run queries on your Spotify data"
 author = "Julien040"
 license = "UNLICENSED"
-repository = "https://github.com/julien040/anyquery/plugins/spotify"
-homepage = "https://github.com/julien040/anyquery/plugins/spotify"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/spotify"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
@@ -13,17 +13,17 @@ tables = ["album", "track", "playlist", "search", "history", "saved_tracks"]
 # The user configuration schema
 [[userConfig]]
 name = "token"
-description = "The token returned by the Anyquery Spotify Integration. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+description = "The token returned by the Anyquery Spotify Integration. Tutorial to get it: https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 type = "string"
 required = true
 [[userConfig]]
 name = "client_id"
-description = "The client_id returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+description = "The client_id returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 type = "string"
 required = true
 [[userConfig]]
 name = "client_secret"
-description = "The client_secret returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/plugins/spotify"
+description = "The client_secret returned by the Spotify Developer dashboard. Tutorial to get it: https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 type = "string"
 
 # Results of GoReleaser
