@@ -11,6 +11,8 @@ SELECT * FROM git_commits('path/to/repo');
 SELECT count(*) FROM git_commits('https://github.com/git/git.git') WHERE author_name='Junio C Hamano';
 ```
 
+> ⚠️ To speed up the queries, you can run `git gc` on the repository. It can reduce query time by up to 10x.
+
 ## Installation
 
 [You need to have `git` installed](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) and available in the PATH for remote repositories.
