@@ -358,6 +358,10 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 		res.Rows = append(res.Rows, rowToInsert)
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	// Create the columns of the result
 	// If the query is from a table, we can use the DatabaseTypeName method
 	// to get the type of the column in SQLite
