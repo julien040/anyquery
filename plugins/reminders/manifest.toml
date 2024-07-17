@@ -1,0 +1,22 @@
+
+name = "reminders"
+version = "0.1.0"
+description = "Add/modifiy/delete reminders in the Apple Reminders app"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/reminders"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/reminders"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["items"]
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
