@@ -112,10 +112,12 @@ func Query(cmd *cobra.Command, args []string) error {
 	}
 	defer db.Close()
 
-	// Run the init script
-	_, err = db.Exec(initScript)
-	if err != nil {
-		return fmt.Errorf("failed to run init script: %w", err)
+	// Run the init script if the database is not read-only
+	if !readOnly {
+		_, err = db.Exec(initScript)
+		if err != nil {
+			return fmt.Errorf("failed to run init script: %w", err)
+		}
 	}
 
 	// Listen for signals
