@@ -702,14 +702,10 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 //
 // For the offset and limit constraints, we store their position in the vals field
 // so that we can pass them to the plugin
-//
-// For the IS NULL, IS, IS NOT NULL and IS NOT operators, we convert them to the EQUAL and NOT EQUAL operators
-// because
 func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, constraints *rpc.QueryConstraint, used []bool, schema rpc.DatabaseSchema) {
 	/*
 		Internal notes:
 		- The usable constraints are the ones that are used in the query
-		- Any IS NULL, IS, IS NOT NULL and IS NOT operators are converted to EQUAL and NOT EQUAL operators
 		- For the LIMIT and OFFSET constraints, we store their position in the vals field
 		  and let the loader get the values
 		- -1 as a value means SQL NULL. The loader will convert it to nil
@@ -718,7 +714,6 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 		I know it looks like a mess, will probably refactor it later
 		But you know, nothing is more permanent than a temporary solution.
 	*/
-
 	constraints.Columns = make([]rpc.ColumnConstraint, 0, len(cst))
 
 	// We iterate over the constraints and store the usable ones
@@ -731,15 +726,16 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 			case rpc.OperatorLimit:
 				// We note the position of the LIMIT constraint in vals
 				constraints.Limit = j
+				used[i] = true
 			case rpc.OperatorOffset:
 				// We note the position of the OFFSET constraint in vals
-				constraints.Offset = j
 				// We check if the schema handles the OFFSET constraint
 				// If not, we don't include it in vals
 				// Furthermore, it will tell SQLite that it must handle the OFFSET itself
 				// See https://github.com/julien040/go-sqlite3-anyquery/commit/f32fe2011fdf482c1a3c2f3c15dc85fb0e965550
-				if !schema.HandleOffset {
-					used[i] = false
+				if schema.HandleOffset {
+					used[i] = true
+					constraints.Offset = j
 				}
 			// In all the other cases, we don't know the value yet
 			// so we store the constraint as is
@@ -749,8 +745,8 @@ func parseConstraintsFromSQLite(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 					Operator: tempOp,   // We convert the SQLite operator to our own operator
 					Value:    nil,      // We don't know the value yet
 				})
+				used[i] = true
 			}
-			used[i] = true
 			j++
 		}
 	}
