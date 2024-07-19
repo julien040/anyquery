@@ -50,8 +50,8 @@ func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 
 	// Open the badger database encrypted with the toke
 	options := badger.DefaultOptions(cacheFolder).WithEncryptionKey(hashedUserConf[:]).
-		WithNumVersionsToKeep(1).WithCompactL0OnClose(true).WithValueLogFileSize(2 << 26).
-		WithIndexCacheSize(2 << 29) // Up to 1GB of cache
+		WithNumVersionsToKeep(1).WithCompactL0OnClose(true).WithValueLogFileSize(2 << 29).
+		WithIndexCacheSize(2 << 26) // Up to 1GB of cache
 	db, err := badger.Open(options)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open badger database: %w", err)
@@ -403,6 +403,8 @@ func (t *itemsTable) Delete(primaryKeys []interface{}) error {
 
 // A destructor to clean up resources
 func (t *itemsTable) Close() error {
+	t.db.Close()
+	t.dialer.Logout()
 	return nil
 }
 
