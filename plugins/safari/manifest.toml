@@ -1,0 +1,22 @@
+
+name = "safari"
+version = "0.1.0"
+description = "Query and modify Safari tabs"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/safari"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/safari"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["tabs"]
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
