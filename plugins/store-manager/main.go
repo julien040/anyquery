@@ -287,9 +287,10 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 		if i < len(plugin.Name) {
 			// If the character is non-alphanumeric, skip it
 			if !('a' <= plugin.Name[i] && plugin.Name[i] <= 'z') {
-				continue
+				versionID.WriteRune('-')
+			} else {
+				versionID.WriteByte(plugin.Name[i])
 			}
-			versionID.WriteByte(plugin.Name[i])
 		} else {
 			// Add a random character if the package name is shorter than 15
 			versionID.WriteByte(alphabet[rand.IntN(len(alphabet))])
