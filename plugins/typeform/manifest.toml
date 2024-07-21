@@ -1,0 +1,56 @@
+
+name = "typeform"
+version = "0.1.0"
+description = "Query Typeform responses"
+author = "Julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/typeform"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/typeform"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["responses"]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A personal access token for Typeform API. Read more: https://github.com/julien040/anyquery/tree/main/plugins/typeform"
+type = "string"
+required = true                                                                                                                       # If the user must provide a value
+
+[[userConfig]]
+name = "form_id"
+description = """The form id of the form you want to query. On the URL `https://admin.typeform.com/form/tabc4poi/create?block=c4`, the form ID is `tabc4poi`.
+Read more: https://github.com/julien040/anyquery/tree/main/plugins/typeform"""
+type = "string"
+required = true # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
