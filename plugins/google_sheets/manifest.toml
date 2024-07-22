@@ -1,0 +1,72 @@
+
+name = "google_sheets"
+version = "0.1.0"
+description = "Query/insert/update/delete data in Google Sheets"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["table"]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A refresh token returned by integration.anyquery.dev. Learn more at https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"
+type = "string"
+required = true
+
+[[userConfig]]
+name = "client_id"
+description = """A client_id token created with the Google developer console.
+Learn more at https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"""
+type = "string"
+required = true
+
+[[userConfig]]
+name = "client_secret"
+description = """A client_secret token created with the Google developer console.
+Learn more at https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"""
+type = "string"
+required = true
+
+[[userConfig]]
+name = "spreadsheet_id"
+description = """The spreadsheet_id in the edit page of the Google Sheets. For example, https://docs.google.com/spreadsheets/d/1D_x7DNwbI9ZOSFjII6BvttPzdLJAymrQwQcOvnHzW9c/edit?gid=0#gid=0,
+the spreadsheet_id is 1D_x7DNwbI9ZOSFjII6BvttPzdLJAymrQwQcOvnHzW9c
+Learn more at https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"""
+type = "string"
+required = true
+
+# Results of GoReleaser
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
