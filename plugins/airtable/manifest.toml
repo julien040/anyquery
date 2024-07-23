@@ -1,0 +1,66 @@
+
+name = "airtable"
+version = "0.1.0"
+description = "Use your Airtable base as a SQL database."
+author = "Julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/airtable"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/airtable"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["table"]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "The API token to access the Airtable API. Tutorial to get it: https://github.com/julien040/anyquery/tree/main/plugins/airtable"
+type = "string"
+required = true
+[[userConfig]]
+name = "base"
+description = "The base ID of the database you want to query. Tutorial to get it:https://github.com/julien040/anyquery/tree/main/plugins/airtable"
+type = "string"
+required = true
+[[userConfig]]
+name = "table"
+description = "The table name of the database you want to query. Tutorial to get it:https://github.com/julien040/anyquery/tree/main/plugins/airtable"
+type = "string"
+required = true
+[[userConfig]]
+name = "cache"
+description = "Whether to cache the results or not. Default is false."
+type = "bool"
+required = false
+
+# Results of GoReleaser
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "anyquery"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "anyquery"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "anyquery.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "anyquery.exe"
