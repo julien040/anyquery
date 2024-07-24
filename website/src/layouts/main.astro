@@ -1,0 +1,67 @@
+---
+const { title, description } = Astro.props;
+import "../font.css";
+import NavBar from "../components/navBar.astro";
+---
+
+<html lang="en">
+  <head>
+    <title>{title}</title>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="description" content={description} />
+  </head>
+  <body class="max-w-5xl mx-auto p-6">
+    <NavBar />
+    <div class="py-2"><!-- Hey, hello you ! --></div>
+    <slot />
+  </body>
+  <style is:global>
+    body {
+      background: linear-gradient(180deg, #1b0438 -0.08%, #08090a 67.19%);
+      background-repeat: no-repeat;
+      height: 100%;
+      font-family: "Inter", sans-serif;
+      color: #ffffffb8;
+    }
+    a,
+    p {
+      letter-spacing: -0.12px;
+    }
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-family: "Inter", sans-serif;
+      color: #ffffff;
+      letter-spacing: -0.9px;
+      font-weight: 600;
+    }
+
+    .button {
+      display: inline-flex;
+      padding: 10px 14px;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      font-size: 0.875rem;
+      color: #ffffff;
+      font-weight: 500;
+      transition: all 0.2s ease-in-out;
+    }
+    .button:hover {
+      background: rgba(255, 255, 255, 0.25);
+    }
+    .button-silent {
+      background: none;
+    }
+    .button-silent:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</html>
