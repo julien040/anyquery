@@ -135,7 +135,13 @@ DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
 ];
 ---
 
-<Main title="Anyquery - Use SQL for everything">
+<Main
+  title="Anyquery - Use SQL for everything"
+  description="Query anything with SQL, from your Chrome tabs to your Notion database"
+  ,
+  footnote=`Trademarks are the property of their respective owners.
+All benchmarks are performed on a Macbook Air M1 16GB.`
+>
   <!-- Header -->
   <div
     x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
@@ -225,12 +231,12 @@ DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
         elements.map((element) => (
           <div
             class="p-4 min-w-24 rounded-lg bg-[#181818] hover:bg-[#242424] border-primary border-2 transition-all flex-col justify-start items-center gap-3 inline-flex
-            hover:shadow-outline-primary cursor-pointer hover:bg-gradient-to-r from-[#776dff]  to-[#ff1f3d] to-10% bg-clip-text text-transparent
+            hover:shadow-outline-primary cursor-pointer text-white/70 hover:bg-gradient-to-r from-[#776dff]  to-[#ff1f3d] hover:bg-clip-text hover:text-transparent
             "
             x-on:mouseover={`title = '${element.title}'; code = \`${element.code}\`; footer = '${element.footer}'`}
           >
             <div class="text-white/70" set:html={element.icon} />
-            <p class="text-white/70 text-sm">{element.name}</p>
+            <p class=" text-sm">{element.name}</p>
           </div>
         ))
       }
@@ -250,6 +256,11 @@ DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
       <div
         class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg row-start-1 col-start-1 md:row-span-3 text-center"
       >
+        <img
+          src="/images/mysql-compatibility.png"
+          alt="MySQL compatibility"
+          class="aspect-[520/360] w-auto h-auto opacity-70"
+        />
         <h3 class="text-white/90 font-medium text-sm tracking-tight">
           Built-in MySQL server
         </h3>
@@ -327,7 +338,10 @@ DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
   <!-- Integrations -->
   <div
     class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
-    style="background-image: url('/images/integrations_logo.png'); background-size: cover;"
+    style="background-image: url('/images/integrations_logo.png'); 
+    background-size: cover; 
+    background-repeat:no-repeat;
+    background-position: center center;"
   >
     <h2 class="text-2xl font-bold">
       An extensive list of <span class="text-[#7C91FF]">integrations</span>
@@ -368,18 +382,116 @@ DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
     <p class="text-white/70 text-sm mt-1">Anyquery is AGPL v3 licensed</p>
   </div>
   <!-- Download -->
-  <div class="flex flex-col md:flex-row gap-4 justify-between mb-12 mt-8">
+  <div
+    class="flex flex-col md:flex-row gap-4 justify-between items-center mb-12 mt-8"
+  >
     <div class="">
       <h2 class="md:text-3xl text-2xl font-bold">Getting started</h2>
       <p class="text-white/70 text-sm mt-1">
         Anyquery runs locally with a CLI that you can install with this command
       </p>
     </div>
-    <div
-      class="px-6 bg-[#191919] flex items-center rounded-lg shadow border border-[#373737]
-      text-xs"
-    >
-      <code>brew install julien040/anyquery/anyquery</code>
+
+    <div class="flex flex-col w-full md:max-w-[50%]">
+      <div
+        class="px-4 py-3 min-h-14 bg-[#191919] flex flex-row justify-start gap-3 items-center rounded-lg shadow border border-[#373737]
+        text-xs overflow-x-scroll"
+      >
+        <img
+          id="install-logo"
+          src={"/images/apple-logo.svg"}
+          alt="Apple logo"
+          class="w-6 h-6 aspect-square fill-white text-white/70"
+        />
+        <pre><code id="install-code">brew install julien040/anyquery/anyquery</code></pre>
+      </div>
+      <a
+        href="/docs/get-started"
+        class="underline text-right text-sm ml-auto mt-2 text-white/60"
+        >See other platforms</a
+      >
     </div>
+    <script defer>
+      // Detect the OS so that we can display the correct command
+
+      /* Credit: https://stackoverflow.com/a/38241481 */
+      function getOS() {
+        const userAgent = window.navigator.userAgent,
+          platform =
+            window.navigator?.userAgentData?.platform ||
+            window.navigator.platform,
+          macosPlatforms = [
+            "macOS",
+            "Macintosh",
+            "MacIntel",
+            "MacPPC",
+            "Mac68K",
+          ],
+          windowsPlatforms = ["Win32", "Win64", "Windows", "WinCE"],
+          iosPlatforms = ["iPhone", "iPad", "iPod"];
+        let os = null;
+
+        if (macosPlatforms.indexOf(platform) !== -1) {
+          os = "Mac OS";
+        } else if (iosPlatforms.indexOf(platform) !== -1) {
+          os = "iOS";
+        } else if (windowsPlatforms.indexOf(platform) !== -1) {
+          os = "Windows";
+        } else if (/Android/.test(userAgent)) {
+          os = "Android";
+        } else if (/Linux/.test(platform)) {
+          os = "Linux";
+        }
+        console.log("Found os", os);
+
+        return os;
+      }
+
+      try {
+        const os = getOS();
+        let command = "";
+        let logoURL = "";
+        switch (os) {
+          case "Mac OS":
+          case "iOS":
+            command = "brew install julien040/anyquery/anyquery";
+            logoURL = "/images/apple-logo.svg";
+            break;
+          case "Windows":
+
+          case "Android":
+            command =
+              "scoop bucket add anyquery https://github.com/julien040/anyquery-scoop\nscoop install anyquery/anyquery";
+            logoURL = "/images/windows-logo.svg";
+            break;
+
+          case "Linux":
+            command = `echo "deb [trusted=yes] https://apt.anyquery.dev /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+sudo apt-get update
+sudo apt-get install anyquery`;
+            logoURL = "/images/ubuntu-logo.svg";
+            break;
+
+          default:
+            command = "brew install julien040/anyquery/anyquery";
+            logoURL = "/images/apple-logo.svg";
+            break;
+        }
+        // Update the command
+        const code = document.getElementById("install-code");
+        console.log(code);
+        if (code) {
+          code.innerText = command;
+        }
+        // Update the logo
+        const logoCode = document.getElementById("install-logo");
+        console.log(logoCode);
+        if (logoCode) {
+          logoCode.src = logoURL;
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    </script>
   </div>
 </Main>

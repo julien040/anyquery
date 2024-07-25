@@ -1,7 +1,8 @@
 ---
-const { title, description } = Astro.props;
+const { title, description, footnote } = Astro.props;
 import "../font.css";
 import NavBar from "../components/navBar.astro";
+import Footer from "../components/footer.astro";
 ---
 
 <html lang="en">
@@ -16,12 +17,13 @@ import NavBar from "../components/navBar.astro";
     <NavBar />
     <div class="py-2"><!-- Hey, hello you ! --></div>
     <slot />
+    <div class="py-2"><!-- I guess it's a good time to say goodbye --></div>
+    <Footer footnote={footnote} />
   </body>
   <style is:global>
-    body {
+    html {
       background: linear-gradient(180deg, #1b0438 -0.08%, #08090a 67.19%);
       background-repeat: no-repeat;
-      height: 100%;
       font-family: "Inter", sans-serif;
       color: #ffffffb8;
     }
