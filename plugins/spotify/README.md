@@ -17,14 +17,14 @@ anyquery install spotify
    2. Add `https://integration.anyquery.dev/spotify-result` to the Redirect URIs.
    3. Select Web API at the question "Which API/SDKs are you planning to use?".
    4. Accept the terms and conditions and click on the "Save" button.
-    ![registration](https://github.com/julien040/anyquery/blob/main/plugins/spotify/images/registration.png)
+    ![registration](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/registration.png)
 2. Click on settings in the top right hand corner and copy the Client ID and Client Secret (click on View client secret).
 3. Go to the [AnyQuery Spotify plugin page](https://integration.anyquery.dev/spotify), fill in the Client ID and Client Secret and click on the "Submit" button.
-    ![connect](https://github.com/julien040/anyquery/blob/main/plugins/spotify/images/connect.png)
+    ![connect](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/connect.png)
 4. Click on the green button to connect your Spotify account.
-   ![connect_spotify](https://github.com/julien040/anyquery/blob/main/plugins/spotify/images/spotify-agree.png)
+   ![connect_spotify](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/spotify-agree.png)
 5. Copy your token and paste it in the configuration form.
-   ![token](https://github.com/julien040/anyquery/blob/main/plugins/spotify/images/token.png)
+   ![token](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/token.png)
 
 ## Tables
 

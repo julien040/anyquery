@@ -12,48 +12,48 @@ You can insert/update/delete/select data from the spreadsheet using SQL queries.
 Install the plugin with:
 
 ```bash
-anyquery install google_forms
+anyquery install google_sheets
 ```
 
 Then, you need to authenticate with Google. Go to the [Google Cloud Console](https://console.cloud.google.com/), create a new project, and go to the [APIs & Services console](https://console.cloud.google.com/apis/dashboard).
 
 1. Click on Credentials
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/identifier.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/identifier.png)
 2. Click on Create Credentials, and select OAuth client ID
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/create.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/create.png)
 3. If not done, configure the consent screen
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/consentScreen.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentScreen.png)
     1. And fill the form with the required information
         - Application name: AnyQuery
         - User support email: Your email
         - Developer contact information: Your email
         - Leave the rest as it is
 
-        ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/consentFilled.png)
+        ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentFilled.png)
     2. Click on Save and Continue
     3. Click on Save and Continue and leave Scopes as it is
     4. On test users, add the Google account you will use to query the responses
     5. Click on Save and Continue
     6. Click on Back to Dashboard
 4. Go back to the Credentials tab and click on Create Credentials
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/createCredentials.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/createCredentials.png)
 5. Select OAuth client ID, and select Web application
 6. Fill the form with the required information
     - Leave the name as whatever you want
     - Add the authorized redirect URIs: `https://integration.anyquery.dev/google-result`
     - Add authorized JavaScript origins: `https://integration.anyquery.dev`
     - Click on Create
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/form_oAuth.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/form_oAuth.png)
 7. Copy the `Client ID` and `Client Secret`. We will use them later
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/result.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/result.png)
 8. Enable the Google Sheets API. To do so, go to the [Google Sheets API page](https://console.cloud.google.com/apis/library/sheets.googleapis.com) and click on Enable
-9. ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_sheets/images/enableAPI.png)
+9. ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_sheets/images/enableAPI.png)
 10. Go to [Google Sheets integration](https://integration.anyquery.dev/google-sheets)
 11. Fill the form with the `Client ID` and `Client Secret` you copied and click on Submit
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/form_integration.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/form_integration.png)
 12. Select your Google account, skip the warning about the app not being verified, and
 13. Copy the token, the client ID, and the client secret
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/token.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/token.png)
 14. Go back to the terminal and fill in the form with the token, the client ID, and the client secret.
 15. To find the form ID, go to the spreadsheet edit page and copy the ID from the URL
    In `https://docs.google.com/spreadsheets/d/1D_x7DNwbI9ZOSFjII6BvttPzdLJAymrQwQcOvnHzW9c/edit?gid=1700564349#gid=1700564349`, the form ID is `1D_x7DNwbI9ZOSFjII6BvttPzdLJAymrQwQcOvnHzW9c`

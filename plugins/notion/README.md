@@ -19,19 +19,24 @@ At some point, you will be asked to provide your Notion API key. You can find it
 1. Go to [Notion's My Integrations page](https://www.notion.so/my-integrations).
 2. Click on the `+ New integration` button.
 
-    ![Home of Notion integrations](https://github.com/julien040/anyquery/blob/main/plugins/notion/images/creator-profile.png)
+    ![Home of Notion integrations](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/notion/images/creator-profile.png)
 3. Fill in the form with the following information:
    1. Name: Whatever you want
    2. Associated workspace: The workspace you want the plugin to have access to
    3. Type: Internal
 
-   ![A form to create a new integration](https://github.com/julien040/anyquery/blob/main/plugins/notion/images/form-integration.png)
+   ![A form to create a new integration](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/notion/images/form-integration.png)
 4. Click on the `Save` button and on `Configure integration settings`.
 
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/notion/images/success.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/notion/images/success.png)
 5. Copy the `token` and paste it when asked by the plugin.
-
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/notion/images/token.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/notion/images/token.png)
+6. Share each database you want to query with the integration you just created.
+    1. Open the database you want to share.
+    2. Click on the three dots in the top right corner.
+    3. Scroll down, hover over `Connect to` and click on the integration you just created.
+   ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/notion/images/share.png)
+7. Congratulations! You can now query your Notion databases.
 
 ### Finding the database ID
 

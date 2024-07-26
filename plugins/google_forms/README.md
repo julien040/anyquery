@@ -36,42 +36,42 @@ anyquery install google_forms
 Then, you need to authenticate with Google. Go to the [Google Cloud Console](https://console.cloud.google.com/), create a new project, and go to the [APIs & Services console](https://console.cloud.google.com/apis/dashboard).
 
 1. Click on Credentials
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/identifier.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/identifier.png)
 2. Click on Create Credentials, and select OAuth client ID
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/create.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/create.png)
 3. If not done, configure the consent screen
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/consentScreen.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentScreen.png)
     1. And fill the form with the required information
         - Application name: AnyQuery
         - User support email: Your email
         - Developer contact information: Your email
         - Leave the rest as it is
 
-        ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/consentFilled.png)
+        ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentFilled.png)
     2. Click on Save and Continue
     3. Click on Save and Continue and leave Scopes as it is
     4. On test users, add the Google account you will use to query the responses
     5. Click on Save and Continue
     6. Click on Back to Dashboard
 4. Go back to the Credentials tab and click on Create Credentials
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/createCredentials.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/createCredentials.png)
 5. Select OAuth client ID, and select Web application
 6. Fill the form with the required information
     - Leave the name as whatever you want
     - Add the authorized redirect URIs: `https://integration.anyquery.dev/google-result`
     - Add authorized JavaScript origins: `https://integration.anyquery.dev`
     - Click on Create
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/form_oAuth.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/form_oAuth.png)
 7. Copy the `Client ID` and `Client Secret`. We will use them later
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/result.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/result.png)
 8. Enable the Google Forms API. To do so, go to the [Google Forms API page](https://console.cloud.google.com/apis/library/forms.googleapis.com) and click on Enable
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/enableAPI.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/enableAPI.png)
 9. Go to [Google Forms integration](https://integration.anyquery.dev/google-forms)
 10. Fill the form with the `Client ID` and `Client Secret` you copied and click on Submit
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/form_integration.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/form_integration.png)
 11. Select your Google account, skip the warning about the app not being verified, and
 12. Copy the token, the client ID, and the client secret
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/google_forms/images/token.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/token.png)
 13. Go back to the terminal and fill in the form with the token, the client ID, and the client secret.
 14. To find the form ID, go to the form edit page and copy the ID from the URL
    In `https://docs.google.com/forms/d/5aP_uDmwzxXQF_nOlrkFD1tji97brPhLQ6NLZRnz4E80/edit`, the form ID is `5aP_uDmwzxXQF_nOlrkFD1tji97brPhLQ6NLZRnz4E80`

@@ -9,7 +9,7 @@ Analyse the results of a Typeform survey with SQL.
    - Account: Read
    - Forms: Read
    - Responses: Read
-  ![Scope](https://github.com/julien040/anyquery/blob/main/plugins/typeform/images/scopes.png)
+  ![Scope](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/typeform/images/scopes.png)
 3. Copy the token and paste it when asked for it in the plugin.
 4. Go to the [Typeform forms page](https://admin.typeform.com/), click on the form you want to analyze, and copy the form ID from the URL.
 On the URL `https://admin.typeform.com/form/tabc4poi/create?block=c89e2e8f-e3e3-420c-9ba6-21d1ad0a7bf4`, the form ID is `tabc4poi`.

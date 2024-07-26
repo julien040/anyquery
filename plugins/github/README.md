@@ -12,8 +12,7 @@ anyquery install github
 
 Once done, anyquery will request you a GitHub Token. Head to [GitHub Personal Access Tokens](https://github.com/settings/tokens)
 and create a new classic token with the scopes `repo`, `gist`, `read:packages`, and `read:org`. Copy the token and paste it in the terminal.
-
-![Example to get a token](https://github.com/julien040/anyquery/blob/main/plugins/github/images/token-tutorial.png)
+![Example to get a token](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/github/images/token-tutorial.png)
 
 ## Tables
 

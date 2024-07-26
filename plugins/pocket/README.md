@@ -5,15 +5,15 @@ Query, insert and delete articles from [Pocket](https://getpocket.com/).
 ## Configuration
 
 1. Create a new Pocket app at [https://getpocket.com/developer/apps/new](https://getpocket.com/developer/apps/new).
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/pocket/images/registration.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/pocket/images/registration.png)
 2. Copy the consumer key from the app settings.
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/pocket/images/copyKey.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/pocket/images/copyKey.png)
 3. Fill it in the integration server [https://integration.anyquery.dev/pocket](https://integration.anyquery.dev/pocket) and click on `Submit`.
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/pocket/images/fillForm.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/pocket/images/fillForm.png)
 4. Click on `Authorize` to authorize the app.
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/pocket/images/authorize.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/pocket/images/authorize.png)
 5. Copy the consumer key and access token from the response and fill it in when configuring the plugin.
-    ![alt text](https://github.com/julien040/anyquery/blob/main/plugins/pocket/images/success.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/pocket/images/success.png)
 
 ### Installation
 

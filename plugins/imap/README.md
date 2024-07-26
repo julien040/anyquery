@@ -30,11 +30,6 @@ SELECT * FROM imap_emails EXISTS (SELECT 1 FROM json_tree(_from) WHERE key = 'em
 
 ```
 
-```bash
-# Export all emails as HTML in a JSON file
-anyquery -q "SELECT html FROM imap_emails" --json > emails.json
-```
-
 ## Schema
 
 ### imap_folders
