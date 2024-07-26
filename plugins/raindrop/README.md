@@ -12,11 +12,11 @@ anyquery install raindrop
 
 1. Go to [https://app.raindrop.io/settings/integrations](https://app.raindrop.io/settings/integrations)
 2. Click on "Create new app"
-    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/raindrop/newApp.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/raindrop/images/newApp.png)
 3. Give it the name you want and click on "Create"
 4. Click on the app you just created
 5. Click "Create test token" and copy the token
-    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/raindrop/newTestToken.png)
+    ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/raindrop/images/newTestToken.png)
 6. Fill it in when requested by `anyquery` in the installation process
 
 ## Usage
