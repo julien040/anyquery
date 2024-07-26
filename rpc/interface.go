@@ -137,6 +137,8 @@ const (
 	ColumnTypeString
 	// ColumnTypeBlob represents a BLOB column
 	ColumnTypeBlob
+	// ColumnTypeBool represents is an alias for ColumnTypeInt
+	ColumnTypeBool = ColumnTypeInt
 )
 
 type DatabaseSchemaColumn struct {
