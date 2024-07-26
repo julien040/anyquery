@@ -28,7 +28,7 @@ func TestValidateSchema(t *testing.T) {
 				"plugins": [
 				  {
 					"name": "github",
-					"desc": "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e",
+					"description": "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e",
 					"author": "",
 					"versions": [
 					  {
@@ -61,9 +61,9 @@ func TestValidateSchema(t *testing.T) {
 						"minimum_required_version": "0.0.1",
 						"user_config": [
 						  {
-							"Name": "Notion API Key",
-							"Required": true,
-							"Type": "string"
+							"name": "Notion API Key",
+							"required": true,
+							"type": "string"
 						  }
 						],
 						"tables": [
@@ -107,7 +107,7 @@ func TestValidateSchema(t *testing.T) {
 				"plugins": [
 				  {
 					"name": "github",
-					"desc": "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e",
+					"description": "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e",
 					"author": "",
 					"versions": [
 					  {
@@ -140,8 +140,8 @@ func TestValidateSchema(t *testing.T) {
 						"minimum_required_version": "0.0.1",
 						"user_config": [
 						  {
-							"Name": "Notion API Key",
-							"Required": true
+							"name": "Notion API Key",
+							"required": true
 						  }
 						],
 						"tables": [
@@ -190,7 +190,7 @@ func TestValidateSchema(t *testing.T) {
 }
 
 // A mock server that returns a registry
-const registry = `https://gist.githubusercontent.com/julien040/8a6db37826cbeb6b999463cd49067bcc/raw/5b4110a478106f1a1357ec27c016eae3f1063ad9/registry1.json`
+const registry = `https://gist.githubusercontent.com/julien040/8a6db37826cbeb6b999463cd49067bcc/raw/51ffb487da95d9fe6bce8538c0af1797e24e7b85/registry1.json`
 
 // Test if a registry can be added and updated
 func TestRegistry(t *testing.T) {
@@ -213,7 +213,7 @@ func TestRegistry(t *testing.T) {
 
 		require.Equal(t, "default", testedRegistry.Name)
 		require.Equal(t, registry, testedRegistry.Url)
-		require.Equal(t, "6069c08e689f1a792262d71fac6fcc6d161a7621cd37f1174ef1255bfae7eda8", testedRegistry.Checksumregistry)
+		require.Equal(t, "2e598f65901af3ebef2a94c4b0f49f317138ddb48eebc720a4b33bcf36f34fac", testedRegistry.Checksumregistry)
 		updateTime = testedRegistry.Lastupdated
 		require.NotEqual(t, 0, updateTime)
 

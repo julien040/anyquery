@@ -250,10 +250,14 @@ func createOrUpdateProfile(queries *model.Queries, registryName string, pluginNa
 			Value(&(profileConfigTempString[i]))
 
 		var description string
-		if configKey.Required {
-			description = "This field is required"
+		if configKey.Description != "" {
+			description = configKey.Description
 		} else {
-			description = "This field is optional"
+			if configKey.Required {
+				description = "This field is required"
+			} else {
+				description = "This field is optional"
+			}
 		}
 
 		if configKey.Type == "[]string" || configKey.Type == "[]int" || configKey.Type == "[]float" || configKey.Type == "[]bool" {

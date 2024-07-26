@@ -13,7 +13,8 @@ type Registry struct {
 
 type Plugin struct {
 	Name        string `json:"name"`
-	Description string `json:"desc"`
+	Description string `json:"description"`
+	PageContent string `json:"page_content"`
 	Author      string `json:"author"`
 	Homepage    string `json:"homepage"`
 	License     string `json:"license"`
@@ -42,5 +43,7 @@ type UserConfig struct {
 	Required bool   `json:"required"`
 	// The type of the variable prompted to the user
 	// Can be: string, int, float, bool, []string, []int, []float, []bool
-	Type string `json:"type"`
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	Validation  string `json:"validation"`
 }

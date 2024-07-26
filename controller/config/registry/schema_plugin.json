@@ -11,7 +11,6 @@
     "additionalProperties": true,
     "required": [
       "name",
-      "desc",
       "author",
       "versions",
       "license",
@@ -26,13 +25,19 @@
         "title": "The name of the plugin",
         "examples": ["github"]
       },
-      "desc": {
+      "description": {
         "type": "string",
         "default": "",
-        "title": "An HTML description of the plugin",
+        "title": "A short sentence describing the plugin",
         "examples": [
           "\u003ch2\u003eI'm a description\u003c/h2\u003e\r\n\u003cp\u003eOf course I am\u003c/p\u003e"
         ]
+      },
+      "page_content": {
+        "type": "string",
+        "default": "",
+        "title": "A markdown string describing the plugin",
+        "examples": ["**Hello**"]
       },
       "author": {
         "type": "string",
@@ -107,22 +112,22 @@
                 "type": "object",
                 "default": {},
                 "title": "A Schema",
-                "required": ["Name", "Required", "Type"],
+                "required": ["name", "required", "type"],
                 "additionalProperties": true,
                 "properties": {
-                  "Name": {
+                  "name": {
                     "type": "string",
                     "default": "",
                     "title": "The key name of the user configuration",
                     "examples": ["Notion API Key"]
                   },
-                  "Required": {
+                  "required": {
                     "type": "boolean",
                     "default": false,
                     "title": "If this key is required to be filled by the user",
                     "examples": [true]
                   },
-                  "Type": {
+                  "type": {
                     "type": "string",
                     "default": "string",
                     "title": "The type of the variable asked to the user",
