@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 	"time"
 
@@ -144,10 +145,15 @@ func Server(cmd *cobra.Command, args []string) error {
 	// We catch the signals to stop the server
 	// to do a clean shutdown
 	osSignal := make(chan os.Signal, 1)
-	signal.Notify(osSignal, os.Interrupt, syscall.SIGTERM)
+	signal.Notify(osSignal, os.Interrupt)
+	if runtime.GOOS != "windows" {
+		signal.Notify(osSignal, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGKILL, syscall.SIGHUP)
+	}
 
 	go func() {
-		<-osSignal
+		// Print the signal received
+		sig := <-osSignal
+		lo.Info("Signal received", "signal", sig)
 		mySQLServer.Stop()
 	}()
 
