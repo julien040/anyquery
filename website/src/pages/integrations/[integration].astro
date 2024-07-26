@@ -1,0 +1,46 @@
+---
+import Main from "../../layouts/main.astro";
+import "../../markdown.css";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries: {
+    params: { integration: string };
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    props: any;
+  }[] = [];
+
+  const integrations = await getCollection("integrations");
+
+  for (const plugin of integrations) {
+    entries.push({
+      params: { integration: plugin.slug },
+      props: {
+        entry: plugin,
+      },
+    });
+  }
+
+  return entries;
+}
+
+const { entry } = Astro.props;
+const { Content } = await entry.render();
+---
+
+<Main>
+  <main class="max-w-[75ch] mx-auto">
+    <div class="rounded-lg bg-white/10 p-4 border border-[#655cc339]">
+      <div class="flex flex-row gap-6">
+        <img src={entry.data.icon} alt={entry.data.title} class="w-12 h-12" />
+        <div>
+          <h1 class="p-0 m-0 text-2xl">{entry.data.title}</h1>
+          <p class="m-0 text-white/60">{entry.data.description}</p>
+        </div>
+      </div>
+    </div>
+    <article class="">
+      <Content />
+    </article>
+  </main>
+</Main>

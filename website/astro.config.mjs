@@ -8,7 +8,7 @@ import starlight from "@astrojs/starlight";
 export default defineConfig({
 	integrations: [
 		alpinejs(),
-		tailwind(),
+		tailwind({}),
 		starlight({
 			title: "Anyquery",
 			credits: false,
@@ -32,13 +32,24 @@ export default defineConfig({
 					label: "Features",
 				},
 				{
+					autogenerate: { directory: "connection-guide" },
+					label: "Connection guide",
+				},
+				{
 					autogenerate: { directory: "recipes" },
 					label: "Recipes",
+					collapsed: true,
 				},
 			],
 		}),
 	],
 	prefetch: {
 		prefetchAll: true,
+	},
+	markdown: {
+		shikiConfig: {
+			theme: "nord",
+			wrap: true,
+		},
 	},
 });

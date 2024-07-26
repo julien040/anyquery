@@ -1,8 +1,8 @@
 ---
-title: Query an HTML table from a website
-description: Learn how to run a SQL query on an HTML table from a website
-        
+title: DataGrip
+description: Connect DataGrip to Anyquery
 ---
+
 Amet anim cillum commodo minim nulla. Labore proident laboris enim do magna laboris reprehenderit in et cupidatat do commodo. Nostrud sunt nostrud deserunt ipsum elit sint ipsum aliquip. Ad nulla nisi excepteur elit amet nulla enim amet sunt adipisicing.
 
 Magna enim ex enim adipisicing nostrud mollit est elit. Excepteur sunt culpa excepteur ipsum et dolor cillum anim. Cupidatat laboris sit eu et proident aliqua occaecat nisi. Amet eiusmod veniam esse anim minim esse anim officia irure deserunt quis exercitation deserunt. Eu eiusmod nulla enim incididunt cupidatat aliquip. Ipsum mollit sint nulla do proident reprehenderit eiusmod consequat exercitation ea amet. Minim ipsum ea do anim anim nostrud nulla incididunt eu enim irure sint irure amet aliqua. Amet minim id non ad consequat cupidatat minim quis officia aliquip ullamco mollit cupidatat et.

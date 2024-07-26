@@ -231,7 +231,7 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
         elements.map((element) => (
           <div
             class="p-4 min-w-24 rounded-lg bg-[#181818] hover:bg-[#242424] border-primary border-2 transition-all flex-col justify-start items-center gap-3 inline-flex
-            hover:shadow-outline-primary cursor-pointer text-white/70 hover:bg-gradient-to-r from-[#776dff]  to-[#ff1f3d] hover:bg-clip-text hover:text-transparent
+            hover:shadow-outline-primary cursor-pointer text-white/70
             "
             x-on:mouseover={`title = '${element.title}'; code = \`${element.code}\`; footer = '${element.footer}'`}
           >
@@ -395,7 +395,7 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
     <div class="flex flex-col w-full md:max-w-[50%]">
       <div
         class="px-4 py-3 min-h-14 bg-[#191919] flex flex-row justify-start gap-3 items-center rounded-lg shadow border border-[#373737]
-        text-xs overflow-x-scroll"
+        text-xs overflow-x-scroll max-w-fit ml-auto"
       >
         <img
           id="install-logo"
@@ -442,7 +442,6 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
         } else if (/Linux/.test(platform)) {
           os = "Linux";
         }
-        console.log("Found os", os);
 
         return os;
       }
@@ -479,13 +478,11 @@ sudo apt-get install anyquery`;
         }
         // Update the command
         const code = document.getElementById("install-code");
-        console.log(code);
         if (code) {
           code.innerText = command;
         }
         // Update the logo
         const logoCode = document.getElementById("install-logo");
-        console.log(logoCode);
         if (logoCode) {
           logoCode.src = logoURL;
         }

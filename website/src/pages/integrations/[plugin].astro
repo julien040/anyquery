@@ -1,0 +1,136 @@
+---
+import DOMPurify from "isomorphic-dompurify";
+import { Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
+
+import Main from "../../layouts/main.astro";
+import "../../markdown.css";
+export async function getStaticPaths() {
+  const entries = [];
+
+  // Get all the remote plugins
+  const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+  const marked = new Marked(
+    markedHighlight({
+      langPrefix: "hljs language-",
+      highlight: (code: string, lang: string) => {
+        const language = hljs.getLanguage(lang) ? lang : "plaintext";
+        return hljs.highlight(code, { language }).value;
+      },
+    })
+  );
+  const remotePlugins = await fetchReg.json();
+  for (const plugin of remotePlugins.plugins) {
+    const sanitized = DOMPurify.sanitize(
+      await marked.parse(plugin.page_content)
+    );
+
+    const compatiblePlatform: string[] = [];
+    if (plugin.versions.length > 0) {
+      for (const platform in plugin.versions[0].files) {
+        compatiblePlatform.push(platform);
+      }
+    }
+
+    const versions = plugin.versions.map((version: { version: string }) => {
+      return version.version;
+    });
+
+    entries.push({
+      params: { plugin: plugin.name },
+      props: {
+        rawTitle: plugin.name,
+        title: plugin.display_name,
+        description: plugin.description,
+        author: plugin.author,
+        version: plugin.last_version,
+        readme: sanitized,
+        icon: plugin.icon,
+        license: plugin.license,
+        homepage: plugin.homepage,
+        tables: plugin.versions.length > 0 ? plugin.versions[0].tables : [],
+        compatiblePlatform,
+        versions,
+      },
+    });
+  }
+
+  return entries;
+}
+
+const {
+  rawTitle,
+  title,
+  description,
+  author,
+  version,
+  readme,
+  icon,
+  license,
+  homepage,
+  tables,
+  compatiblePlatform,
+  versions,
+} = Astro.props;
+---
+
+<Main title={title + " - AnyQuery"} description={description}>
+  <style is:global></style>
+  <main
+    class="flex flex-wrap-reverse flex-row gap-2 justify-center md:justify-between md:items-end"
+  >
+    <article class="md:max-w-[65%] md:mx-0 overflow-hidden" set:html={readme} />
+    <aside class="flex flex-col mt-7 p-6 rounded-lg md:max-w-[30%] bg-white/10">
+      <img src={icon} alt={title} class="h-14 w-14 aspect-square" />
+      <h1 class="mb-0 mt-4 p-0 text-2xl">{title}</h1>
+      <p class="mt-0 mb-4">{description}</p>
+      <p class="m-0 text-white/60">
+        Made by <a href={`https://github.com/${author}`}>{author}</a> · Version{
+          " " + version
+        }
+      </p>
+      <p class="m-0 text-white/60">License: {license}</p>
+      <a href={homepage} class="mr-2 text-white/60 text-sm inline-flex">
+        Homepage <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+          class="ml-2"
+        >
+          <path
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M15 3h6v6m-11 5L21 3m-3 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+          ></path>
+        </svg></a
+      >
+      <div class="mt-0">
+        <h2 class="text-lg text-white/90">Tables</h2>
+        <ul class="mt-0">
+          {tables.map((table: any) => <li>{`${rawTitle}_${table}`}</li>)}
+        </ul>
+      </div>
+      <div class="mt-2 pt-0">
+        <h2 class="text-lg text-white/90 mt-0">Compatible platforms</h2>
+        <ul class="mt-0">
+          {compatiblePlatform.map((platform: string) => <li>{platform}</li>)}
+        </ul>
+      </div>
+      <div class="mt-2 pt-0">
+        <h2 class="text-lg text-white/90 mt-0">Versions</h2>
+        <ul class="mt-0">
+          {versions.map((version: string) => <li>{version}</li>)}
+        </ul>
+      </div>
+    </aside>
+  </main>
+</Main>

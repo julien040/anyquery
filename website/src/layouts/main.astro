@@ -13,11 +13,13 @@ import Footer from "../components/footer.astro";
     <meta name="viewport" content="width=device-width" />
     <meta name="description" content={description} />
   </head>
-  <body class="max-w-5xl mx-auto p-6">
+  <body class="max-w-5xl mx-auto p-6 min-h-screen flex flex-col">
     <NavBar />
     <div class="py-2"><!-- Hey, hello you ! --></div>
     <slot />
-    <div class="py-2"><!-- I guess it's a good time to say goodbye --></div>
+    <div class="py-2 mt-auto">
+      <!-- I guess it's a good time to say goodbye -->
+    </div>
     <Footer footnote={footnote} />
   </body>
   <style is:global>
