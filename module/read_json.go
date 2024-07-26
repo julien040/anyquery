@@ -72,6 +72,9 @@ func (m *JSONModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 
 	filepath := strings.Trim(args[3], "' \"")
 	jsonPath := ""
+	if len(args) > 4 {
+		jsonPath = strings.Trim(args[4], "' \"")
+	}
 
 	// Parse the args
 	argsAvailable := []argParam{
