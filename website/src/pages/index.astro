@@ -13,7 +13,7 @@ const elements: TerminalProps[] = [
   {
     title: "List GitHub stars of rauchg",
     name: "GitHub",
-    code: "SELECT * FROM github_stars('rauchg');",
+    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> users;`,
     footer: "Elapsed time 27ms · 274 rows in result set",
     icon: `
         <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" fill="none">
@@ -28,10 +28,10 @@ const elements: TerminalProps[] = [
   {
     title: "Query your Notion database",
     name: "Notion",
-    code: `SELECT * FROM notion_table;
-INSERT INTO notion_table (name, age) VALUES ('Julien', 20);
-UPDATE notion_table SET age = 21 WHERE name = 'Julien';
-DELETE FROM notion_table WHERE name = 'Julien';`,
+    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> notion_table;
+<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> notion_table (<span class="hljs-type">name</span>, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
+<span class="hljs-keyword">UPDATE</span> notion_table <span class="hljs-keyword">SET</span> age = <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;
+<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> notion_table <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
     footer: "Elapsed time 13ms · 66 rows in result set",
     icon: `
     <svg class="w-10 h-10" class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
@@ -48,7 +48,7 @@ DELETE FROM notion_table WHERE name = 'Julien';`,
   {
     title: "Analyse responses of a Typeform",
     name: "Typeform",
-    code: "SELECT * FROM typeform_responses('form_id');",
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> typeform_responses(<span class="hljs-string">&#x27;form_id&#x27;</span>);`,
     footer: "Elapsed time 283ms · 3 rows in result set",
     icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <g clip-path="url(#clip0_1237_85)">
@@ -64,7 +64,7 @@ DELETE FROM notion_table WHERE name = 'Julien';`,
   {
     title: "Count rows in a real-world 75MB CSV",
     name: "CSV",
-    code: "SELECT count(*) FROM read_csv('https://github.com/datadesk/california-coronavirus-data/raw/master/latimes-place-totals.csv');",
+    code: `SELECT count(<span class="hljs-name">*</span>) FROM read_csv(&#x27;https<span class="hljs-symbol">://github</span>.com/datadesk/california-coronavirus-data/raw/master/latimes-place-totals.csv&#x27;)<span class="hljs-comment">;</span>`,
     footer: "Elapsed time 470ms · 1 row in result set",
     icon: `
     <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 31" fill="none">
@@ -74,10 +74,10 @@ DELETE FROM notion_table WHERE name = 'Julien';`,
   {
     title: "Use Google Sheets as a database",
     name: "Sheets",
-    code: `SELECT * FROM google_sheets;
-INSERT INTO google_sheets (name, age) VALUES ('Julien', 20);
-UPDATE google_sheets SET age = 21 WHERE name = 'Julien';
-DELETE FROM google_sheets WHERE name = 'Julien';`,
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> google_sheets;
+<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> google_sheets (<span class="hljs-type">name</span>, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
+<span class="hljs-keyword">UPDATE</span> google_sheets <span class="hljs-keyword">SET</span> age = <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;
+<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> google_sheets <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
     footer: "Elapsed time 760ms · 150 rows in result set",
     icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M15.119 16.204H10.717V13.7382H15.1216V16.2052L15.119 16.204ZM19.5236 0V7.75H27.2736L19.5236 0ZM21.2841 13.7382H16.8795V16.2052H21.2841V13.7382ZM21.2841 17.9658H16.8795V20.4329H21.2841V17.9658ZM27.2723 8.39583V28.8868C27.2723 30.0545 26.3268 31 25.1591 31H6.84071C6.5632 31 6.28841 30.9453 6.03203 30.8391C5.77565 30.7329 5.5427 30.5773 5.34647 30.3811C4.95018 29.9848 4.72754 29.4473 4.72754 28.8868V2.11317C4.72754 0.9455 5.67304 0 6.84071 0H18.8765V8.39583H27.2723ZM23.0447 11.9776H8.95387V22.1934H23.046V11.9763L23.0447 11.9776ZM15.119 17.9658H10.717V20.4329H15.1216V17.9658H15.119Z" fill="white" fill-opacity="0.79"/>
@@ -86,9 +86,9 @@ DELETE FROM google_sheets WHERE name = 'Julien';`,
   {
     title: "Query your Pocket articles",
     name: "Pocket",
-    code: `SELECT * FROM pocket_items;
-INSERT INTO pocket_items (given_url, title) VALUES ('https://www.example.com', 'Example article');
-DELETE FROM pocket_items WHERE given_url = 'https://www.example.com';`,
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> pocket_items;
+<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> pocket_items (given_url, <span class="hljs-built_in">title</span>) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;https://www.example.com&#x27;</span>, <span class="hljs-string">&#x27;Example article&#x27;</span>);
+<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> pocket_items <span class="hljs-keyword">WHERE</span> given_url = <span class="hljs-string">&#x27;https://www.example.com&#x27;</span>;`,
     footer: "Elapsed time 78ms · 2539 rows in result set",
     icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M28.7902 5.41725C28.6249 4.96584 28.3251 4.57598 27.9313 4.30022C27.5376 4.02445 27.0687 3.87604 26.588 3.875H5.42529C4.80503 3.87839 4.21116 4.12639 3.77269 4.5651C3.33421 5.00382 3.08655 5.59782 3.0835 6.21808V14.0133L3.17262 15.5633C3.5472 19.0895 5.3775 22.1715 8.21012 24.3195C8.2592 24.3582 8.31087 24.3957 8.36254 24.4345L8.39483 24.4577C9.89572 25.5603 11.6194 26.3216 13.4452 26.6884C15.1722 27.0371 16.952 27.0309 18.6765 26.6703C18.7052 26.6641 18.733 26.6541 18.7592 26.6406C20.5102 26.26 22.1617 25.5159 23.6068 24.4564L23.6391 24.4332C23.6907 24.3944 23.7424 24.3582 23.7928 24.3169C26.6241 22.1689 28.4544 19.0883 28.8277 15.562L28.9168 14.012V6.21808C28.9221 5.94577 28.8792 5.67467 28.7902 5.41725ZM23.32 13.538L17.244 19.3673C16.9141 19.6836 16.4747 19.8602 16.0176 19.8602C15.5605 19.8602 15.1211 19.6836 14.7912 19.3673L8.71516 13.5367C8.54732 13.3757 8.41283 13.1832 8.31936 12.9703C8.2259 12.7573 8.17529 12.5281 8.17043 12.2956C8.16557 12.063 8.20656 11.8319 8.29105 11.6152C8.37554 11.3985 8.50188 11.2006 8.66285 11.0328C8.82382 10.8649 9.01628 10.7304 9.22923 10.637C9.44218 10.5435 9.67146 10.4929 9.90396 10.488C10.1365 10.4832 10.3677 10.5242 10.5843 10.6087C10.801 10.6931 10.9989 10.8195 11.1667 10.9805L16.0182 15.6318L20.8697 10.9817C21.2127 10.6805 21.6587 10.5233 22.1148 10.5428C22.5708 10.5623 23.0018 10.757 23.3178 11.0863C23.6339 11.4157 23.8107 11.8543 23.8113 12.3108C23.812 12.7673 23.6364 13.2064 23.3213 13.5367" fill="white" fill-opacity="0.8"/>
@@ -97,7 +97,7 @@ DELETE FROM pocket_items WHERE given_url = 'https://www.example.com';`,
   {
     title: "Retrieve your saved musics from Spotify",
     name: "Spotify",
-    code: "SELECT * FROM spotify_saved_tracks;",
+    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> spotify_saved_tracks;`,
     footer: "Elapsed time 45ms · 819 rows in result set",
     icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <g clip-path="url(#clip0_300_921)">
@@ -113,19 +113,19 @@ DELETE FROM pocket_items WHERE given_url = 'https://www.example.com';`,
   {
     title: "Use Airtable as a database",
     name: "Airtable",
-    code: `SELECT * FROM airtable_table;
-INSERT INTO airtable_table (column1, column2) VALUES ('value1', 'value2');
-UPDATE airtable_table SET column1 = 'new_value' WHERE id = 'rec123';
-DELETE FROM airtable_table WHERE id = 'rec123';`,
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> airtable_table;
+<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> airtable_table (column1, column2) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;value1&#x27;</span>, <span class="hljs-string">&#x27;value2&#x27;</span>);
+<span class="hljs-keyword">UPDATE</span> airtable_table <span class="hljs-keyword">SET</span> column1 = <span class="hljs-string">&#x27;new_value&#x27;</span> <span class="hljs-keyword">WHERE</span> id = <span class="hljs-string">&#x27;rec123&#x27;</span>;
+<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> airtable_table <span class="hljs-keyword">WHERE</span> id = <span class="hljs-string">&#x27;rec123&#x27;</span>;`,
     footer: "Elapsed time 522ms · 45 463 rows in result set",
     icon: `<svg class="w-10 h-10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.27 3.27 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.3 3.3 0 0 0-1.272-.257M23.4 8.056a.6.6 0 0 0-.222.045l-10.012 3.877a.61.61 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.58.58 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.64.64 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006l.307-.147l2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.6.6 0 0 0-.207-.044z"/></svg>`,
   },
   {
     title: "Query your Raindrop.io bookmarks",
     name: "Raindrop",
-    code: `SELECT * FROM raindrop_items;
-INSERT INTO raindrop_items(title, link, created_at, reminder) VALUES ('A cool SQL tool', 'https://anyquery.dev', '2024-07-10', '2024-07-20');
-DELETE FROM raindrop_items WHERE title = 'A cool SQL tool';`,
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> raindrop_items;
+<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> raindrop_items(<span class="hljs-built_in">title</span>, link, created_at, reminder) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>, <span class="hljs-string">&#x27;https://anyquery.dev&#x27;</span>, <span class="hljs-string">&#x27;2024-07-10&#x27;</span>, <span class="hljs-string">&#x27;2024-07-20&#x27;</span>);
+<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> raindrop_items <span class="hljs-keyword">WHERE</span> <span class="hljs-built_in">title</span> = <span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>;`,
     footer: "Elapsed time 20ms · 360 rows in result set",
     icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M16 19.1199C16 18.293 15.8371 17.4741 15.5207 16.7102C15.2042 15.9462 14.7404 15.252 14.1557 14.6673C13.571 14.0826 12.8768 13.6188 12.1128 13.3023C11.3489 12.9859 10.53 12.823 9.70312 12.823C8.03309 12.823 6.43146 13.4864 5.25056 14.6673C4.06967 15.8482 3.40625 17.4498 3.40625 19.1199C3.40625 20.7899 4.06967 22.3915 5.25056 23.5724C6.43146 24.7533 8.03309 25.4167 9.70312 25.4167H16M16 19.1199V25.4167M16 19.1199C16 17.4498 16.6634 15.8482 17.8443 14.6673C19.0252 13.4864 20.6268 12.823 22.2969 12.823C23.1238 12.823 23.9426 12.9859 24.7066 13.3023C25.4706 13.6188 26.1647 14.0826 26.7494 14.6673C27.3342 15.252 27.798 15.9462 28.1144 16.7102C28.4309 17.4741 28.5937 18.293 28.5937 19.1199C28.5937 19.9468 28.4309 20.7656 28.1144 21.5296C27.798 22.2936 27.3342 22.9877 26.7494 23.5724C26.1647 24.1572 25.4706 24.621 24.7066 24.9374C23.9426 25.2539 23.1238 25.4167 22.2969 25.4167H16" stroke="white" stroke-opacity="0.79" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"/>
@@ -204,8 +204,31 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
             <p x-text="title"></p>
             <div class="h-3 w-16"></div>
           </div>
+          <style is:global>
+            code .hljs-comment {
+              @apply text-white/50;
+            }
+
+            code .hljs-operator {
+              color: #ff79c6;
+            }
+
+            code .hljs-keyword,
+            code .hljs-selector-tag {
+              color: #bd93f9;
+            }
+
+            code .hljs-attr,
+            code .hljs-built_in {
+              color: #8be9fd;
+            }
+
+            code .hljs-string {
+              color: #50fa7b;
+            }
+          </style>
           <pre
-            class="text-white/70 text-sm min-h-[20ex] p-4 flex overflow-auto break-all whitespace-pre-wrap"><code x-text="code" class="my-auto" />
+            class="text-white/70 text-sm min-h-[20ex] p-4 flex overflow-auto break-all whitespace-pre-wrap"><code x-html="code" class="my-auto" />
           </pre>
           <div class="bg-neutral-950/30 text-xs flex items-center gap-4 p-3">
             <svg
@@ -252,7 +275,7 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
       </h2>
       <p class="text-white/70 text-sm mt-1">and more to come</p>
     </div>
-    <div class="md:grid-cols-3 md:grid-rows-3 grid gap-4">
+    <div class="md:grid-cols-3 md:grid-rows-3 grid gap-2">
       <div
         class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg row-start-1 col-start-1 md:row-span-3 text-center"
       >
