@@ -115,7 +115,7 @@ prod: $(files)
 	go build -o {{.ModuleName}}.out -ldflags "-s -w" $(files)
 
 clean:
-	rm -f notion.out
+	rm -f {{.ModuleName}}.out
 
 .PHONY: all clean
 `
@@ -156,7 +156,7 @@ var templateDevManifest = `
   "log_level": "debug"
 }`
 
-var goreleaserDev = `
+var templateGoreleaserDev = `
 version: 2
 
 before:
@@ -171,6 +171,9 @@ builds:
       - linux
       - windows
       - darwin
+    binary: {{.ModuleName}}
+    id: anyquery
+    ldflags: "-s -w"
 
     goarch:
       - amd64
@@ -206,6 +209,36 @@ name = "my_token"
 description = "A description of why this token is needed"
 type = "string"
 required = true # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "{{.ModuleName}}"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "{{.ModuleName}}"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "{{.ModuleName}}"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "{{.ModuleName}}"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "{{.ModuleName}}.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "{{.ModuleName}}.exe"
 `
 
 var mainTemplate = template.Must(template.New("main").Parse(templateMainGo))
@@ -215,6 +248,8 @@ var tableTemplate = template.Must(template.New("table").Parse(templateTableGo))
 var makefileTemplate = template.Must(template.New("makefile").Parse(templateMakefile))
 
 var manifestDevTemplate = template.Must(template.New("manifest").Parse(templateDevManifest))
+
+var goreleaserDevTemplate = template.Must(template.New("goreleaser").Parse(templateGoreleaserDev))
 
 var manifestProdTemplate = template.Must(template.New("manifest").Parse(templateProdManifest))
 
@@ -361,9 +396,20 @@ func DevInit(cmd *cobra.Command, args []string) error {
 	}
 
 	// Create the .goreleaser.yaml file
-	err = os.WriteFile(".goreleaser.yaml", []byte(goreleaserDev), 0644)
+	goreleaserFile, err := os.Create(".goreleaser.yaml")
 	if err != nil {
 		return fmt.Errorf("could not create .goreleaser.yaml: %w", err)
+	}
+
+	err = goreleaserDevTemplate.Execute(goreleaserFile, templateDevArgs{
+		ModuleName: moduleName,
+		ModuleURL:  moduleURL,
+		TableName:  moduleName,
+		FileName:   ".goreleaser.yaml",
+	})
+
+	if err != nil {
+		return fmt.Errorf("could not execute goreleaser template: %w", err)
 	}
 
 	// Create the manifest.toml file
