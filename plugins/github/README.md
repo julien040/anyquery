@@ -460,6 +460,49 @@ SELECT * FROM github_comments_from_issue WHERE repository = 'julien040/gut' AND 
 | 7            | reactions          | TEXT |
 | 8            | url                | TEXT |
 
+### `github_my_issues`
+
+List the issues of the authenticated user (created, assigned, mentioned or subscribed).
+
+```sql
+-- List all issues related to the authenticated user
+SELECT * FROM github_my_issues;
+-- List all issues created by the authenticated user
+SELECT * FROM github_my_issue('created');
+SELECT * FROM github_my_issue WHERE filter = 'created';
+-- List all issues assigned to the authenticated user
+SELECT * FROM github_my_issue('assigned');
+SELECT * FROM github_my_issue WHERE filter = 'assigned';
+-- List all issues where the authenticated user is mentioned
+SELECT * FROM github_my_issue('mentioned');
+SELECT * FROM github_my_issue WHERE filter = 'mentioned';
+-- List all issues where the authenticated user has subscribed
+SELECT * FROM github_my_issue('subscribed');
+SELECT * FROM github_my_issue WHERE filter = 'subscribed';
+```
+
+#### Schema
+
+| Column index | Column name        | type    |
+| ------------ | ------------------ | ------- |
+| 0            | id                 | INTEGER |
+| 1            | number             | INTEGER |
+| 2            | by                 | TEXT    |
+| 3            | user_url           | TEXT    |
+| 4            | title              | TEXT    |
+| 5            | state              | INTEGER |
+| 6            | locked             | INTEGER |
+| 7            | author_association | TEXT    |
+| 8            | assignees          | TEXT    |
+| 9            | labels             | TEXT    |
+| 10           | comments           | INTEGER |
+| 11           | created_at         | TEXT    |
+| 12           | updated_at         | TEXT    |
+| 13           | closed_at          | TEXT    |
+| 14           | closed_by          | TEXT    |
+| 15           | is_pull_request    | TEXT    |
+| 16           | repository         | TEXT    |
+
 ## Caveats
 
 - The plugin is limited to 5000 requests per hour. If you reach this limit, you will have to wait an hour before making new requests. This is a limitation from the GitHub API.

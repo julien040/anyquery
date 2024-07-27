@@ -6,7 +6,8 @@ require (
 	github.com/adrg/xdg v0.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/google/go-github/v63 v63.0.0
-	github.com/julien040/anyquery v0.0.0-20240711202921-aace9b68f806
+	github.com/julien040/anyquery v0.0.0-20240726163417-5fe1f89e7716
+
 )
 
 require (
@@ -18,7 +19,7 @@ require (
 	github.com/golang/glog v1.2.1 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/golang/snappy v0.0.3 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/hashicorp/go-hclog v1.6.3 // indirect
