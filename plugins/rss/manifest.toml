@@ -9,7 +9,7 @@ homepage = "https://github.com/julien040/anyquery/tree/main/plugins/rss"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["rss"]
+tables = ["items"]
 
 [[file]]
 platform = "linux/amd64"
