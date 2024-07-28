@@ -1,0 +1,91 @@
+.sl-markdown-content ul {
+  list-style-type: disc;
+  margin-left: 20px;
+}
+
+.sl-markdown-content ul li {
+  margin-top: 0;
+}
+
+/* inter-regular - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  src: url("/fonts/inter-v13-latin-regular.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* inter-500 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  src: url("/fonts/inter-v13-latin-500.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* inter-600 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  src: url("/fonts/inter-v13-latin-600.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+/* inter-700 - latin */
+@font-face {
+  font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 700;
+  src: url("/fonts/inter-v13-latin-700.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+}
+
+p,
+li,
+table,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Inter", sans-serif;
+}
+
+a,
+p,
+li,
+table {
+  letter-spacing: -0.12px;
+  font-size: 0.95rem;
+}
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "Inter", sans-serif;
+  letter-spacing: -0.9px;
+  font-weight: 600;
+}
+
+.sl-markdown-content h2 {
+  margin-top: 0.8em !important;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content ul,
+.sl-markdown-content ol {
+  margin-top: 0.4rem !important;
+}
+
+.sl-markdown-content img {
+  margin-top: 0.5rem !important;
+  margin-bottom: 0.8rem !important;
+}
+
+.sl-markdown-content div.expressive-code {
+  margin-top: 0.8rem;
+  margin-bottom: 0.8rem;
+}

@@ -12,7 +12,8 @@ export default defineConfig({
 		starlight({
 			title: "Anyquery",
 			credits: false,
-			favicon: "/favicon.svg",
+			favicon: "/favicon.png",
+			customCss: ["./src/docs.css"],
 			logo: {
 				src: "./public/images/logo.png",
 				alt: "Anyquery logo",
@@ -24,12 +25,45 @@ export default defineConfig({
 				"Anyquery allows you to run SQL queries on pretty much any data source, including REST APIs, local files, SQL databases, and more.",
 			sidebar: [
 				{
-					autogenerate: { directory: "docs" },
-					label: "Introduction",
+					link: "/docs",
+					label: "Getting started",
 				},
 				{
-					autogenerate: { directory: "docs/Features" },
-					label: "Features",
+					label: "Usage",
+					items: [
+						{
+							label: "Running queries",
+							link: "/docs/usage/running-queries",
+						},
+						{
+							label: "Managing plugins",
+							link: "/docs/usage/plugins",
+						},
+						{
+							label: "Managing profiles",
+							link: "/docs/usage/managing-profiles",
+						},
+						{
+							label: "Querying files",
+							link: "/docs/usage/querying-files",
+						},
+						{
+							label: "Alternative languages (PRQL, PQL)",
+							link: "/docs/usage/alternative-languages",
+						},
+						{
+							label: "Exporting results",
+							link: "/docs/usage/exporting-results",
+						},
+						{
+							label: "As a library",
+							link: "/docs/usage/as-a-library",
+						},
+					],
+				},
+				{
+					autogenerate: { directory: "docs/reference" },
+					label: "Reference",
 				},
 				{
 					autogenerate: { directory: "connection-guide" },
@@ -48,7 +82,7 @@ export default defineConfig({
 	},
 	markdown: {
 		shikiConfig: {
-			theme: "nord",
+			theme: "dracula",
 			wrap: true,
 		},
 	},

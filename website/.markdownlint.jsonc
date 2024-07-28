@@ -1,0 +1,6 @@
+{
+	// Disable no-inline-html rule
+	"MD033": false,
+	// Disable max line length rule
+	"MD013": false
+}
