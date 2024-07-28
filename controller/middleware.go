@@ -197,6 +197,10 @@ func middlewareDotCommand(queryData *QueryData) bool {
 			queryData.StatusCode = 0
 		} else {
 			switch strings.ToLower(args[0]) {
+			case "sql":
+				queryData.Config.SetString("language", "")
+				queryData.Message = "Switched back to SQL"
+
 			case "prql":
 				queryData.Config.SetString("language", "prql")
 				queryData.Message = "Switched to PRQL"
