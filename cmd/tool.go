@@ -3,6 +3,7 @@ package cmd
 import (
 	"github.com/julien040/anyquery/controller"
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 )
 
 var toolCmd = &cobra.Command{
@@ -53,6 +54,16 @@ var toolDevNewTableCmd = &cobra.Command{
 	RunE: controller.DevNewTable,
 }
 
+var toolGenerateDocCmd = &cobra.Command{
+	Use:   "generate-doc [dir]",
+	Short: "Generate the markdown documentation of the CLI",
+	Args: cobra.ExactArgs(1),
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return doc.GenMarkdownTree(rootCmd, args[0])
+	},
+}
+
+
 func init() {
 	rootCmd.AddCommand(toolCmd)
 	toolCmd.AddCommand(toolHashDirCmd)
@@ -60,4 +71,5 @@ func init() {
 	toolCmd.AddCommand(toolDevCmd)
 	toolDevCmd.AddCommand(toolDevInitCmd)
 	toolDevCmd.AddCommand(toolDevNewTableCmd)
+	toolCmd.AddCommand(toolGenerateDocCmd)
 }
