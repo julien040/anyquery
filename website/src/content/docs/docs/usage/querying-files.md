@@ -118,7 +118,7 @@ The following shapes are supported:
 }
 ```
 
-`objects`:
+`object`:
 
 In this case, there is only one row, and each key is a column.
 
@@ -137,7 +137,7 @@ To query a CSV file, you need to use the `read_csv` function. The function takes
 -- Query the whole CSV file
 SELECT * FROM read_csv('path/to/file.csv');
 -- Query a CSV file with a header
-SELECT * FROM read_csv('path/to/file.csv', header=true);
+SELECT * FROM read_csv('https://csvbase.com/meripaterson/stock-exchanges.csv', header=true);
 -- Query a CSV file with a header and a custom delimiter
 SELECT * FROM read_csv('path/to/file.csv', header=true, delimiter=';');
 ```
@@ -202,7 +202,7 @@ WHERE
 To query a Parquet file, you need to use the `read_parquet` function. The function takes one argument which is the path to the Parquet file.
 
 ```sql
-SELECT * FROM read_parquet('path/to/file.parquet');
+SELECT * FROM read_parquet('https://csvbase.com/calpaterson/english-womens-football-matches.parquet');
 ```
 
 ### YAML
@@ -228,6 +228,7 @@ Each key in the TOML file is a column. Therefore, only one row is returned. It's
 ## MySQL server
 
 To query files in the MySQL server, you need to create a virtual table. It's a table that points to the file. The virtual table is created using the `CREATE VIRTUAL TABLE` statement. It uses the same arguments as the shell mode.
+Each table named read_*file_format* in the shell has a corresponding *file_format*_reader table in the MySQL server. *file_format*_reader tables are also available in the shell mode.
 
 ```sql title="Read a JSON file"
 CREATE VIRTUAL TABLE my_json_table USING json_reader('path/to/file.json');

@@ -56,14 +56,19 @@ export default defineConfig({
 							link: "/docs/usage/exporting-results",
 						},
 						{
-							label: "As a library",
+							label: "MySQL server",
 							link: "/docs/usage/as-a-library",
+						},
+						{
+							label: "As a library",
+							link: "/docs/usage/mysql-server",
 						},
 					],
 				},
 				{
 					autogenerate: { directory: "docs/reference" },
 					label: "Reference",
+					collapsed: true,
 				},
 				{
 					autogenerate: { directory: "connection-guide" },
@@ -73,6 +78,22 @@ export default defineConfig({
 					autogenerate: { directory: "recipes" },
 					label: "Recipes",
 					collapsed: true,
+				},
+			],
+			head: [
+				/* 
+				<!-- 100% privacy-first analytics -->
+				<script data-collect-dnt="true" async defer src="https://scripts.simpleanalyticscdn.com/latest.js"></script>
+				<noscript><img src="https://queue.simpleanalyticscdn.com/noscript.gif?collect-dnt=true" alt="" referrerpolicy="no-referrer-when-downgrade" /></noscript>
+				*/
+				{
+					tag: "script",
+					attributes: {
+						"data-collect-dnt": "true",
+						async: true,
+						defer: true,
+						src: "https://sa.anyquery.dev/latest.js",
+					},
 				},
 			],
 		}),

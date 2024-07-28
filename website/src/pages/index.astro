@@ -13,7 +13,7 @@ const elements: TerminalProps[] = [
   {
     title: "List GitHub stars of rauchg",
     name: "GitHub",
-    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> users;`,
+    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> github_stars_from_user(<span class="hljs-string">&#x27;rauchg&#x27;</span>);`,
     footer: "Elapsed time 27ms · 274 rows in result set",
     icon: `
         <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" fill="none">
@@ -172,7 +172,7 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
           of APIs
         </p>
         <div class="flex mt-6 gap-3">
-          <a href="/docs/introduction/get-started" class="button"> Install </a>
+          <a href="/docs/#installation" class="button"> Install </a>
           <a href="/docs" class="button button-silent"> Documentation </a>
         </div>
         <p class="text-white/40 text-xs mt-4">
