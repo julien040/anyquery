@@ -35,6 +35,7 @@ func registerCryptoFunctions(conn *sqlite3.SQLiteConn) {
 		{"randCanonical", random_float, false},
 		{"rand", random_int, false},
 		{"random_int", random_int, false},
+		{"randn", random_intn, false},
 		{"random_intn", random_intn, false},
 		{"random_int64", random_int64, false},
 		{"rand64", random_int64, false},

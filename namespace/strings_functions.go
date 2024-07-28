@@ -22,16 +22,18 @@ func registerStringFunctions(conn *sqlite3.SQLiteConn) error {
 		Deterministic bool
 	}{
 		{"ascii", ascii, true},
+		{"ord", ascii, true},
 		{"bin", bin_num, true},
 		{"bin", bin_str, true},
 		{"bit_length", bit_length, true},
 		{"char", char, true},
+		{"chr", char, true},
 		{"length", length, true},
 		{"char_length", length, true},
 		{"character_length", length, true},
-		{"length", length, true},
 		{"elt", elt, true},
 		{"elt_word", elt_word, true},
+		{"split_part", elt_word, true},
 		{"field", field, true},
 		{"find_in_set", find_in_set, true},
 		{"to_char", to_char, true},
@@ -51,7 +53,8 @@ func registerStringFunctions(conn *sqlite3.SQLiteConn) error {
 		{"insert", insert, true},
 		{"locate", locate, true},
 		{"position", locate, true},
-		{"locate_from", locate_from, true},
+		{"locate", locate_from, true},
+		{"position", locate_from, true},
 		{"lcase", lcase, true},
 		{"left", left, true},
 		{"load_file", load_file, true},
@@ -130,7 +133,7 @@ func elt(index int, str ...string) string {
 
 // Returns the word at the specified index
 // Alias: SPLIT_PART
-func elt_word(index int, str string, delim string) string {
+func elt_word(str string, delim string, index int) string {
 	words := strings.Split(str, delim)
 	if index <= 0 || index > len(words) {
 		return ""

@@ -36,6 +36,7 @@ func registerURLFunctions(conn *sqlite3.SQLiteConn) {
 		{"extract_url_parameter", extractURLParameter, true}, // Alias: extractURLParameter
 		{"urlProtocol", protocol, true},
 		{"protocol", protocol, true},
+		{"url_protocol", protocol, true}, // Alias: urlProtocol
 	}
 	for _, f := range urlFunctions {
 		conn.RegisterFunc(f.name, f.function, f.pure)
