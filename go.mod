@@ -4,6 +4,8 @@ go 1.22.3
 
 replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.17.3
 
+replace github.com/runreveal/pql => github.com/julien040/pql-anyquery v0.2.1
+
 require (
 	github.com/BurntSushi/toml v1.4.0
 	github.com/Masterminds/semver/v3 v3.2.1
