@@ -57,11 +57,11 @@ export default defineConfig({
 						},
 						{
 							label: "MySQL server",
-							link: "/docs/usage/as-a-library",
+							link: "/docs/usage/mysql-server",
 						},
 						{
 							label: "As a library",
-							link: "/docs/usage/mysql-server",
+							link: "/docs/usage/as-a-library",
 						},
 					],
 				},
