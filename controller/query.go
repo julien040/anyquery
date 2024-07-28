@@ -13,6 +13,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/julien040/anyquery/namespace"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 const initScript = `
@@ -167,24 +168,24 @@ func Query(cmd *cobra.Command, args []string) error {
 		shell.Config.SetString("language", "pql")
 	}
 
-	// Run the init scripts
-	initScripts, _ := cmd.Flags().GetStringArray("init")
-	for _, script := range initScripts {
-		// Read the file
-		file, err := os.Open(script)
+	// Check if stdout is a file
+	outputFile, _ := cmd.Flags().GetString("output")
+	if outputFile != "" {
+		file, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			return fmt.Errorf("could not open init file: %w", err)
+			return fmt.Errorf("could not open output file: %w", err)
 		}
-		content, err := io.ReadAll(file)
-		if err != nil {
-			return fmt.Errorf("could not read init file: %w", err)
-		}
-
-		// Run the script
-		shell.Run(string(content))
+		shell.OutputFile = outputFile
+		shell.OutputFileDesc = file
 	}
 
-	// Get the output mode
+	// Check if the output file is a tty
+	// If not, we set the output mode to plain
+	if !term.IsTerminal(int(shell.OutputFileDesc.Fd())) {
+		shell.Config["outputMode"] = "plain"
+	}
+
+	// Get the output mode if defined by the user
 	outputFormat, _ := cmd.Flags().GetString("format")
 	if outputFormat != "" {
 		if _, ok := formatName[outputFormat]; ok {
@@ -204,6 +205,23 @@ func Query(cmd *cobra.Command, args []string) error {
 	plainOutput, _ := cmd.Flags().GetBool("plain")
 	if plainOutput {
 		shell.Config["outputMode"] = "plain"
+	}
+
+	// Run the init scripts
+	initScripts, _ := cmd.Flags().GetStringArray("init")
+	for _, script := range initScripts {
+		// Read the file
+		file, err := os.Open(script)
+		if err != nil {
+			return fmt.Errorf("could not open init file: %w", err)
+		}
+		content, err := io.ReadAll(file)
+		if err != nil {
+			return fmt.Errorf("could not read init file: %w", err)
+		}
+
+		// Run the script
+		shell.Run(string(content))
 	}
 
 	// The query command has 3 main modes:
@@ -226,10 +244,6 @@ func Query(cmd *cobra.Command, args []string) error {
 	queryFlag, _ := cmd.Flags().GetString("query")
 	if queryFlag != "" {
 		queryArgs = queryFlag
-	}
-	cFlag, _ := cmd.Flags().GetString("c")
-	if cFlag != "" {
-		queryArgs = cFlag
 	}
 
 	if queryArgs != "" {
