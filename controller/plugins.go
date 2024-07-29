@@ -240,9 +240,9 @@ func PluginInstall(cmd *cobra.Command, args []string) error {
 		fmt.Println("	- " + tableNamedFormatted[i])
 	}
 	fmt.Println("By running the following command:")
-	fmt.Println("	anyquery \"SELECT * FROM " + tableNamedFormatted[0] + ";\"")
+	fmt.Println("	anyquery -q \"SELECT * FROM " + tableNamedFormatted[0] + ";\"")
 	fmt.Println("You can access at anytime the list of tables by running:")
-	fmt.Println("	anyquery \"PRAGMA table_list;\"")
+	fmt.Println("	anyquery -q \"SHOW TABLES;\"")
 
 	return nil
 
