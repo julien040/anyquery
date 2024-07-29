@@ -101,7 +101,6 @@ func (h *handler) ConnectionClosed(c *mysql.Conn) {
 
 	// Close the connection associated with the MySQL connection
 	if conn, ok := h.connectionMapperSQLite[c.ConnectionID]; ok {
-		fmt.Println("Closing connection MySQL", c.ConnectionID)
 		err := conn.Close()
 		if err != nil {
 			h.Logger.Error("Error closing connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
