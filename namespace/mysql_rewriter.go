@@ -487,6 +487,12 @@ var selectVariableRemapper = map[string]interface{}{
 	"version_compile_machine":  "x86_64",
 	"version":                  "8.0.30",
 	"offline_mode":             0,
+	"transaction_read_only":    0,
+	"transaction_isolation":    "REPEATABLE-READ",
+	"transaction_allow_batching": 0,
+	"transaction_prealloc_size": 4096,
+	"transaction_alloc_block_size": 8192,
+	"transaction_isolation_level": "REPEATABLE-READ",
 }
 
 // Replace the function by their default value
