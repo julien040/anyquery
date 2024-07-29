@@ -1,0 +1,16 @@
+{
+  "name": "anyquery-drizzle-example",
+  "version": "1.0.0",
+  "description": "An example of how to use drizzle with Anyquery",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "drizzle-kit": "^0.23.0",
+    "drizzle-orm": "^0.32.1",
+    "mysql2": "^3.11.0"
+  }
+}
