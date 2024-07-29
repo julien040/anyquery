@@ -3,12 +3,46 @@ title: DataGrip
 description: Connect DataGrip to Anyquery
 ---
 
-Amet anim cillum commodo minim nulla. Labore proident laboris enim do magna laboris reprehenderit in et cupidatat do commodo. Nostrud sunt nostrud deserunt ipsum elit sint ipsum aliquip. Ad nulla nisi excepteur elit amet nulla enim amet sunt adipisicing.
+![DataGrip](https://cdn.svgporn.com/logos/datagrip.svg)
 
-Magna enim ex enim adipisicing nostrud mollit est elit. Excepteur sunt culpa excepteur ipsum et dolor cillum anim. Cupidatat laboris sit eu et proident aliqua occaecat nisi. Amet eiusmod veniam esse anim minim esse anim officia irure deserunt quis exercitation deserunt. Eu eiusmod nulla enim incididunt cupidatat aliquip. Ipsum mollit sint nulla do proident reprehenderit eiusmod consequat exercitation ea amet. Minim ipsum ea do anim anim nostrud nulla incididunt eu enim irure sint irure amet aliqua. Amet minim id non ad consequat cupidatat minim quis officia aliquip ullamco mollit cupidatat et.
+Let's connect DataGrip to Anyquery so that you can explore its data with ease.
 
-Reprehenderit ipsum sit labore tempor aliqua quis aliqua ullamco occaecat ipsum. Minim elit excepteur amet consequat sunt elit Lorem sunt ex. Do ex consequat ullamco occaecat. Occaecat sit reprehenderit non irure ea est consectetur dolore magna esse. Duis officia eu veniam incididunt proident consequat consequat non cillum incididunt esse. Anim in duis officia duis sit irure velit enim do ullamco. Ullamco sint sit ipsum commodo velit excepteur est consectetur cupidatat est do.
+## Prerequisites
 
-Quis eiusmod ad ea enim. Commodo sunt sint enim. Cupidatat do incididunt fugiat nostrud proident culpa deserunt dolore. Reprehenderit cillum veniam culpa irure culpa et mollit in enim mollit reprehenderit duis laboris.
+Before you begin, ensure that you have the following:
 
-Exercitation duis laborum amet incididunt deserunt ex qui. Sunt sint incididunt nisi labore sint laborum laborum sint eu labore culpa amet officia. Voluptate qui do mollit deserunt id aliquip laboris irure voluptate sint sit amet. Voluptate veniam cillum eiusmod officia culpa sunt esse laborum officia. Cillum tempor sit est fugiat culpa fugiat et.
+- A working installation of Anyquery
+- DataGrip installed on your machine
+
+## Step 1: Set up the connection
+
+First, open a DataGrip project and click on the `+` icon to add a new data source.
+Select `Data Source` and choose `MySQL` as the database type. Then, fill in the following details:
+
+- Host: `127.0.0.1`
+- Port: `8070`
+- User: Leave it empty unless you have set an [auth-file](/docs/usage/mysql-server#adding-authentication)
+- Password: Leave it empty unless you have set an [auth-file](/docs/usage/mysql-server#adding-authentication)
+- Database: `main`
+
+![Data Source](/images/docs/O08kLX6m.png)
+
+Launch the Anyquery server on a second terminal:
+
+```bash
+anyquery server
+```
+
+Then, click on the `Test Connection` button to ensure that the connection is successful. If successful, click on `OK` to save the connection.
+
+## Step 2: Explore and query the data
+
+You can double-click on any table in the sidebar to view its data. Note that it can take a long time on slow plugins. You can edit data like a spreadsheet on plugins that supports it (e.g. Google Sheets, Airtable, etc.).
+
+You can also run SQL queries by clicking on the `Console` tab and typing your query.
+
+Feel free to check the [official DataGrip documentation](https://www.jetbrains.com/help/datagrip/getting-started.html) for more information.
+
+## Conclusion
+
+Congratulations! You have successfully connected DataGrip to Anyquery. 🎉
