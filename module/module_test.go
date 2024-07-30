@@ -6,6 +6,7 @@ import (
 	"os/exec"
 	"testing"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/jmoiron/sqlx"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mattn/go-sqlite3"
@@ -119,6 +120,7 @@ func TestRawPlugin(t *testing.T) {
 			return conn.CreateModule("test", &SQLiteModule{
 				PluginPath:     "./_test/test.out",
 				ConnectionPool: rpc.NewConnectionPool(),
+				Logger:         hclog.NewNullLogger(),
 			})
 		},
 	})
@@ -206,6 +208,7 @@ func TestRawPlugin2(t *testing.T) {
 			return conn.CreateModule("test", &SQLiteModule{
 				PluginPath:     "./_test/test2.out",
 				ConnectionPool: rpc.NewConnectionPool(),
+				Logger:         hclog.NewNullLogger(),
 			})
 		},
 	})
@@ -304,6 +307,7 @@ func TestLibPlugin(t *testing.T) {
 			return conn.CreateModule("test", &SQLiteModule{
 				PluginPath:     "./_test/normalplugin.out",
 				ConnectionPool: rpc.NewConnectionPool(),
+				Logger:         hclog.NewNullLogger(),
 			})
 		},
 	})
@@ -460,6 +464,7 @@ func TestCUDOperations(t *testing.T) {
 			return conn.CreateModule("test_insert", &SQLiteModule{
 				PluginPath:     "./_test/insertplugin.out",
 				ConnectionPool: rpc.NewConnectionPool(),
+				Logger:         hclog.NewNullLogger(),
 			})
 		},
 	})
