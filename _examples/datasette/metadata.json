@@ -1,0 +1,8 @@
+{
+    "title": "My datasette - anyquery integration",
+    "description": "This is a datasette instance connected to anyquery",
+
+    "extra_css_urls": [
+        "https://cdn.jsdelivr.net/gh/julien040/charcoal-datasette-theme@1.0.0/theme.min.css"
+    ]
+}
