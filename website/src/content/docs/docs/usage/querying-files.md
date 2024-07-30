@@ -57,7 +57,7 @@ SELECT * FROM read_json('https://example.com/file.json');
 The `aws_access_key_id`, `aws_access_key_secret`, `region` (optional), and `version` (optional) can be passed as query parameters. Anyquery will also attempt to read them from the environment variables and `~/.aws/config`.
 
 ```sql
-SELECT * FROM read_json('s3://bucket-name/file.json?aws_access_key_id=your-access-key&aws_access_key_secret=your-secret-key&region=us-west-1');
+SELECT * FROM read_json('s3::https://s3.amazonaws.com/bucket-name/file.json?aws_access_key_id=your-access-key&aws_access_key_secret=your-secret-key&region=us-west-1');
 ```
 
 **GCS**
@@ -65,7 +65,13 @@ SELECT * FROM read_json('s3://bucket-name/file.json?aws_access_key_id=your-acces
 To query a file from GCS, you need to set `GOOGLE_APPLICATION_CREDENTIALS` to the path of your service account key or `GOOGLE_CREDENTIALS` to the content of your service account key.
 
 ```sql
-SELECT * FROM read_json('gs://bucket-name/file.json');
+SELECT * FROM read_json('gcs::https://www.googleapis.com/storage/v1/bucket/file.json');
+```
+
+All files will be cached in the local filesystem to avoid downloading them multiple times. To clear the cache, you can use the `clear_file_cache` function.
+
+```sql
+SELECT clear_file_cache();
 ```
 
 ## Stdin
