@@ -21,7 +21,7 @@
 *.out
 go.work
 main
-*.db
+*.db*
 
 # GoLand+all template downloaded with gut
 .idea/**/workspace.xml

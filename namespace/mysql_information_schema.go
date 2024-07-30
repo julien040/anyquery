@@ -1,6 +1,7 @@
 package namespace
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 )
@@ -15,27 +16,22 @@ import (
 // that are required for MySQL compatibility
 //
 // It must be called once before running any query
-func prepareDatabaseForMySQL(db *sql.DB) error {
+func prepareDatabaseForMySQL(db *sql.Conn) error {
 	// We will register a new database named information_schema
 	// First, we check if it already exists
 	var exists bool
-	row := db.QueryRow(`SELECT count(*) FROM pragma_database_list() WHERE name = 'information_schema'`)
+	row := db.QueryRowContext(context.Background(), `SELECT count(*) FROM pragma_database_list() WHERE name = 'information_schema'`)
 	err := row.Scan(&exists)
-	if err != nil {
+	if err != nil || row.Err() != nil || exists == false {
 		// We consider that the database does not exist
-		exists = false
-	}
-
-	// We create an immutable in-memory database. Because it's in-memory, the file mymemory.db is not created
-	if !exists {
-		_, err = db.Exec(`ATTACH DATABASE 'file:mymemory.db?immutable=1&mode=memory&cache=shared' AS 'information_schema';`)
+		_, err = db.ExecContext(context.Background(), `ATTACH DATABASE 'file:mymemory.db?immutable=1&mode=memory&cache=shared' AS 'information_schema';`)
 		if err != nil {
 			return err
 		}
 	}
 
 	// We create views that will be used to retrive collations, tables, columns, constraints and views
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.COLLATIONS AS
 	SELECT
 		column1 AS COLLATION_NAME,
@@ -67,7 +63,7 @@ func prepareDatabaseForMySQL(db *sql.DB) error {
 		return err
 	}
 
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.PARTITIONS AS SELECT
   	"def" AS TABLE_CATALOG,
   	tl.schema AS TABLE_SCHEMA,
@@ -211,7 +207,7 @@ SELECT * FROM table_info;`)
 		return err
 	}
 
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.TABLE_CONSTRAINTS AS WITH RECURSIVE table_list AS (
 		SELECT name, schema
 		FROM pragma_table_list()
@@ -299,7 +295,7 @@ SELECT * FROM table_info;`)
 		return fmt.Errorf("error creating view INFORMATION_SCHEMA.TABLES: %w", err)
 	}
 
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.VIEWS AS SELECT
 	'def' AS TABLE_CATALOG,
   	tl.schema AS TABLE_SCHEMA,
@@ -398,13 +394,13 @@ SELECT * FROM table_info;`)
 		return fmt.Errorf("error creating view INFORMATION_SCHEMA.VIEWS: %w", err)
 	}
 
-	_, err = db.Exec(`CREATE VIEW IF NOT EXISTS dual AS SELECT 'x' AS dummy;`)
+	_, err = db.ExecContext(context.Background(), `CREATE VIEW IF NOT EXISTS dual AS SELECT 'x' AS dummy;`)
 	if err != nil {
 		return err
 	}
 
 	// Those views are empty but created so that SQLite does not return a missing table error
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.STATISTICS AS
 	SELECT
 		'' AS TABLE_CATALOG,
@@ -575,13 +571,18 @@ SELECT * FROM table_info;`)
 	}
 
 	// Now we do the same fake view for the dabase mysql
-
-	_, err = db.Exec(`ATTACH DATABASE 'file:mymemory2.db?immutable=1&mode=memory&cache=shared' AS 'mysql';`)
-	if err != nil {
-		return fmt.Errorf("error attaching database mysql: %w", err)
+	// Check if the database already exists
+	row = db.QueryRowContext(context.Background(), `SELECT count(*) FROM pragma_database_list() WHERE name = 'mysql'`)
+	err = row.Scan(&exists)
+	if err != nil || row.Err() != nil || exists == false {
+		// We consider that the database does not exist
+		_, err = db.ExecContext(context.Background(), `ATTACH DATABASE 'file:mymemory2.db?immutable=1&mode=memory&cache=shared' AS 'mysql';`)
+		if err != nil {
+			return fmt.Errorf("error attaching database mysql: %w", err)
+		}
 	}
 
-	_, err = db.Exec(`
+	_, err = db.ExecContext(context.Background(), `
 	CREATE VIEW IF NOT EXISTS mysql.user AS SELECT
 	column1 AS Host,
 	column2 AS User,
@@ -659,7 +660,7 @@ SELECT * FROM table_info;`)
 	'' AS Timestamp
 	WHERE FALSE;
 
-	CREATE VIEW mysql.role_edges AS SELECT
+	CREATE VIEW IF NOT EXISTS mysql.role_edges AS SELECT
 	'' AS FROM_HOST,
 	'' AS FROM_USER,
 	'' AS TO_HOST,

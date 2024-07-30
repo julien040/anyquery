@@ -170,25 +170,40 @@ SELECT
   AND Name LIKE ?;`
 
 const showIndexesQuery = `
+WITH x AS (
+	SELECT
+		name
+	FROM
+		pragma_table_list ()
+	UNION
+	SELECT
+		name
+	FROM
+		pragma_module_list ()
+	WHERE
+		name NOT LIKE 'fts%%'
+		AND name NOT LIKE 'rtree%%'
+)
 SELECT
-	'' AS "Table",
+	x.name as "Table",
 	0 AS Non_unique,
-	'' AS Key_name,
+	iif(pk = 1, 'Primary', '') AS Key_name,
 	0 AS Seq_in_index,
-	'' AS Column_name,
+	pt.name AS Column_name,
 	'' AS Collation,
 	0 AS Cardinality,
-	0 AS Sub_part,
-	'' AS Packed,
+	NULL AS Sub_part,
+	NULL AS Packed,
 	'' AS "Null",
-	'' AS Index_type,
+	'BTREE' AS Index_type,
 	'' AS Comment,
 	'' AS Index_comment,
-	'' AS Visible,
-	'' AS Expression
+	'YES' AS Visible,
+	NULL AS Expression
 FROM
-	dual
-WHERE FALSE`
+	x, pragma_table_info (x.name) pt
+WHERE pk = 1 AND "Table" = ? AND (%s);
+`
 
 const showCreateTableQuery = `
 SELECT 
@@ -302,6 +317,11 @@ func (h *handler) runQueryWithMySQLSpecific(connectionID uint32, query string, a
 		// We rewrite the query to be SQLite compatible
 		rewriteSelectStatement(&parsedQuery)
 		return h.runSimpleQuery(connectionID, sqlparser.String(parsedQuery), args...)
+	case sqlparser.StmtDDL:
+		// We run the DDL statement as is without any modification
+		// For example, create index will be rewritten to alter table
+		// and we don't want that. So we run the query as is
+		return h.runSimpleQuery(connectionID, query, args...)
 
 	case sqlparser.StmtUnknown:
 		// If the query is not recognized (e.g. syntax error), we run it as is
@@ -405,7 +425,16 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 
 		// SHOW INDEXES
 		case sqlparser.Index:
-			return showIndexesQuery, nil
+			filter := sqlparser.String(showType.Filter.Filter)
+			// We need to replace the %s in the query by the filter
+			if filter == "" {
+				filter = "1=1"
+			} else {
+				filter = strings.TrimPrefix(filter, " where ")
+			}
+			table := showType.Tbl.Name.String()
+			fmt.Println("Filter", filter)
+			return fmt.Sprintf(showIndexesQuery, filter), []interface{}{table}
 
 		// SHOW COLUMNS, SHOW FIELDS
 		case sqlparser.Column:
@@ -458,41 +487,41 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 // or from the MySQL documentation
 var selectVariableRemapper = map[string]interface{}{
 	// We don't add @@session because sqlparse strips it away
-	"auto_increment_increment": 1,
-	"character_set_client":     "utf8mb4",
-	"character_set_connection": "utf8mb4",
-	"character_set_results":    "utf8mb4",
-	"character_set_server":     "utf8mb4",
-	"collation_connection":     "utf8mb4_general_ci",
-	"init_connect":             "",
-	"interactive_timeout":      28800,
-	"license":                  "GPL", // Technically, anyquery is not GPL but we don't care
-	"lower_case_table_names":   2,     // SQLite is case-insensitive
-	"max_allowed_packet":       67108864,
-	"net_write_timeout":        60,
-	"performance_schema":       "OFF",
-	"sql_mode":                 "IGNORE_SPACE,ERROR_FOR_DIVISION_BY_ZERO,ONLY_FULL_GROUP_BY",
-	"system_time_zone":         "UTC",
-	"time_zone":                "SYSTEM",
-	"wait_timeout":             28800,
-	"query_cache_type":         "OFF",
-	"query_cache_size":         0,
-	"query_cache_limit":        1048576,
-	"tx_isolation":             "REPEATABLE-READ",
-	"tx_read_only":             0,
-	"event_scheduler":          "OFF",
-	"hostname":                 "127.0.0.1",
-	"warning_count":            0,
-	"version_comment":          "MySQL Community Server - GPL",
-	"version_compile_machine":  "x86_64",
-	"version":                  "8.0.30",
-	"offline_mode":             0,
-	"transaction_read_only":    0,
-	"transaction_isolation":    "REPEATABLE-READ",
-	"transaction_allow_batching": 0,
-	"transaction_prealloc_size": 4096,
+	"auto_increment_increment":     1,
+	"character_set_client":         "utf8mb4",
+	"character_set_connection":     "utf8mb4",
+	"character_set_results":        "utf8mb4",
+	"character_set_server":         "utf8mb4",
+	"collation_connection":         "utf8mb4_general_ci",
+	"init_connect":                 "",
+	"interactive_timeout":          28800,
+	"license":                      "GPL", // Technically, anyquery is not GPL but we don't care
+	"lower_case_table_names":       2,     // SQLite is case-insensitive
+	"max_allowed_packet":           67108864,
+	"net_write_timeout":            60,
+	"performance_schema":           "OFF",
+	"sql_mode":                     "IGNORE_SPACE,ERROR_FOR_DIVISION_BY_ZERO,ONLY_FULL_GROUP_BY",
+	"system_time_zone":             "UTC",
+	"time_zone":                    "SYSTEM",
+	"wait_timeout":                 28800,
+	"query_cache_type":             "OFF",
+	"query_cache_size":             0,
+	"query_cache_limit":            1048576,
+	"tx_isolation":                 "REPEATABLE-READ",
+	"tx_read_only":                 0,
+	"event_scheduler":              "OFF",
+	"hostname":                     "127.0.0.1",
+	"warning_count":                0,
+	"version_comment":              "MySQL Community Server - GPL",
+	"version_compile_machine":      "x86_64",
+	"version":                      "8.0.30",
+	"offline_mode":                 0,
+	"transaction_read_only":        0,
+	"transaction_isolation":        "REPEATABLE-READ",
+	"transaction_allow_batching":   0,
+	"transaction_prealloc_size":    4096,
 	"transaction_alloc_block_size": 8192,
-	"transaction_isolation_level": "REPEATABLE-READ",
+	"transaction_isolation_level":  "REPEATABLE-READ",
 }
 
 // Replace the function by their default value

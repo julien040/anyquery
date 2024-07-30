@@ -40,7 +40,6 @@ type handler struct {
 	env                 *vtenv.Environment
 	DB                  *sql.DB
 	RewriteMySQLQueries bool
-	databaseInited      bool
 	Logger              *log.Logger
 	// Allow each MySQL connection to have its own SQLite connection
 	connectionMapperSQLite map[uint32]*sql.Conn
@@ -65,14 +64,6 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 	h.mutexConnectionMapperSQLite.Lock()
 	defer h.mutexConnectionMapperSQLite.Unlock()
 	h.Logger.Info("New connection", "connectionID", c.ConnectionID, "username", c.User, "charset", c.CharacterSet)
-	if h.RewriteMySQLQueries && !h.databaseInited {
-		err := prepareDatabaseForMySQL(h.DB)
-		if err != nil {
-			h.Logger.Error("Error preparing database for MySQL compatibility. Some MySQL clients might not work as expected", "err", err)
-		} else {
-			h.databaseInited = true
-		}
-	}
 	// We create a new connection for the MySQL connection
 	// This is useful to have a separate connection for each MySQL connection
 	// so that BEGIN and COMMIT can be used
@@ -94,6 +85,32 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 	// We append the MySQL connection to the list of connections
 	h.connections = append(h.connections, c)
 
+	if h.RewriteMySQLQueries {
+		// Check if the connection has databases information_schema or mysql
+		// If so, we don't need to initialize the connection
+		rows, err := conn.QueryContext(context.Background(), "PRAGMA database_list")
+		var name, file string
+		var seq int
+		for rows.Next() {
+			err = rows.Scan(&seq, &name, &file)
+			if err != nil {
+				h.Logger.Error("Error scanning database list", "err", err, "connectionID", c.ConnectionID, "username", c.User)
+				return
+			}
+			if name == "information_schema" || name == "mysql" {
+				h.Logger.Debug("Connection already initialized(reused from pool)", "connectionID", c.ConnectionID, "username", c.User)
+				return
+			}
+		}
+
+		h.Logger.Debug("Initializing connection", "connectionID", c.ConnectionID, "username", c.User)
+		// If we reach this point, we need to initialize the connection
+		err = prepareDatabaseForMySQL(conn)
+		if err != nil {
+			h.Logger.Error("Error initializing connection. Some queries might not work", "err", err, "connectionID", c.ConnectionID, "username", c.User)
+		}
+	}
+
 }
 
 func (h *handler) ConnectionClosed(c *mysql.Conn) {
@@ -101,11 +118,15 @@ func (h *handler) ConnectionClosed(c *mysql.Conn) {
 
 	// Close the connection associated with the MySQL connection
 	if conn, ok := h.connectionMapperSQLite[c.ConnectionID]; ok {
+		// Return the connection to the pool
 		err := conn.Close()
 		if err != nil {
 			h.Logger.Error("Error closing connection", "err", err, "connectionID", c.ConnectionID, "username", c.User)
 		}
+		// Remove the connection from the map
+		h.mutexConnectionMapperSQLite.Lock()
 		delete(h.connectionMapperSQLite, c.ConnectionID)
+		h.mutexConnectionMapperSQLite.Unlock()
 	} else {
 		h.Logger.Error("SQLite connection not found", "connectionID", c.ConnectionID, "username", c.User)
 	}

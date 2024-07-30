@@ -37,6 +37,11 @@ type SQLiteModule struct {
 	Logger          hclog.Logger
 	ConnectionPool  *rpc.ConnectionPool
 	Stderr          io.Writer
+
+	// Internal
+	moduleInited bool
+	table        *SQLiteTable
+	schema       string
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
@@ -86,6 +91,17 @@ func (m *SQLiteModule) EponymousOnlyModule() {}
 // Its main job is to create a new RPC client and return the needed information
 // for the SQLite virtual table methods
 func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
+	m.Logger.Debug("CREATE", "module", m.PluginPath, "connection", m.ConnectionIndex, "table", m.TableIndex)
+
+	// In rare cases when two SQLite connections are registered for the same database,
+	// Create is called twice for the same module (even though it has the same connectionIndex and tableIndex)
+	// Therefore, we must check if the module is already initialized
+	// so that we don't call Initialize twice
+	if m.moduleInited {
+		m.Logger.Debug("Module already initialized")
+		c.DeclareVTab(m.schema)
+		return m.table, nil
+	}
 	// Create a new plugin instance
 	// and store the client in the module
 	rpcClient, err := m.ConnectionPool.NewClient(rpc.NewClientParams{
@@ -116,6 +132,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	if err != nil {
 		return nil, errors.Join(errors.New("could not declare the virtual table in SQLite"), err, errors.New("Schema: "+stringSchema))
 	}
+	m.schema = stringSchema
 
 	// Compute the mapColPositionColPlugin so that we can map the position of the column in SQLite
 	// to the position of the column in the rows returned by the plugin
@@ -148,6 +165,8 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		dbSchema.BufferDelete,
 		colMapper,
 	}
+	m.table = table
+	m.moduleInited = true
 
 	return table, nil
 }
@@ -215,6 +234,7 @@ func createSQLiteSchema(arg rpc.DatabaseSchema) string {
 //
 // Because it's an eponymous-only module, the method must be identical to Create
 func (m *SQLiteModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
+	m.Logger.Debug("CONNECT")
 	return m.Create(c, args)
 }
 
