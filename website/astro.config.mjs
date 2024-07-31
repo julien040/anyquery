@@ -66,9 +66,18 @@ export default defineConfig({
 					],
 				},
 				{
-					autogenerate: { directory: "docs/reference" },
 					label: "Reference",
-					collapsed: true,
+					items: [
+						{
+							label: "Functions",
+							link: "/docs/reference/functions",
+						},
+						{
+							label: "CLI",
+							autogenerate: { directory: "docs/reference/Commands"},
+							collapsed: true,
+						},
+					]
 				},
 				{
 					autogenerate: { directory: "connection-guide" },
@@ -77,7 +86,7 @@ export default defineConfig({
 				{
 					autogenerate: { directory: "recipes" },
 					label: "Recipes",
-					collapsed: true,
+					collapsed: false,
 				},
 			],
 			head: [
