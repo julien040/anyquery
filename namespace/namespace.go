@@ -319,6 +319,9 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			// Register the crypto functions
 			registerCryptoFunctions(conn)
 
+			// Register the date functions
+			registerDateFunctions(conn)
+
 			// Register the other functions
 			registerOtherFunctions(conn)
 
@@ -331,6 +334,9 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	db.SetConnMaxIdleTime(0)
+	db.SetConnMaxLifetime(0)
+	db.SetMaxIdleConns(32)
 
 	n.registered = true
 
