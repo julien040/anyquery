@@ -60,6 +60,7 @@ type SQLiteTable struct {
 	deleteBuffer            *deque.Deque[interface{}]
 	maxBufferDelete         uint
 	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
+	logger                  hclog.Logger
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
@@ -74,6 +75,7 @@ type SQLiteCursor struct {
 	nextCursor              *int
 	constraints             rpc.QueryConstraint
 	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
+	logger                  hclog.Logger
 }
 
 type updateItem struct {
@@ -111,6 +113,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		Stderr:             m.Stderr,
 	})
 	if err != nil {
+		m.Logger.Error("could not create a new rpc client", "error", err, "plugin", m.PluginPath)
 		return nil, errors.Join(errors.New("could not create a new rpc client for "+m.PluginPath), err)
 	}
 	m.client = rpcClient
@@ -118,11 +121,13 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	// Request the schema of the table from the plugin
 	dbSchema, err := m.client.Plugin.Initialize(m.ConnectionIndex, m.TableIndex, m.UserConfig)
 	if err != nil {
+		m.Logger.Error("could not request the schema of the table from the plugin", "error", err, "table", m.TableIndex, "connection", m.ConnectionIndex, "plugin", m.PluginPath)
 		return nil, errors.Join(errors.New("could not request the schema of the table from the plugin "+m.PluginPath), err)
 	}
 
 	// Verify that the schema is correct
 	if len(dbSchema.Columns) == 0 {
+		m.Logger.Error("the schema of the table is empty", "table", m.TableIndex, "connection", m.ConnectionIndex, "plugin", m.PluginPath)
 		return nil, errors.New("the schema of the table is empty")
 	}
 
@@ -164,6 +169,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		&deque.Deque[interface{}]{},
 		dbSchema.BufferDelete,
 		colMapper,
+		m.Logger,
 	}
 	m.table = table
 	m.moduleInited = true
@@ -295,14 +301,17 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 
 	err := t.flushInsert()
 	if err != nil {
+		t.logger.Error("could not flush the insert buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
 		return nil, errors.Join(errors.New("recent inserts were not saved, and an attempt to flush them failed. Please retry the query"), err)
 	}
 	err = t.flushUpdate()
 	if err != nil {
+		t.logger.Error("could not flush the update buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
 		return nil, errors.Join(errors.New("recent updates were not saved, and an attempt to flush them failed. Please retry the query"), err)
 	}
 	err = t.flushDelete()
 	if err != nil {
+		t.logger.Error("could not flush the delete buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
 		return nil, errors.Join(errors.New("recent deletes were not saved, and an attempt to flush them failed. Please retry the query"), err)
 	}
 
@@ -318,6 +327,7 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 		&t.nextCursor,
 		rpc.QueryConstraint{},
 		t.mapColPositionColPlugin,
+		t.logger,
 	}
 	// We increment the cursor id for the next cursor by 1
 	// so that the next cursor will have a different id
@@ -478,6 +488,7 @@ func (c *SQLiteCursor) Close() error { return nil }
 
 // These methods are not used in this plugin
 func (v *SQLiteTable) Disconnect() error {
+	v.logger.Debug("DISCONNECT", "table", v.tableIndex, "connection", v.connectionIndex, "plugin", v.PluginPath)
 	// Flush the buffers before closing the client
 	v.flushInsert()
 	v.flushUpdate()
@@ -694,6 +705,7 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 	// We request the rows from the plugin
 	rows, noMoreRows, err := cursor.client.Plugin.Query(cursor.connectionIndex, cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
 	if err != nil {
+		cursor.logger.Error("could not request the rows from the plugin", "error", err, "table", cursor.tableIndex, "connection", cursor.connectionIndex)
 		return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
 	}
 	// If the plugin did not return any rows, we retry
@@ -707,6 +719,7 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 		}
 	}
 	if i == maxRowsFetchingRetry {
+		cursor.logger.Error("cursor returned no rows after n retries", "table", cursor.tableIndex, "connection", cursor.connectionIndex, "cursor", cursor.cursorIndex, "retry", maxRowsFetchingRetry)
 		return 0, errors.New("could not fetch any row from the plugin. Max retries reached")
 	}
 	// If the plugin stated that there are no more rows, we set noMoreRows to true
