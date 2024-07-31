@@ -63,6 +63,7 @@ FROM
 	pragma_module_list()
 WHERE name NOT LIKE 'fts%'
 AND name NOT LIKE 'rtree%'
+AND name NOT LIKE '%_reader'
 AND name LIKE ?`
 
 // showFullTablesQuery emulates the "SHOW FULL TABLES" query
@@ -88,6 +89,7 @@ FROM
 	pragma_module_list()
 WHERE name NOT LIKE 'fts%'
 AND name NOT LIKE 'rtree%'
+AND name NOT LIKE '%_reader'
 AND name LIKE ?`
 
 // showColumnsQuery emulates the "SHOW COLUMNS" query
@@ -425,7 +427,10 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 
 		// SHOW INDEXES
 		case sqlparser.Index:
-			filter := sqlparser.String(showType.Filter.Filter)
+			filter := ""
+			if showType.Filter != nil {
+				filter = sqlparser.String(showType.Filter.Filter)
+			}
 			// We need to replace the %s in the query by the filter
 			if filter == "" {
 				filter = "1=1"
@@ -522,6 +527,7 @@ var selectVariableRemapper = map[string]interface{}{
 	"transaction_prealloc_size":    4096,
 	"transaction_alloc_block_size": 8192,
 	"transaction_isolation_level":  "REPEATABLE-READ",
+	"autocommit":                   1,
 }
 
 // Replace the function by their default value

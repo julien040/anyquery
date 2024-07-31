@@ -128,7 +128,8 @@ func prepareDatabaseForMySQL(db *sql.Conn) error {
 	  FROM
 	  		pragma_module_list ml
 	  WHERE ml.name NOT LIKE 'fts%'
-	  AND ml.name NOT LIKE 'rtree%';
+	  AND ml.name NOT LIKE 'rtree%'
+	  AND ml.name NOT LIKE '%_reader';
 
 
 	-- INFORMATION_SCHEMA.COLUMNS
@@ -140,6 +141,7 @@ CREATE VIEW IF NOT EXISTS INFORMATION_SCHEMA.COLUMNS AS WITH RECURSIVE table_lis
   FROM pragma_module_list()
   WHERE name NOT LIKE 'fts%'
   AND name NOT LIKE 'rtree%'
+  AND name NOT LIKE '%_reader'
 ),
 table_info AS (
   SELECT
@@ -217,6 +219,7 @@ SELECT * FROM table_info;`)
 		FROM pragma_module_list()
 		WHERE name NOT LIKE 'fts%'
 		AND name NOT LIKE 'rtree%'
+		AND name NOT LIKE '%_reader'
 	  ),
 	  table_info AS (
 		SELECT
@@ -289,7 +292,8 @@ SELECT * FROM table_info;`)
 		FROM
 		  pragma_module_list ml
 		WHERE ml.name NOT LIKE 'fts%'
-		AND ml.name NOT LIKE 'rtree%';`)
+		AND ml.name NOT LIKE 'rtree%'
+		AND ml.name NOT LIKE '%_reader';`)
 
 	if err != nil {
 		return fmt.Errorf("error creating view INFORMATION_SCHEMA.TABLES: %w", err)
@@ -321,6 +325,7 @@ SELECT * FROM table_info;`)
 		FROM pragma_module_list()
 		WHERE name NOT LIKE 'fts%'
 		AND name NOT LIKE 'rtree%'
+		AND name NOT LIKE '%_reader'
 	  ),
 	  table_info AS (
 		SELECT DISTINCT
@@ -368,6 +373,7 @@ SELECT * FROM table_info;`)
 		FROM pragma_module_list()
 		WHERE name NOT LIKE 'fts%'
 		AND name NOT LIKE 'rtree%'
+		AND name NOT LIKE '%_reader'
 	  ),
 	  table_info AS (
 		SELECT
