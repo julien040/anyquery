@@ -24,7 +24,7 @@ export async function getStaticPaths() {
       },
     })
   );
-  const remotePlugins = await fetchReg.json();
+  const remotePlugins:any = await fetchReg.json();
   for (const plugin of remotePlugins.plugins) {
     const sanitized = DOMPurify.sanitize(
       await marked.parse(plugin.page_content)
