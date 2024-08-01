@@ -1,5 +1,5 @@
 ---
-title: Managing plugins
+title: Installing plugins
 description: Learn how to install a plugin in anyquery
 ---
 
@@ -19,6 +19,14 @@ If you want to browse the available plugins, visit the [official registry](https
 You can browse the available plugins in the [official registry](https://anyquery.dev/integrations). The registry contains plugins for various saas, local apps and file formats.
 
 ![Registry](/images/docs/httpsanyquery.devintegrations_23KmyyI3@2x.png)
+
+## Update the registry
+
+Before running any of the operations below, you should update the registry to get the latest plugins.
+
+```bash title="How to update the registry"
+anyquery registry refresh
+```
 
 ## Install a plugin
 

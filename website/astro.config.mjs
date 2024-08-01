@@ -36,7 +36,7 @@ export default defineConfig({
 							link: "/docs/usage/running-queries",
 						},
 						{
-							label: "Managing plugins",
+							label: "Installing plugins",
 							link: "/docs/usage/plugins",
 						},
 						{
@@ -54,6 +54,10 @@ export default defineConfig({
 						{
 							label: "Exporting results",
 							link: "/docs/usage/exporting-results",
+						},
+						{
+							label: "SQL join between APIs",
+							link: "/docs/usage/sql-joins",
 						},
 						{
 							label: "MySQL server",
@@ -82,6 +86,10 @@ export default defineConfig({
 				{
 					autogenerate: { directory: "connection-guide" },
 					label: "Connection guide",
+				},
+				{
+					autogenerate: { directory: "docs/developers" },
+					label: "Developers",
 				},
 				{
 					autogenerate: { directory: "recipes" },

@@ -14,7 +14,7 @@ Before starting, ensure you have the following:
 
 ## Step 1: Set up the connection
 
-First, let's download the GitHub plugin for Anyquery. You'll need a GitHub token to access the GitHub API. You can create a token by following the [GitHub integration guide](/integration/github).
+First, let's download the GitHub plugin for Anyquery. You'll need a GitHub token to access the GitHub API. You can create a token by following the [GitHub integration guide](/integrations/github).
 
 ```bash
 anyquery install github

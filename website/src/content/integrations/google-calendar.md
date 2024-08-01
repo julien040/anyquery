@@ -4,12 +4,30 @@ description: Query events from your Google Calendar
 icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@main/svg/google-calendar.svg
 ---
 
-## How to connect Google Calendar to Anyquery
+Anyquery is a query engine that allows you to run SQL queries on pretty much anything. In this guide, we will connect Anyquery to Google Calendar using the Calendar plugin.
 
-Commodo ut et cupidatat ea est irure fugiat velit pariatur consequat. Ipsum veniam tempor eu irure sit nulla aliquip veniam laboris ipsum nulla ex in. Laborum aliquip voluptate incididunt. Do ex eu eu consectetur est excepteur. Aliquip aute culpa ad minim duis aliqua fugiat adipisicing sit elit ex.
+## Prerequisites
 
-Eiusmod veniam aliqua ex cupidatat aliquip amet sit tempor non et ea. Ea occaecat eiusmod est sunt occaecat incididunt. Nostrud ex eu aliquip anim esse consectetur officia veniam sit. Aliquip nisi consectetur duis exercitation proident cupidatat ullamco irure labore sit in qui sit do ullamco. Non enim aliquip irure cillum qui ullamco ut laborum ut esse eu est ipsum quis esse. Non sunt Lorem quis ad adipisicing esse qui.
+Before starting, ensure you have the following:
 
-Cupidatat nulla magna adipisicing velit sit laboris ipsum et ut laborum laborum voluptate. Cillum do pariatur veniam nostrud sint aliquip sint reprehenderit cupidatat cillum velit nostrud est laborum commodo. Pariatur amet esse consequat duis cillum. Lorem officia voluptate minim ut ipsum veniam aliquip cupidatat. Dolore cupidatat nulla magna mollit velit velit reprehenderit aliqua qui sint laboris mollit. Minim quis Lorem aliquip incididunt.
+- A working [installation of Anyquery](/docs/#installation)
+- The Calendar plugin installed [tutorial](/integrations/calendar) (`anyquery install calendar`)
+- A Google account
 
-Nostrud sunt ullamco ullamco non consequat officia ea adipisicing ad qui veniam minim sunt. Ullamco officia non cupidatat culpa non irure proident ex. Nisi ex nostrud ex sunt amet. Minim esse eiusmod irure velit duis eu deserunt cillum.
+## Get the iCalendar URL
+
+First, you need to get the iCalendar URL of your Google Calendar. Follow these steps:
+
+1. Go to [Google Calendar settings](https://calendar.google.com/calendar/u/0/r/settings)
+2. Click on the calendar you want to query in the left sidebar
+3. Scroll down to the `Integrate calendar` section
+4. Copy the `Secret address in iCal format` URL
+5. It should look like `https://calendar.google.com/calendar/ical/.../private-.../basic.ics`
+
+## Query your events
+
+Now that you have the iCalendar URL, you can query your events using SQL. Here is an example query to get the summary and the start date of the first 10 events:
+
+```sql
+SELECT * FROM calendar_events('https://calendar.google.com/calendar/ical/.../private-.../basic.ics') LIMIT 10;
+```

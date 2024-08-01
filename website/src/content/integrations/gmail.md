@@ -1,16 +1,48 @@
 ---
 title: Gmail
-description: Query events from your Google Calendar
+description: Query your Gmail emails using SQL
 icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@main/svg/gmail.svg
 ---
 
-## How to connect Gmail to Anyquery
+Anyquery is a query engine that allows you to run SQL queries on pretty much anything. In this guide, we will connect Anyquery to the Gmail IMAP server and query your emails using SQL.
 
-Whatever
-Commodo ut et cupidatat ea est irure fugiat velit pariatur consequat. Ipsum veniam tempor eu irure sit nulla aliquip veniam laboris ipsum nulla ex in. Laborum aliquip voluptate incididunt. Do ex eu eu consectetur est excepteur. Aliquip aute culpa ad minim duis aliqua fugiat adipisicing sit elit ex.
+## Prerequisites
 
-Eiusmod veniam aliqua ex cupidatat aliquip amet sit tempor non et ea. Ea occaecat eiusmod est sunt occaecat incididunt. Nostrud ex eu aliquip anim esse consectetur officia veniam sit. Aliquip nisi consectetur duis exercitation proident cupidatat ullamco irure labore sit in qui sit do ullamco. Non enim aliquip irure cillum qui ullamco ut laborum ut esse eu est ipsum quis esse. Non sunt Lorem quis ad adipisicing esse qui.
+Before starting, ensure you have the following:
 
-Cupidatat nulla magna adipisicing velit sit laboris ipsum et ut laborum laborum voluptate. Cillum do pariatur veniam nostrud sint aliquip sint reprehenderit cupidatat cillum velit nostrud est laborum commodo. Pariatur amet esse consequat duis cillum. Lorem officia voluptate minim ut ipsum veniam aliquip cupidatat. Dolore cupidatat nulla magna mollit velit velit reprehenderit aliqua qui sint laboris mollit. Minim quis Lorem aliquip incididunt.
+- A working [installation of Anyquery](/docs/#installation)
+- A Gmail account
+- The IMAP plugin installed [tutorial](/integrations/imap)
 
-Nostrud sunt ullamco ullamco non consequat officia ea adipisicing ad qui veniam minim sunt. Ullamco officia non cupidatat culpa non irure proident ex. Nisi ex nostrud ex sunt amet. Minim esse eiusmod irure velit duis eu deserunt cillum.
+## Step 1: Create an application password
+
+Go to [https://myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) and create an application password for Anyquery. Input the name you want and copy the generated password.
+
+## Step 2: Create a new profile for the IMAP plugin
+
+First, let's create a new profile for the IMAP plugin. Run the following command:
+
+```bash title="Install the plugin and create a new profile"
+# If the plugin is not installed
+anyquery install imap
+# Otherwise, create a new profile
+anyquery profile new default imap myprofile
+```
+
+Fill in the following details:
+
+- Host: `imap.gmail.com`
+- Port: `993`
+- Username: Your Gmail email
+- Password: The application password you generated without the spaces
+
+## Step 3: Query your emails
+
+Now that you have set up the profile, you can query your emails using SQL. Here is an example query to get the subject and the sender of the first 10 emails:
+
+```sql title="Query your emails"
+-- If the plugin is not installed
+SELECT * FROM imap_emails LIMIT 10;
+-- Otherwise, use the profile
+SELECT * FROM myprofile_imap_emails LIMIT 10;
+```

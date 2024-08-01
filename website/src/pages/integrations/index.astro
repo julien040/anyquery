@@ -5,73 +5,79 @@ const entries = [];
 
 // Get all the remote plugins
 const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
-  headers: {
-    "Content-Type": "application/json",
-  },
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
 type apiResponse = {
-  plugins: [
-    {
-      name: string;
-      display_name: string;
-      description: string;
-      icon: string;
-    },
-  ];
+    plugins: [
+        {
+            name: string;
+            display_name: string;
+            description: string;
+            icon: string;
+        },
+    ];
 };
 
 const remotePlugins: apiResponse = await fetchReg.json();
 
 // Sort the plugins by name
 remotePlugins.plugins.sort((a, b) =>
-  a.display_name.localeCompare(b.display_name)
+    a.display_name.localeCompare(b.display_name)
 );
 
 // Get all the integrations guides
 const integrations = await getCollection("integrations");
 ---
 
-<Main>
-  <h1 class="text-3xl">Plugins</h1>
-  <div
-    class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
-  >
-    {
-      remotePlugins.plugins.map((plugin) => (
-        <a
-          href={`/integrations/${plugin.name}`}
-          class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
-        >
-          <img src={plugin.icon} alt={plugin.display_name} class="w-10 h-10" />
-          <h2 class="text-lg mt-3">{plugin.display_name}</h2>
-          <p class="break-words text-sm text-white/60">{plugin.description}</p>
-        </a>
-      ))
-    }
-  </div>
+<Main title="Integrations - AnyQuery">
+    <h1 class="text-3xl">Plugins</h1>
+    <div
+        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
+    >
+        {
+            remotePlugins.plugins.map((plugin) => (
+                <a
+                    href={`/integrations/${plugin.name}`}
+                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                >
+                    <img
+                        src={plugin.icon}
+                        alt={plugin.display_name}
+                        class="w-10 h-10"
+                    />
+                    <h2 class="text-lg mt-3">{plugin.display_name}</h2>
+                    <p class="break-words text-sm text-white/60">
+                        {plugin.description}
+                    </p>
+                </a>
+            ))
+        }
+    </div>
 
-  <h1 class="text-3xl mt-8">Guides</h1>
-  <div
-    class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
-  >
-    {
-      integrations.map((integration) => (
-        <a
-          href={`/integrations/${integration.slug}`}
-          class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
-        >
-          <img
-            src={integration.data.icon}
-            alt={integration.data.title}
-            class="w-10 h-10"
-          />
-          <h2 class="text-lg mt-3">{integration.data.title}</h2>
-          <p class="break-words text-sm text-white/60">
-            {integration.data.description}
-          </p>
-        </a>
-      ))
-    }
-  </div>
+    <h1 class="text-3xl mt-8">Guides</h1>
+    <div
+        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
+    >
+        {
+            integrations.map((integration) => (
+                <a
+                    href={`/integrations/${integration.slug}`}
+                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                >
+                    <img
+                        src={integration.data.icon}
+                        alt={integration.data.title}
+                        class="w-10 h-10"
+                    />
+                    <h2 class="text-lg mt-3">{integration.data.title}</h2>
+                    <p class="break-words text-sm text-white/60">
+                        {integration.data.description}
+                    </p>
+                </a>
+            ))
+        }
+    </div>
 </Main>
