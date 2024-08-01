@@ -116,7 +116,7 @@ func (t *foldersTable) Close() error {
 type userConfig struct {
 	Username string
 	Password string
-	Port     int
+	Port     int64
 	Host     string
 }
 
@@ -124,29 +124,29 @@ func getArgs(args rpc.PluginConfig) (userConfig, error) {
 	var config userConfig
 	var ok bool
 	var rawString string
-	var rawFloat float64
+	var rawInt64 int64
 
 	if rawString, ok = args["username"].(string); !ok {
-		return config, fmt.Errorf("username is not a string")
+		return config, fmt.Errorf("username is not a string. Got %T", args["username"])
 	} else if config.Username = rawString; config.Username == "" {
 		return config, fmt.Errorf("username is empty")
 	}
 
 	if rawString, ok = args["password"].(string); !ok {
-		return config, fmt.Errorf("password is not a string")
+		return config, fmt.Errorf("password is not a string. Got %T", args["password"])
 	} else if config.Password = rawString; config.Password == "" {
 		return config, fmt.Errorf("password is empty")
 	}
 
 	if rawString, ok = args["host"].(string); !ok {
-		return config, fmt.Errorf("host is not a string")
+		return config, fmt.Errorf("host is not a string. Got %T", args["host"])
 	} else if config.Host = rawString; config.Host == "" {
 		return config, fmt.Errorf("host is empty")
 	}
 
-	if rawFloat, ok = args["port"].(float64); !ok {
-		return config, fmt.Errorf("port is not a number")
-	} else if config.Port = int(rawFloat); config.Port == 0 {
+	if rawInt64, ok = args["port"].(int64); !ok {
+		return config, fmt.Errorf("port is not a number. Got %T", args["port"])
+	} else if config.Port = rawInt64; config.Port == 0 {
 		return config, fmt.Errorf("port is 0")
 	}
 
