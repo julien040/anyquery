@@ -30,7 +30,7 @@ var pluginUninstallCmd = &cobra.Command{
 	Long: "Uninstall a plugin and delete the linked profiles" +
 		"\nIf launch from a script, no confirmation will be asked",
 	Aliases: []string{"rm", "remove", "delete"},
-	Args:    cobra.MinimumNArgs(2),
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    controller.PluginUninstall,
 }
 

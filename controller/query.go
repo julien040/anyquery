@@ -304,7 +304,7 @@ func Query(cmd *cobra.Command, args []string) error {
 	fmt.Println("Install plugins by running `anyquery install [plugin]`")
 	fmt.Println("Run `anyquery` to open a shell to run queries")
 	fmt.Println("Run `anyquery --help` to see the available commands")
-	fmt.Println("Visit https://anyquery.dev/store to see the available plugins")
+	fmt.Println("Visit https://anyquery.dev/integrations to see the available plugins")
 	fmt.Println()
 	mustContinue := true
 	for mustContinue {

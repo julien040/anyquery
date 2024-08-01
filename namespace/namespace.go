@@ -576,7 +576,7 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 			// encoding/json unmarshal numbers as float64
 			tempVal, ok := tempUnmarshal[field.Name].(float64)
 			if ok {
-				value = int(tempVal)
+				value = int64(tempVal)
 			} else if field.Required {
 				return userConfig, fmt.Errorf("the field %s is not an int", field.Name)
 			}
@@ -609,7 +609,7 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 				return userConfig, fmt.Errorf("the field %s is not an array of strings", field.Name)
 			}
 		case "[]int":
-			value = []int{}
+			value = []int64{}
 			tempVal, ok := tempUnmarshal[field.Name].([]interface{})
 			if ok {
 				for i, v := range tempVal {
@@ -617,7 +617,7 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 					if !ok {
 						return userConfig, fmt.Errorf("the field %s at index %d is not an int", field.Name, i)
 					}
-					value = append(value.([]int), int(num))
+					value = append(value.([]int64), int64(num))
 				}
 			} else if field.Required {
 				return userConfig, fmt.Errorf("the field %s is not an array of ints", field.Name)
