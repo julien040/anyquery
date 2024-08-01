@@ -175,7 +175,6 @@ func (t *albumCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 		}
 
 		rows = append(rows, []interface{}{
-			data.ID,
 			data.AlbumType,
 			data.TotalTracks,
 			data.Href,

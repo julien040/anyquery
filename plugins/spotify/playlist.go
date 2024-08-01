@@ -232,7 +232,6 @@ func (t *playlistCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 		}
 
 		rows = append(rows, []interface{}{
-			t.playlistID,
 			t.playlistName,
 			t.followers,
 			t.owner,

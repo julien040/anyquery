@@ -111,7 +111,7 @@ The ID can be obtained by sharing a playlist from Spotify and copying the link. 
 
 ```sql
 
-SELECT * FROM spotify_playlist(`37i9dQZF1DXcBWIGoYBM5M`);
+SELECT * FROM spotify_playlist('37i9dQZF1DXcBWIGoYBM5M');
 
 SELECT * FROM spotify_playlist WHERE id = `37i9dQZF1DXcBWIGoYBM5M`;
 ```

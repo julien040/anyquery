@@ -136,7 +136,6 @@ func (t *trackCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 
 	return [][]interface{}{
 		{
-			data.ID,
 			data.Album.Name,
 			data.Album.ReleaseDate,
 			artists,
