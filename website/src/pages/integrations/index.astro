@@ -17,16 +17,24 @@ type apiResponse = {
             display_name: string;
             description: string;
             icon: string;
+            type: string;
+            author: string;
         },
     ];
 };
 
-const remotePlugins: apiResponse = await fetchReg.json();
+const allPlugins: apiResponse = await fetchReg.json();
 
 // Sort the plugins by name
-remotePlugins.plugins.sort((a, b) =>
-    a.display_name.localeCompare(b.display_name)
-);
+allPlugins.plugins.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+const remotePlugins = allPlugins.plugins.filter((plugin) => {
+    return plugin.type === "anyquery";
+});
+
+const libraryPlugins = allPlugins.plugins.filter((plugin) => {
+    return plugin.type === "sharedObject";
+});
 
 // Get all the integrations guides
 const integrations = await getCollection("integrations");
@@ -38,7 +46,7 @@ const integrations = await getCollection("integrations");
         class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
     >
         {
-            remotePlugins.plugins.map((plugin) => (
+            remotePlugins.map((plugin) => (
                 <a
                     href={`/integrations/${plugin.name}`}
                     class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
@@ -51,6 +59,28 @@ const integrations = await getCollection("integrations");
                     <h2 class="text-lg mt-3">{plugin.display_name}</h2>
                     <p class="break-words text-sm text-white/60">
                         {plugin.description}
+                    </p>
+                </a>
+            ))
+        }
+    </div>
+
+    <h1 class="text-3xl mt-8">Libraries</h1>
+    <div
+        class="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-4"
+    >
+        {
+            libraryPlugins.map((plugin) => (
+                <a
+                    href={`/integrations/${plugin.name}`}
+                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                >
+                    <h2 class="text-lg">{plugin.display_name}</h2>
+                    <p class="break-words text-sm text-white/60 mb-2">
+                        {plugin.description}
+                    </p>
+                    <p class="text-xs text-white/40 mt-auto">
+                        By {plugin.author}
                     </p>
                 </a>
             ))
