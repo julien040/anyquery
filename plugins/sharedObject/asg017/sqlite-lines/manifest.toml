@@ -1,0 +1,28 @@
+
+name = "sqlite-lines-asg017"
+displayName = "sqlite-lines"
+version = "0.2.2"
+description = "A SQLite extension for reading large files line-by-line (NDJSON, logs, txt, etc.)"
+author = "asg017"
+license = "MIT"
+repository = "https://github.com/asg017/sqlite-lines"
+homepage = "https://github.com/asg017/sqlite-lines"
+type = "sharedObject"
+minimumAnyqueryVersion = "0.0.1"
+
+[[file]]
+platform = "linux/amd64"
+directory = "linux-amd64"
+executablePath = "lines0.so"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "darwin-amd64"
+executablePath = "lines0.dylib"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "darwin-arm64"
+executablePath = "lines0.dylib"
+
+

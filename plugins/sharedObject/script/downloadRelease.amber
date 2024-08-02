@@ -1,0 +1,36 @@
+let urls = [
+    "https://github.com/asg017/sqlite-http/releases/download/v0.1.1/sqlite-http-v0.1.1-loadable-linux-x86_64.tar.gz",
+    "https://github.com/asg017/sqlite-http/releases/download/v0.1.1/sqlite-http-v0.1.1-loadable-macos-aarch64.tar.gz",
+    "https://github.com/asg017/sqlite-http/releases/download/v0.1.1/sqlite-http-v0.1.1-loadable-macos-x86_64.tar.gz",
+    "https://github.com/asg017/sqlite-http/releases/download/v0.1.1/sqlite-http-v0.1.1-loadable-windows-x86_64.zip",
+]
+
+let repo = "asg017/sqlite-http"
+let main_branch = "main"
+let readme_file = "README.md"
+
+let directory_name = [
+    "linux-amd64",
+    "darwin-arm64",
+    "darwin-amd64",
+    "windows-amd64"
+]
+
+// For each URL, download the release and extract it to the correct directory
+loop index, url in urls {
+    echo "Downloading {url}..."
+    $mkdir -p {directory_name[index]}$ failed {
+        echo "Failed to create directory {directory_name[index]}"
+    }
+    $curl -L {url} | tar -xz -C {directory_name[index]} -f - $ failed {
+        echo "Failed to download {url}. Status code: {status}"
+    }
+}
+
+// Download the README from the repository
+if readme_file != "" {
+    echo "Downloading README from {repo}..."
+    $curl -L https://raw.githubusercontent.com/{repo}/{main_branch}/{readme_file} -o README.md $ failed {
+        echo "Failed to download README from {repo}. Status code: {status}"
+    }
+}

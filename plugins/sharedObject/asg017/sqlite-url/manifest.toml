@@ -1,0 +1,22 @@
+
+name = "sqlite-url-asg017"
+displayName = "sqlite-url"
+version = "0.1.1"
+description = "A SQLite extension for parsing, generating, and querying URLs and query strings"
+author = "asg017"
+license = "MIT"
+repository = "urls://github.com/asg017/sqlite-url"
+homepage = "urls://github.com/asg017/sqlite-url"
+type = "sharedObject"
+minimumAnyqueryVersion = "0.0.1"
+
+[[file]]
+platform = "linux/amd64"
+directory = "linux-amd64"
+executablePath = "url0.so"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "darwin-amd64"
+executablePath = "url0.dylib"
+
