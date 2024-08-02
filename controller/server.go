@@ -117,6 +117,15 @@ func Server(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Get the extensions
+	extensions, _ := cmd.Flags().GetStringSlice("extension")
+	for _, extension := range extensions {
+		err = instance.LoadSharedExtension(extension, "")
+		if err != nil {
+			return fmt.Errorf("failed to load extension: %w", err)
+		}
+	}
+
 	// We register the namespace
 	db, err := instance.Register("")
 	if err != nil {

@@ -25,6 +25,7 @@ func init() {
 	serverCmd.Flags().String("log-file", "/dev/stdout", "Log file")
 	serverCmd.Flags().String("auth-file", "", "Path to the authentication file")
 	serverCmd.Flags().Bool("dev", false, "Run the program in developer mode")
+	serverCmd.Flags().StringSlice("extension", []string{}, "Load one or more extensions by specifying their path. Separate multiple extensions with a comma.")
 
 	addFlag_commandModifiesConfiguration(serverCmd)
 }

@@ -106,6 +106,15 @@ func Query(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
+	// Get the extensions
+	extensions, _ := cmd.Flags().GetStringSlice("extension")
+	for _, extension := range extensions {
+		err = namespace.LoadSharedExtension(extension, "")
+		if err != nil {
+			return fmt.Errorf("failed to load extension: %w", err)
+		}
+	}
+
 	// Register the namespace
 	db, err := namespace.Register("main")
 	if err != nil {

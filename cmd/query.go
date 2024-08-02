@@ -25,6 +25,7 @@ func init() {
 	queryCmd.Flags().Bool("read-only", false, "Start the server in read-only mode")
 	queryCmd.Flags().StringArray("init", []string{}, "Run SQL commands in a file before the query. You can specify multiple files.")
 	queryCmd.Flags().Bool("dev", false, "Run the program in developer mode")
+	queryCmd.Flags().StringSlice("extension", []string{}, "Load one or more extensions by specifying their path. Separate multiple extensions with a comma.")
 
 	// Query flags
 	queryCmd.Flags().StringP("query", "q", "", "Query to run")

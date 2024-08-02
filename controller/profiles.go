@@ -123,6 +123,11 @@ func createOrUpdateProfile(queries *model.Queries, registryName string, pluginNa
 		return err
 	}
 
+	// If the plugin is a shared extension, we don't need to ask for the configuration
+	if pluginInfo.Issharedextension == 1 {
+		return nil
+	}
+
 	// Parse the asked configuration required by the plugin
 	var toAskConfig []registry.UserConfig
 	err = json.Unmarshal([]byte(pluginInfo.Config), &toAskConfig)
