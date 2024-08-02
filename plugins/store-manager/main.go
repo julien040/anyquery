@@ -283,10 +283,10 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 	// Add the first character of the package name until the length is 15 substraction the length of the version
 	i := 0
 	currentLen := len(versionID.String())
-	for i < 15-currentLen {
+	for i < 13-currentLen {
 		if i < len(plugin.Name) {
 			// If the character is non-alphanumeric, skip it
-			if !('a' <= plugin.Name[i] && plugin.Name[i] <= 'z') {
+			if !('a' <= plugin.Name[i] && plugin.Name[i] <= 'z') && !('0' <= plugin.Name[i] && plugin.Name[i] <= '9') {
 				versionID.WriteRune('-')
 			} else {
 				versionID.WriteByte(plugin.Name[i])
@@ -296,6 +296,10 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 			versionID.WriteByte(alphabet[rand.IntN(len(alphabet))])
 		}
 		i++
+	}
+	// Add the last 2 random characters to ensure no collision
+	for i := 0; i < 2; i++ {
+		versionID.WriteByte(alphabet[rand.IntN(len(alphabet))])
 	}
 
 	if len(versionID.String()) != 15 {
