@@ -1,0 +1,233 @@
+# This is an example .goreleaser.yml file with some sensible defaults.
+# Make sure to check the documentation at https://goreleaser.com
+
+# The lines below are called `modelines`. See `:help modeline`
+# Feel free to remove those if you don't want/need to use them.
+# yaml-language-server: $schema=https://goreleaser.com/static/schema.json
+# vim: set ts=2 sw=2 tw=0 fo=cnqoj
+
+version: 2
+
+builds:
+  - id: windows
+    gobinary: ./orbstack_go.sh
+    tags:
+      - vtable
+      - fts5
+      - sqlite_json
+      - sqlite_math_functions
+    
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=1
+      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH"
+      - CGO_CFLAGS=-O2
+      - >-
+        {{- if eq .Os "windows" }}
+          {{- if eq .Arch "amd64" }}CC=x86_64-w64-mingw32-gcc{{- end }}
+          {{- if eq .Arch "arm64" }}CC=/home/julien/llvm-mingw/bin/aarch64-w64-mingw32-gcc{{- end }}
+        {{- end }}
+
+    goos:
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      # go-sqlite3 seems to not be supported on windows/arm64
+      - goos: windows
+        goarch: arm64
+      
+  - id: linux
+    gobinary: ./orbstack_go.sh
+    tags:
+      - vtable
+      - fts5
+      - sqlite_json
+      - sqlite_math_functions
+    
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=1
+      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH"
+      - CGO_CFLAGS=-O2
+      - >-
+        {{- if eq .Os "linux" }}
+          {{- if eq .Arch "amd64" }}CC=gcc{{- end }}
+          {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- end }}
+        {{- end }}
+
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+  - id: darwin
+    tags:
+      - vtable
+      - fts5
+      - sqlite_json
+      - sqlite_math_functions
+    ldflags:
+      - -s -w
+    env:
+      - CGO_ENABLED=1
+      - CGO_CFLAGS="-O2"
+    goos:
+      - darwin
+    goarch:
+      - arm64
+      - amd64
+
+archives:
+  - id: unix 
+    format: tar.gz
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    builds:
+      - linux
+      - darwin
+  - id: windows
+    format: zip
+    builds:
+      - windows
+      
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+nfpms:
+  - id: anyquery
+    package_name: anyquery
+    builds:
+     - linux
+    vendor: Julien CAGNIART
+    homepage: https://anyquery.dev
+    maintainer: Julien CAGNIART <contact@julienc.me>
+    description: |-
+      Query anything (HTTP APIs, local files, local apps) over SQL.
+    license: AGPL-3.0
+    formats:
+      - apk
+      - deb
+      - rpm
+      - termux.deb
+      - archlinux
+
+chocolateys:
+  -
+    name: anyquery
+    ids:
+      - windows
+    owners: Julien CAGNIART
+    authors: Julien CAGNIART
+    api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
+    title: anyquery
+    project_url: https://anyquery.dev
+    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE
+    require_license_acceptance: true
+    project_source_url: https://github.com/julien040/anyquery/
+    docs_url: https://anyquery.dev/docs/
+    bug_tracker_url: https://github.com/julien040/anyquery/issues
+    summary: Query anything (HTTP APIs, local files, local apps) over SQL.
+    skip_publish: false
+    description: |-
+      Query anything (HTTP APIs, local files, local apps) over SQL.
+      Anyquery is a query engine that allows you to query anything over SQL. It's built on top of SQLite.
+
+    icon_url: https://anyquery.dev/favicon.png
+    copyright: 2024 Julien CAGNIART
+
+snapcrafts:
+  - summary: Query anything (HTTP APIs, local files, local apps) over SQL.
+    description: |-
+      Query anything (HTTP APIs, local files, local apps) over SQL.
+      Anyquery is a query engine that allows you to query anything over SQL. It's built on top of SQLite.
+    grade: stable
+    confinement: strict
+    title: anyquery
+    name: anyquery
+    license: AGPL-3.0
+    publish: false
+
+brews:
+  - name: anyquery
+    repository:
+      owner: julien040
+      name: homebrew-anyquery
+    commit_author:
+      name: anyquery
+      email: contact@anyquery.dev
+    homepage: https://anyquery.dev
+    description: Anyquery is a query engine that allows you to query anything over SQL.
+    license: AGPL-3.0
+
+scoops:
+  - name: anyquery
+    commit_author:
+      name: anyquery
+      email: contact@anyquery.dev
+    homepage: https://anyquery.dev
+    description: Anyquery is a query engine that allows you to query anything over SQL.
+    license: AGPL-3.0
+    repository:
+      owner: julien040
+      name: anyquery-scoop
+
+
+release:
+  header: |-
+    ## What is Anyquery?
+
+    Anyquery is a query engine that allows you to query anything over SQL. 
+    Whether it's a local CSV, a Google Sheet, your Apple notes, or your GitHub stars, you can query it with Anyquery.
+
+    It's built on top of SQLite, and you can use alternative languages like PRQL and PQL to query your data.
+
+    Get started at [anyquery.dev](https://anyquery.dev)
+  github:
+    owner: julien040
+    name: anyquery
+  draft: true
+  prerelease: auto
+
+winget:
+  - name: anyquery
+    publisher: Julien CAGNIART
+    package_identifier: julien040.anyquery
+    repository:
+      owner: julien040
+      name: winget-anyquery
+      
+    short_description: Query anything (HTTP APIs, local files, local apps) over SQL.
+    license: AGPL-3.0
+    ids:
+      - windows
+    commit_author:
+      name: anyquery
+      email: contact@anyquery.dev
+    homepage: https://anyquery.dev
+    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE
+    skip_upload: false
+    
+
+
+checksum:
+  name_template: 'checksums.txt'
+  ids:
+    - unix
+    - windows
+    - darwin
+    
