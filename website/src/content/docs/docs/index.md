@@ -68,3 +68,9 @@ scoop install anyquery
 ```bash
 choco install anyquery
 ```
+
+### Windows (Winget)
+
+```bash
+winget install JulienCagniart.anyquery
+```
