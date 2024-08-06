@@ -11,7 +11,7 @@
 Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [JSON](https://anyquery.dev/docs/usage/querying-files/#json), [CSV](https://anyquery.dev/docs/usage/querying-files/#csv), [Parquet](https://anyquery.dev/docs/usage/querying-files/#parquet), SQLite, [Airtable bases](https://anyquery.dev/integrations/airtable/), [Google Sheets](https://anyquery.dev/integrations/google_sheets/), [Notion databases](https://anyquery.dev/integrations/notion/), and more. It also supports running SQL queries on [remote files](https://anyquery.dev/docs/usage/querying-files/#remote-files) (HTTP, S3, GCS) and local apps ([Apple Notes](https://anyquery.dev/integrations/notes/), [Apple Reminders](https://anyquery.dev/integrations/reminders/), [Google Chrome Tabs](https://anyquery.dev/integrations/chrome/), etc.).
 It's built on top of [SQLite](https://www.sqlite.org) and uses [plugins](https://anyquery.dev/integrations/) to extend its functionality.
 
-Moreover, it can acts as a [MySQL server](https://anyquery.dev/docs/usage/mysql-server/), allowing you to run SQL queries from your favorite MySQL-compatible client (e.g., [Looker Studio](https://anyquery.dev/connection-guide/looker-studio/), [DBeaver](https://anyquery.dev/connection-guide/dbeaver/), [TablePlus](https://anyquery.dev/connection-guide/tableplus/), [Metabase](https://anyquery.dev/connection-guide/metabase/), etc.).
+Moreover, it can acts as a [MySQL server](https://anyquery.dev/docs/usage/mysql-server/), allowing you to run SQL queries from your favorite MySQL-compatible client (e.g. [Looker Studio](https://anyquery.dev/connection-guide/looker-studio/), [DBeaver](https://anyquery.dev/connection-guide/dbeaver/), [TablePlus](https://anyquery.dev/connection-guide/tableplus/), [Metabase](https://anyquery.dev/connection-guide/metabase/), etc.).
 
 ![Anyquery header](https://anyquery.dev/images/release-header.png)
 
@@ -47,7 +47,7 @@ mysql -u root -h 127.0.0.1 -P 8070
 
 ## Plugins
 
-Anyquery is plugin-based, and you can install plugins to extend its functionality. You can install plugins from the [official registry](https://anyquery.dev/integrations) or create your own. Anyquery can also [load any SQLite extension](https://anyquery.devdocs/usage/plugins#using-sqlite-extensions).
+Anyquery is plugin-based, and you can install plugins to extend its functionality. You can install plugins from the [official registry](https://anyquery.dev/integrations) or create your own. Anyquery can also [load any SQLite extension](https://anyquery.dev/docs/usage/plugins#using-sqlite-extensions).
 
 ![Integrations](https://anyquery.dev/images/integrations_logo.png)
 
