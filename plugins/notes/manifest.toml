@@ -1,6 +1,6 @@
 
 name = "notes"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query/export notes from the Apple Notes app"
 author = "julien040"
 license = "UNLICENSED"

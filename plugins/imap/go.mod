@@ -6,7 +6,7 @@ require (
 	github.com/adrg/xdg v0.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/emersion/go-imap v1.2.1
-	github.com/julien040/anyquery v0.0.0-20240717200741-385ab2a44760
+	github.com/julien040/anyquery v0.1.1
 )
 
 require (

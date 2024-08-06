@@ -6,7 +6,7 @@ require (
 	github.com/adrg/xdg v0.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/google/go-github/v63 v63.0.0
-	github.com/julien040/anyquery v0.0.0-20240726163417-5fe1f89e7716
+	github.com/julien040/anyquery v0.1.1
 
 )
 

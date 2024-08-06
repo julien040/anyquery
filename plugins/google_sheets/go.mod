@@ -6,7 +6,7 @@ require (
 	github.com/adrg/xdg v0.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/julien040/anyquery v0.0.0-20240721181749-3ee37b5ccff9
+	github.com/julien040/anyquery v0.1.1
 	golang.org/x/oauth2 v0.21.0
 	google.golang.org/api v0.188.0
 )

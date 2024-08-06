@@ -5,7 +5,7 @@ go 1.22.5
 require (
 	github.com/adrg/xdg v0.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
-	github.com/julien040/anyquery v0.0.0-20240719064117-f1d836170e7e
+	github.com/julien040/anyquery v0.1.1
 )
 
 require (

@@ -1,6 +1,6 @@
 
 name = "raindrop"
-version = "0.1.0"
+version = "0.1.1"
 description = "Insert/delete/query items in a Raindrop.io collection"
 author = "julien040"
 license = "UNLICENSED"

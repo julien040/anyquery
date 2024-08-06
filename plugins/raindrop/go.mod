@@ -7,7 +7,7 @@ require (
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/julien040/anyquery v0.0.0-20240715193453-4c0338a83307
+	github.com/julien040/anyquery v0.1.1
 )
 
 require (
