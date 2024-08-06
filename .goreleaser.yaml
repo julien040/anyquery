@@ -136,7 +136,7 @@ chocolateys:
     api_key: "{{ .Env.CHOCOLATEY_API_KEY }}"
     title: anyquery
     project_url: https://anyquery.dev
-    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE
+    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE.md
     require_license_acceptance: true
     project_source_url: https://github.com/julien040/anyquery/
     docs_url: https://anyquery.dev/docs/
@@ -149,6 +149,9 @@ chocolateys:
 
     icon_url: https://anyquery.dev/favicon.png
     copyright: 2024 Julien CAGNIART
+    tags: "anyquery sql sqlite mysql query database api"
+    package_source_url: https://github.com/julien040/anyquery
+    release_notes: "See release notes at https://github.com/julien040/anyquery/releases"
 
 snapcrafts:
   - summary: Query anything (HTTP APIs, local files, local apps) over SQL.
@@ -189,6 +192,8 @@ scoops:
 
 release:
   header: |-
+    ![Favicon](https://anyquery.dev/favicon.png)
+
     ## What is Anyquery?
 
     Anyquery is a query engine that allows you to query anything over SQL. 
@@ -197,6 +202,9 @@ release:
     It's built on top of SQLite, and you can use alternative languages like PRQL and PQL to query your data.
 
     Get started at [anyquery.dev](https://anyquery.dev)
+
+    ![Anyquery](https://anyquery.dev/images/release-header.png)
+
   github:
     owner: julien040
     name: anyquery
@@ -205,7 +213,7 @@ release:
 
 winget:
   - name: anyquery
-    publisher: Julien CAGNIART
+    publisher: julien040
     package_identifier: julien040.anyquery
     repository:
       owner: julien040
