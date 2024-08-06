@@ -24,4 +24,47 @@ INSERT INTO google_sheets_table (name, line_added) SELECT author_name, addition 
 
 ## Installation
 
-TODO: Installation instructions
+Thank you for trying out Anyquery! You can install it by following the instructions below:
+
+### Ubuntu, Debian, and derivatives (apt package manager)
+
+```bash
+# Add the repository
+echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+# Update the package list
+sudo apt update
+# Install the package
+sudo apt install anyquery
+```
+
+### Fedora, CentOS, and derivatives (dnf/yum package manager)
+
+```bash
+# Add the repository
+echo "[anyquery]
+name=Anyquery
+baseurl=https://yum.julienc.me/
+enabled=1
+gpgcheck=0" | sudo tee /etc/yum.repos.d/anyquery.repo
+# Install the package
+sudo dnf install anyquery
+```
+
+### MacOS (Homebrew)
+
+```bash
+brew install julien040/anyquery/anyquery
+```
+
+### Windows (Scoop)
+
+```bash
+scoop bucket add anyquery https://github.com/julien040/anyquery-scoop
+scoop install anyquery
+```
+
+### Windows (Chocolatey)
+
+```bash
+choco install anyquery
+```
