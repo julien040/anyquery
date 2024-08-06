@@ -6,67 +6,80 @@ import Footer from "../components/footer.astro";
 ---
 
 <html lang="en">
-  <head>
-    <title>{title}</title>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="description" content={description} />
-  </head>
-  <body class="max-w-5xl mx-auto p-6 min-h-screen flex flex-col">
-    <NavBar />
-    <div class="py-2"><!-- Hey, hello you ! --></div>
-    <slot />
-    <div class="py-2 mt-auto">
-      <!-- I guess it's a good time to say goodbye -->
-    </div>
-    <Footer footnote={footnote} />
-  </body>
-  <style is:global>
-    html {
-      background: linear-gradient(180deg, #1b0438 -0.08%, #08090a 67.19%);
-      background-repeat: no-repeat;
-      font-family: "Inter", sans-serif;
-      color: #ffffffb8;
-    }
-    a,
-    p {
-      letter-spacing: -0.12px;
-    }
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      font-family: "Inter", sans-serif;
-      color: #ffffff;
-      letter-spacing: -0.9px;
-      font-weight: 600;
-    }
+    <head>
+        <title>{title}</title>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/favicon.png" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="description" content={description} />
+        <link rel="sitemap" href="/sitemap-index.xml" />
+    </head>
+    <body class="max-w-5xl mx-auto p-6 min-h-screen flex flex-col">
+        <NavBar />
+        <div class="py-2"><!-- Hey, hello you ! --></div>
+        <slot />
+        <div class="py-2 mt-auto">
+            <!-- I guess it's a good time to say goodbye -->
+        </div>
+        <Footer footnote={footnote} />
+        <script
+            data-collect-dnt="true"
+            async
+            defer
+            src="https://sa.anyquery.dev/latest.js"></script>
+        <noscript>
+            <img
+                src="https://sa.anyquery.dev/noscript.gif?collect-dnt=true"
+                alt=""
+                referrerpolicy="no-referrer-when-downgrade"
+            />
+        </noscript>
+    </body>
+    <style is:global>
+        html {
+            background: linear-gradient(180deg, #1b0438 -0.08%, #08090a 67.19%);
+            background-repeat: no-repeat;
+            font-family: "Inter", sans-serif;
+            color: #ffffffb8;
+        }
+        a,
+        p {
+            letter-spacing: -0.12px;
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            font-family: "Inter", sans-serif;
+            color: #ffffff;
+            letter-spacing: -0.9px;
+            font-weight: 600;
+        }
 
-    .button {
-      display: inline-flex;
-      padding: 10px 14px;
-      justify-content: center;
-      align-items: center;
-      gap: 4px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.15);
-      font-size: 0.875rem;
-      color: #ffffff;
-      font-weight: 500;
-      transition: all 0.2s ease-in-out;
-    }
-    .button:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
-    .button-silent {
-      background: none;
-    }
-    .button-silent:hover {
-      background: rgba(255, 255, 255, 0.1);
-    }
-  </style>
+        .button {
+            display: inline-flex;
+            padding: 10px 14px;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.15);
+            font-size: 0.875rem;
+            color: #ffffff;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+        .button:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+        .button-silent {
+            background: none;
+        }
+        .button-silent:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    </style>
 </html>

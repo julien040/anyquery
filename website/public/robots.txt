@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anyquery.dev/sitemap-index.xml

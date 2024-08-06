@@ -12,6 +12,7 @@
   "dependencies": {
     "@astrojs/alpinejs": "^0.4.0",
     "@astrojs/check": "^0.8.2",
+    "@astrojs/sitemap": "^3.1.6",
     "@astrojs/starlight": "^0.25.2",
     "@astrojs/starlight-tailwind": "^2.0.3",
     "@astrojs/tailwind": "^5.1.0",
