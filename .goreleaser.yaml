@@ -189,10 +189,9 @@ scoops:
       owner: julien040
       name: anyquery-scoop
 
-
 release:
   header: |-
-    ![Favicon](https://anyquery.dev/favicon.png)
+    <img src="https://anyquery.dev/favicon.png" width="64" height="64" />
 
     ## What is Anyquery?
 
@@ -208,17 +207,24 @@ release:
   github:
     owner: julien040
     name: anyquery
-  draft: true
+  draft: false
   prerelease: auto
 
 winget:
   - name: anyquery
-    publisher: julien040
-    package_identifier: julien040.anyquery
+    publisher: JulienCagniart
+    package_identifier: JulienCagniart.anyquery
     repository:
       owner: julien040
       name: winget-anyquery
-      
+      branch: main
+      pull_request:
+        enabled: true
+        draft: true
+        base:
+          owner: microsoft
+          name: winget-pkgs
+          branch: master
     short_description: Query anything (HTTP APIs, local files, local apps) over SQL.
     license: AGPL-3.0
     ids:
@@ -227,10 +233,15 @@ winget:
       name: anyquery
       email: contact@anyquery.dev
     homepage: https://anyquery.dev
-    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE
+    license_url: https://github.com/julien040/anyquery/blob/main/LICENSE.md
     skip_upload: false
-    
-
+    copyright: 2024 Julien CAGNIART
+    copyright_url: https://github.com/julien040/anyquery/blob/main/LICENSE.md
+    tags:
+      - anyquery
+      - sql
+      - sqlite
+      - mysql
 
 checksum:
   name_template: 'checksums.txt'

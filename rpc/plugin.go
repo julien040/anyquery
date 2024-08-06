@@ -3,6 +3,9 @@ package rpc
 import (
 	"errors"
 	"fmt"
+	"os"
+	"syscall"
+	"time"
 
 	rpcPlugin "github.com/hashicorp/go-plugin"
 )
@@ -171,6 +174,34 @@ func (p *Plugin) Serve() error {
 	}
 	pluginServed = true
 	p.connectionStarted = true
+
+	// Ensure no zombie process is left behind
+	ticker := time.NewTicker(2 * time.Second)
+	go func() {
+		for {
+			<-ticker.C
+			// Check if the parent process is still alive
+			// If not, we exit the plugin
+			ppid := os.Getppid()
+			if ppid == 1 {
+				// Process exited and got reparented to init
+				os.Exit(0)
+			} else {
+				// Check if the parent process is still alive
+				// If not, we exit the plugin
+				process, err := os.FindProcess(ppid)
+				if err != nil {
+					os.Exit(0)
+				}
+
+				// Send a signal to the parent process
+				err = process.Signal(syscall.Signal(0))
+				if err != nil {
+					os.Exit(0)
+				}
+			}
+		}
+	}()
 
 	internal := &internalInterface{plugin: p}
 
