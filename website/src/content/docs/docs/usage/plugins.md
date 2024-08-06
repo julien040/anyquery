@@ -113,3 +113,11 @@ by running the following command(s):
 (base) julien@MacBook-Air-Julien ~ % anyquery plugin rm default github             
 ✅ Successfully uninstalled the plugin github
 ```
+
+## Using SQLite extensions
+
+Anyquery can also load any SQLite extension. To do so, you need to download the extension and load it by passing the flag `--extension` and the path to anyquery. You can load multiple extensions by separating them with a comma.
+
+```bash title="How to load many extensions"
+anyquery --extension=./dist/stats.so,mod_spatialite.so
+```

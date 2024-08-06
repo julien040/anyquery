@@ -2,20 +2,20 @@
 import Main from "../layouts/main.astro";
 
 type TerminalProps = {
-  title: string;
-  code: string;
-  name: string;
-  footer: string;
-  icon: string;
+    title: string;
+    code: string;
+    name: string;
+    footer: string;
+    icon: string;
 };
 
 const elements: TerminalProps[] = [
-  {
-    title: "List GitHub stars of rauchg",
-    name: "GitHub",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> github_stars_from_user(<span class="hljs-string">&#x27;rauchg&#x27;</span>);`,
-    footer: "Elapsed time 27ms · 274 rows in result set",
-    icon: `
+    {
+        title: "List GitHub stars of rauchg",
+        name: "GitHub",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> github_stars_from_user(<span class="hljs-string">&#x27;rauchg&#x27;</span>);`,
+        footer: "Elapsed time 27ms · 274 rows in result set",
+        icon: `
         <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" fill="none">
           <path
             d="M15.5002 2.58337C13.8039 2.58337 12.1243 2.91747 10.5572 3.5666C8.99005 4.21572 7.56612 5.16715 6.3667 6.36658C3.94436 8.78892 2.5835 12.0743 2.5835 15.5C2.5835 21.2092 6.29058 26.053 11.4185 27.7709C12.0643 27.8742 12.271 27.4738 12.271 27.125V24.9421C8.69308 25.7171 7.931 23.2113 7.931 23.2113C7.33683 21.713 6.49725 21.3125 6.49725 21.3125C5.32183 20.5117 6.58766 20.5375 6.58766 20.5375C7.87933 20.628 8.56391 21.868 8.56391 21.868C9.68766 23.8313 11.5864 23.25 12.3227 22.94C12.4389 22.1005 12.7747 21.5321 13.1364 21.2092C10.2689 20.8863 7.25933 19.7755 7.25933 14.8542C7.25933 13.4205 7.75016 12.2709 8.58975 11.3538C8.46058 11.0309 8.0085 9.68754 8.71891 7.94379C8.71891 7.94379 9.80391 7.59504 12.271 9.26129C13.2914 8.97712 14.4022 8.83504 15.5002 8.83504C16.5981 8.83504 17.7089 8.97712 18.7293 9.26129C21.1964 7.59504 22.2814 7.94379 22.2814 7.94379C22.9918 9.68754 22.5397 11.0309 22.4106 11.3538C23.2502 12.2709 23.741 13.4205 23.741 14.8542C23.741 19.7884 20.7185 20.8734 17.8381 21.1963C18.3031 21.5967 18.7293 22.3846 18.7293 23.5859V27.125C18.7293 27.4738 18.936 27.8871 19.5947 27.7709C24.7227 26.04 28.4168 21.2092 28.4168 15.5C28.4168 13.8038 28.0827 12.1242 27.4336 10.557C26.7845 8.98992 25.833 7.566 24.6336 6.36658C23.4342 5.16715 22.0103 4.21572 20.4432 3.5666C18.876 2.91747 17.1964 2.58337 15.5002 2.58337Z"
@@ -24,16 +24,16 @@ const elements: TerminalProps[] = [
           />
         </svg>
       `,
-  },
-  {
-    title: "Query your Notion database",
-    name: "Notion",
-    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> notion_table;
+    },
+    {
+        title: "Query your Notion database",
+        name: "Notion",
+        code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> notion_table;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> notion_table (<span class="hljs-type">name</span>, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
 <span class="hljs-keyword">UPDATE</span> notion_table <span class="hljs-keyword">SET</span> age = <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;
 <span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> notion_table <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
-    footer: "Elapsed time 13ms · 66 rows in result set",
-    icon: `
+        footer: "Elapsed time 13ms · 66 rows in result set",
+        icon: `
     <svg class="w-10 h-10" class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <g clip-path="url(#clip0_300_901)">
     <path d="M6.25975 5.43526C7.22334 6.21801 7.585 6.15859 9.39592 6.03717L26.4653 5.01288C26.827 5.01288 26.526 4.65121 26.4059 4.5918L23.5694 2.54192C23.0269 2.12084 22.3022 1.63776 20.915 1.75788L4.38813 2.9643C3.78621 3.02372 3.66479 3.32596 3.90504 3.56621L6.25975 5.43526ZM7.28404 9.41359V27.3729C7.28404 28.3378 7.76584 28.6995 8.85213 28.6388L27.611 27.5538C28.6973 27.4943 28.8187 26.8304 28.8187 26.0464V8.20717C28.8187 7.42442 28.5177 7.00205 27.8525 7.06146L8.24892 8.20717C7.52559 8.26788 7.28404 8.63084 7.28404 9.41359ZM25.8027 10.3759C25.9228 10.9184 25.8027 11.4609 25.2602 11.5229L24.356 11.7037V24.9614C23.5707 25.3838 22.8473 25.6253 22.2441 25.6253C21.278 25.6253 21.0364 25.323 20.3131 24.4202L14.4011 15.1383V24.1179L16.2715 24.5416C16.2715 24.5416 16.2715 25.6266 14.7628 25.6266L10.601 25.8668C10.4809 25.6266 10.601 25.0234 11.0234 24.9033L12.1084 24.6023V12.728L10.6036 12.6066C10.4822 12.0641 10.7845 11.2813 11.6279 11.2206L16.0919 10.9197L22.2454 20.3217V12.0034L20.676 11.8238C20.5559 11.1599 21.0377 10.6781 21.6409 10.6187L25.8027 10.3759ZM3.00088 1.3368L20.193 0.0709654C22.3035 -0.109868 22.8473 0.0102571 24.1739 0.975132L29.6622 4.83205C30.5663 5.49467 30.8686 5.67551 30.8686 6.39884V27.5538C30.8686 28.879 30.3868 29.6643 28.6986 29.7832L8.732 30.9896C7.46617 31.0503 6.86167 30.8695 6.19775 30.0247L2.15613 24.7805C1.43279 23.8157 1.13184 23.0936 1.13184 22.2489V3.4448C1.13184 2.36109 1.61492 1.45563 3.00088 1.3368Z" fill="white" fill-opacity="0.79"/>
@@ -44,13 +44,13 @@ const elements: TerminalProps[] = [
     </clipPath>
   </defs>
 </svg>`,
-  },
-  {
-    title: "Analyse responses of a Typeform",
-    name: "Typeform",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> typeform_responses(<span class="hljs-string">&#x27;form_id&#x27;</span>);`,
-    footer: "Elapsed time 283ms · 3 rows in result set",
-    icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
+    },
+    {
+        title: "Analyse responses of a Typeform",
+        name: "Typeform",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> typeform_responses(<span class="hljs-string">&#x27;form_id&#x27;</span>);`,
+        footer: "Elapsed time 283ms · 3 rows in result set",
+        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <g clip-path="url(#clip0_1237_85)">
     <path d="M15.1843 0.0572002C19.1672 -0.270652 22.0277 0.786364 25.1055 3.86248C28.4286 7.18346 30.6378 11.4873 31.2332 16.0717C31.8956 21.1699 30.9844 24.9744 28.1783 27.7597C25.4948 30.4231 21.5754 31.3017 16.3397 30.864L16.1229 30.8449C11.6643 30.435 8.51077 28.9732 5.45528 25.8788C2.19159 22.5733 0.471758 18.8203 0.563551 14.8812C0.608423 12.9528 1.15472 11.3094 2.20824 9.69687C2.89892 8.63962 3.60022 7.81492 5.06748 6.30255L5.5572 5.80101L6.09687 5.25386C9.57418 1.7587 11.8632 0.330531 15.1843 0.0572002ZM24.8689 4.09938C21.8603 1.0925 19.0964 0.0711924 15.2118 0.390963C11.9381 0.660434 9.68973 2.09066 6.17117 5.65433L5.91666 5.91258C4.20261 7.65534 3.39927 8.54637 2.69145 9.57685L2.58844 9.72884L2.48857 9.87986C1.46798 11.4419 0.941703 13.0255 0.898279 14.8891C0.808656 18.7304 2.48977 22.3988 5.69351 25.6434C8.74128 28.7302 11.8724 30.1547 16.3674 30.5303L16.5905 30.5482C21.6258 30.9354 25.38 30.0654 27.9423 27.5221C30.6648 24.8199 31.5514 21.1185 30.9012 16.1148C30.3156 11.6057 28.1409 7.36946 24.8689 4.09938ZM20.7021 11.265V12.9006H17.2285V22.2744H15.4982V12.9006H12.0246V11.265H20.7021Z" fill="white" fill-opacity="0.8"/>
   </g>
@@ -60,46 +60,46 @@ const elements: TerminalProps[] = [
     </clipPath>
   </defs>
 </svg>`,
-  },
-  {
-    title: "Count rows in a real-world 75MB CSV",
-    name: "CSV",
-    code: `SELECT count(<span class="hljs-name">*</span>) FROM read_csv(&#x27;https<span class="hljs-symbol">://github</span>.com/datadesk/california-coronavirus-data/raw/master/latimes-place-totals.csv&#x27;)<span class="hljs-comment">;</span>`,
-    footer: "Elapsed time 470ms · 1 row in result set",
-    icon: `
+    },
+    {
+        title: "Count rows in a real-world 75MB CSV",
+        name: "CSV",
+        code: `SELECT count(<span class="hljs-name">*</span>) FROM read_csv(&#x27;https<span class="hljs-symbol">://github</span>.com/datadesk/california-coronavirus-data/raw/master/latimes-place-totals.csv&#x27;)<span class="hljs-comment">;</span>`,
+        footer: "Elapsed time 470ms · 1 row in result set",
+        icon: `
     <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 31" fill="none">
   <path d="M8.625 19.375H13.125V17.4375H9.375V13.5625H13.125V11.625H8.625C8.2 11.625 7.844 11.749 7.557 11.997C7.27 12.245 7.126 12.5515 7.125 12.9166V18.0833C7.125 18.4493 7.269 18.7563 7.557 19.0043C7.845 19.2523 8.201 19.3758 8.625 19.375ZM14.475 19.375H18.975C19.4 19.375 19.7565 19.251 20.0445 19.003C20.3325 18.755 20.476 18.4484 20.475 18.0833V16.1458C20.475 15.7798 20.331 15.4405 20.043 15.128C19.755 14.8154 19.399 14.6595 18.975 14.6604H16.725V13.5625H20.475V11.625H15.975C15.55 11.625 15.194 11.749 14.907 11.997C14.62 12.245 14.476 12.5515 14.475 12.9166V14.8541C14.475 15.2201 14.619 15.5486 14.907 15.8397C15.195 16.1307 15.551 16.2758 15.975 16.275H18.225V17.4375H14.475V19.375ZM24.375 19.375H26.625L29.25 11.625H27L25.5 16.0812L24 11.625H21.75L24.375 19.375ZM6 25.8333C5.175 25.8333 4.469 25.5806 3.882 25.0751C3.295 24.5696 3.001 23.9612 3 23.25V7.74996C3 7.03954 3.294 6.4316 3.882 5.92613C4.47 5.42065 5.176 5.16749 6 5.16663H30C30.825 5.16663 31.5315 5.41979 32.1195 5.92613C32.7075 6.43246 33.001 7.0404 33 7.74996V23.25C33 23.9604 32.7065 24.5688 32.1195 25.0751C31.5325 25.5814 30.826 25.8342 30 25.8333H6Z" fill="white" fill-opacity="0.8"/>
 </svg>`,
-  },
-  {
-    title: "Use Google Sheets as a database",
-    name: "Sheets",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> google_sheets;
+    },
+    {
+        title: "Use Google Sheets as a database",
+        name: "Sheets",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> google_sheets;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> google_sheets (<span class="hljs-type">name</span>, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
 <span class="hljs-keyword">UPDATE</span> google_sheets <span class="hljs-keyword">SET</span> age = <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;
 <span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> google_sheets <span class="hljs-keyword">WHERE</span> <span class="hljs-type">name</span> = <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
-    footer: "Elapsed time 760ms · 150 rows in result set",
-    icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
+        footer: "Elapsed time 760ms · 150 rows in result set",
+        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M15.119 16.204H10.717V13.7382H15.1216V16.2052L15.119 16.204ZM19.5236 0V7.75H27.2736L19.5236 0ZM21.2841 13.7382H16.8795V16.2052H21.2841V13.7382ZM21.2841 17.9658H16.8795V20.4329H21.2841V17.9658ZM27.2723 8.39583V28.8868C27.2723 30.0545 26.3268 31 25.1591 31H6.84071C6.5632 31 6.28841 30.9453 6.03203 30.8391C5.77565 30.7329 5.5427 30.5773 5.34647 30.3811C4.95018 29.9848 4.72754 29.4473 4.72754 28.8868V2.11317C4.72754 0.9455 5.67304 0 6.84071 0H18.8765V8.39583H27.2723ZM23.0447 11.9776H8.95387V22.1934H23.046V11.9763L23.0447 11.9776ZM15.119 17.9658H10.717V20.4329H15.1216V17.9658H15.119Z" fill="white" fill-opacity="0.79"/>
 </svg>`,
-  },
-  {
-    title: "Query your Pocket articles",
-    name: "Pocket",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> pocket_items;
+    },
+    {
+        title: "Query your Pocket articles",
+        name: "Pocket",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> pocket_items;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> pocket_items (given_url, <span class="hljs-built_in">title</span>) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;https://www.example.com&#x27;</span>, <span class="hljs-string">&#x27;Example article&#x27;</span>);
 <span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> pocket_items <span class="hljs-keyword">WHERE</span> given_url = <span class="hljs-string">&#x27;https://www.example.com&#x27;</span>;`,
-    footer: "Elapsed time 78ms · 2539 rows in result set",
-    icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
+        footer: "Elapsed time 78ms · 2539 rows in result set",
+        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M28.7902 5.41725C28.6249 4.96584 28.3251 4.57598 27.9313 4.30022C27.5376 4.02445 27.0687 3.87604 26.588 3.875H5.42529C4.80503 3.87839 4.21116 4.12639 3.77269 4.5651C3.33421 5.00382 3.08655 5.59782 3.0835 6.21808V14.0133L3.17262 15.5633C3.5472 19.0895 5.3775 22.1715 8.21012 24.3195C8.2592 24.3582 8.31087 24.3957 8.36254 24.4345L8.39483 24.4577C9.89572 25.5603 11.6194 26.3216 13.4452 26.6884C15.1722 27.0371 16.952 27.0309 18.6765 26.6703C18.7052 26.6641 18.733 26.6541 18.7592 26.6406C20.5102 26.26 22.1617 25.5159 23.6068 24.4564L23.6391 24.4332C23.6907 24.3944 23.7424 24.3582 23.7928 24.3169C26.6241 22.1689 28.4544 19.0883 28.8277 15.562L28.9168 14.012V6.21808C28.9221 5.94577 28.8792 5.67467 28.7902 5.41725ZM23.32 13.538L17.244 19.3673C16.9141 19.6836 16.4747 19.8602 16.0176 19.8602C15.5605 19.8602 15.1211 19.6836 14.7912 19.3673L8.71516 13.5367C8.54732 13.3757 8.41283 13.1832 8.31936 12.9703C8.2259 12.7573 8.17529 12.5281 8.17043 12.2956C8.16557 12.063 8.20656 11.8319 8.29105 11.6152C8.37554 11.3985 8.50188 11.2006 8.66285 11.0328C8.82382 10.8649 9.01628 10.7304 9.22923 10.637C9.44218 10.5435 9.67146 10.4929 9.90396 10.488C10.1365 10.4832 10.3677 10.5242 10.5843 10.6087C10.801 10.6931 10.9989 10.8195 11.1667 10.9805L16.0182 15.6318L20.8697 10.9817C21.2127 10.6805 21.6587 10.5233 22.1148 10.5428C22.5708 10.5623 23.0018 10.757 23.3178 11.0863C23.6339 11.4157 23.8107 11.8543 23.8113 12.3108C23.812 12.7673 23.6364 13.2064 23.3213 13.5367" fill="white" fill-opacity="0.8"/>
 </svg>`,
-  },
-  {
-    title: "Retrieve your saved musics from Spotify",
-    name: "Spotify",
-    code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> spotify_saved_tracks;`,
-    footer: "Elapsed time 45ms · 819 rows in result set",
-    icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
+    },
+    {
+        title: "Retrieve your saved musics from Spotify",
+        name: "Spotify",
+        code: `<span class="hljs-selector-tag">SELECT</span> * <span class="hljs-selector-tag">FROM</span> spotify_saved_tracks;`,
+        footer: "Elapsed time 45ms · 819 rows in result set",
+        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <g clip-path="url(#clip0_300_921)">
     <path d="M16 0C11.8891 0 7.94666 1.63303 5.03984 4.53984C2.13303 7.44666 0.5 11.3891 0.5 15.5C0.5 19.6109 2.13303 23.5533 5.03984 26.4602C7.94666 29.367 11.8891 31 16 31C20.1109 31 24.0533 29.367 26.9602 26.4602C29.867 23.5533 31.5 19.6109 31.5 15.5C31.5 11.3891 29.867 7.44666 26.9602 4.53984C24.0533 1.63303 20.1109 0 16 0ZM23.1087 22.3549C22.9744 22.5731 22.7592 22.7292 22.5101 22.7891C22.261 22.8491 21.9984 22.8079 21.7796 22.6746C18.139 20.4522 13.5588 19.9485 8.16281 21.1827C7.91282 21.2397 7.65041 21.1951 7.43331 21.0587C7.21621 20.9222 7.06219 20.7051 7.00516 20.4552C6.94812 20.2052 6.99272 19.9428 7.12916 19.7257C7.2656 19.5085 7.4827 19.3545 7.73269 19.2975C13.6382 17.949 18.7028 18.5283 22.7871 21.0258C23.0056 21.1597 23.1621 21.3748 23.2224 21.6239C23.2827 21.873 23.2418 22.1358 23.1087 22.3549ZM25.0055 18.135C24.8376 18.408 24.5683 18.6032 24.2565 18.6777C23.9448 18.7522 23.6163 18.6998 23.3431 18.5322C19.1775 15.9727 12.8264 15.2307 7.89738 16.7264C7.59736 16.7977 7.28145 16.7519 7.01409 16.5982C6.74672 16.4446 6.54804 16.1948 6.45857 15.8997C6.3691 15.6045 6.39558 15.2864 6.53261 15.0102C6.66965 14.7339 6.90691 14.5204 7.196 14.4131C12.8244 12.7061 19.8227 13.5334 24.6064 16.4726C24.8797 16.6402 25.0753 16.9094 25.1502 17.2212C25.225 17.5329 25.173 17.8616 25.0055 18.135ZM25.1683 13.7408C20.1734 10.7725 11.9312 10.4993 7.16112 11.9466C6.7932 12.0581 6.39606 12.0189 6.05705 11.8376C5.71804 11.6563 5.46494 11.3477 5.35344 10.9798C5.24193 10.6119 5.28115 10.2147 5.46246 9.87574C5.64377 9.53673 5.95233 9.28363 6.32025 9.17213C11.7937 7.51169 20.8961 7.83137 26.6485 11.2452C26.9794 11.4415 27.2188 11.7613 27.314 12.1341C27.4092 12.5069 27.3524 12.9022 27.1561 13.2331C26.9598 13.564 26.6401 13.8034 26.2673 13.8986C25.8945 13.9938 25.4992 13.937 25.1683 13.7408Z" fill="white" fill-opacity="0.79"/>
   </g>
@@ -109,409 +109,433 @@ const elements: TerminalProps[] = [
     </clipPath>
   </defs>
 </svg>`,
-  },
-  {
-    title: "Use Airtable as a database",
-    name: "Airtable",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> airtable_table;
+    },
+    {
+        title: "Use Airtable as a database",
+        name: "Airtable",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> airtable_table;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> airtable_table (column1, column2) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;value1&#x27;</span>, <span class="hljs-string">&#x27;value2&#x27;</span>);
 <span class="hljs-keyword">UPDATE</span> airtable_table <span class="hljs-keyword">SET</span> column1 = <span class="hljs-string">&#x27;new_value&#x27;</span> <span class="hljs-keyword">WHERE</span> id = <span class="hljs-string">&#x27;rec123&#x27;</span>;
 <span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> airtable_table <span class="hljs-keyword">WHERE</span> id = <span class="hljs-string">&#x27;rec123&#x27;</span>;`,
-    footer: "Elapsed time 522ms · 45 463 rows in result set",
-    icon: `<svg class="w-10 h-10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.27 3.27 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.3 3.3 0 0 0-1.272-.257M23.4 8.056a.6.6 0 0 0-.222.045l-10.012 3.877a.61.61 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.58.58 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.64.64 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006l.307-.147l2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.6.6 0 0 0-.207-.044z"/></svg>`,
-  },
-  {
-    title: "Query your Raindrop.io bookmarks",
-    name: "Raindrop",
-    code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> raindrop_items;
+        footer: "Elapsed time 522ms · 45 463 rows in result set",
+        icon: `<svg class="w-10 h-10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.27 3.27 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.3 3.3 0 0 0-1.272-.257M23.4 8.056a.6.6 0 0 0-.222.045l-10.012 3.877a.61.61 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.58.58 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.64.64 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006l.307-.147l2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.6.6 0 0 0-.207-.044z"/></svg>`,
+    },
+    {
+        title: "Query your Raindrop.io bookmarks",
+        name: "Raindrop",
+        code: `<span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> raindrop_items;
 <span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> raindrop_items(<span class="hljs-built_in">title</span>, link, created_at, reminder) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>, <span class="hljs-string">&#x27;https://anyquery.dev&#x27;</span>, <span class="hljs-string">&#x27;2024-07-10&#x27;</span>, <span class="hljs-string">&#x27;2024-07-20&#x27;</span>);
 <span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> raindrop_items <span class="hljs-keyword">WHERE</span> <span class="hljs-built_in">title</span> = <span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>;`,
-    footer: "Elapsed time 20ms · 360 rows in result set",
-    icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
+        footer: "Elapsed time 20ms · 360 rows in result set",
+        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
   <path d="M16 19.1199C16 18.293 15.8371 17.4741 15.5207 16.7102C15.2042 15.9462 14.7404 15.252 14.1557 14.6673C13.571 14.0826 12.8768 13.6188 12.1128 13.3023C11.3489 12.9859 10.53 12.823 9.70312 12.823C8.03309 12.823 6.43146 13.4864 5.25056 14.6673C4.06967 15.8482 3.40625 17.4498 3.40625 19.1199C3.40625 20.7899 4.06967 22.3915 5.25056 23.5724C6.43146 24.7533 8.03309 25.4167 9.70312 25.4167H16M16 19.1199V25.4167M16 19.1199C16 17.4498 16.6634 15.8482 17.8443 14.6673C19.0252 13.4864 20.6268 12.823 22.2969 12.823C23.1238 12.823 23.9426 12.9859 24.7066 13.3023C25.4706 13.6188 26.1647 14.0826 26.7494 14.6673C27.3342 15.252 27.798 15.9462 28.1144 16.7102C28.4309 17.4741 28.5937 18.293 28.5937 19.1199C28.5937 19.9468 28.4309 20.7656 28.1144 21.5296C27.798 22.2936 27.3342 22.9877 26.7494 23.5724C26.1647 24.1572 25.4706 24.621 24.7066 24.9374C23.9426 25.2539 23.1238 25.4167 22.2969 25.4167H16" stroke="white" stroke-opacity="0.79" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"/>
   <path d="M21.8092 7.98956C22.5721 8.75239 23.1772 9.65802 23.5901 10.6547C24.0029 11.6514 24.2154 12.7197 24.2154 13.7985C24.2154 14.8773 24.0029 15.9456 23.5901 16.9423C23.1772 17.939 22.5721 18.8446 21.8092 19.6075L16 25.4161L10.1913 19.6075C9.42849 18.8446 8.82336 17.939 8.4105 16.9423C7.99765 15.9456 7.78516 14.8773 7.78516 13.7985C7.78516 12.7197 7.99765 11.6514 8.4105 10.6547C8.82336 9.65802 9.42849 8.75239 10.1913 7.98956C10.9542 7.2267 11.8598 6.62158 12.8565 6.20872C13.8532 5.79587 14.9215 5.58337 16.0003 5.58337C17.0791 5.58337 18.1474 5.79587 19.1441 6.20872C20.1408 6.62158 21.0464 7.2267 21.8092 7.98956Z" stroke="white" stroke-opacity="0.79" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`,
-  },
+    },
 ];
 ---
 
 <Main
-  title="Anyquery - Use SQL for everything"
-  description="Query anything with SQL, from your Chrome tabs to your Notion database"
-  ,
-  footnote=`Trademarks are the property of their respective owners.
+    title="Anyquery - Use SQL for everything"
+    description="Query anything with SQL, from your Chrome tabs to your Notion database"
+    ,
+    footnote=`Trademarks are the property of their respective owners.
 All benchmarks are performed on a Macbook Air M1 16GB.`
 >
-  <!-- Header -->
-  <div
-    x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
-  >
-    <header
-      class="flex flex-col md:flex-row justify-center md:justify-between gap-4 md:gap-24 py-4 md:mt-12"
+    <!-- Header -->
+    <div
+        x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
     >
-      <div id="left-header" class="md:basis-6/12">
-        <h1
-          class="md:text-4xl text-3xl font-bold font-['Inter'] md:leading-[42px] leading-[36px] text-white/90"
+        <header
+            class="flex flex-col md:flex-row justify-center md:justify-between gap-4 md:gap-24 py-4 md:mt-12"
         >
-          <style>
-            .gradient-header {
-              background: linear-gradient(90deg, #7970e9 0%, #f7233f 150%);
-              background-clip: text;
-              -webkit-background-clip: text;
-              -webkit-text-fill-color: transparent;
-            }
-          </style>
-          <a class="gradient-header tracking-tight" href="/recipes"
-            >Query anything</a
-          >
-          <span class="tracking-tight"> with old-school cool SQL </span>
-        </h1>
-        <p class="text-white/70 text-sm mt-3">
-          From your Chrome tabs to your Notion database, passing through your
-          GitHub stars, there is a SQL query for that. One query language, tens
-          of APIs
-        </p>
-        <div class="flex mt-6 gap-3">
-          <a href="/docs/#installation" class="button"> Install </a>
-          <a href="/docs" class="button button-silent"> Documentation </a>
-        </div>
-        <p class="text-white/40 text-xs mt-4">
-          Supports GNU/Linux, macOS and Windows
-        </p>
-      </div>
-      <style>
-        #fake-terminal {
-          background: #171717;
-          box-shadow: 0px 0px 94.2px 7px rgba(124, 111, 231, 0.17);
-        }
-      </style>
-      <div id="right-header" class="flex flex-col basis-5/12 mt-4 md:mt-0">
-        <div
-          id="fake-terminal"
-          class="bg-neutral-900/10 rounded-lg overflow-hidden shadow border border-[#655cc327] w-full
+            <div id="left-header" class="md:basis-6/12">
+                <h1
+                    class="md:text-4xl text-3xl font-bold font-['Inter'] md:leading-[42px] leading-[36px] text-white/90"
+                >
+                    <style>
+                        .gradient-header {
+                            background: linear-gradient(
+                                90deg,
+                                #7970e9 0%,
+                                #f7233f 150%
+                            );
+                            background-clip: text;
+                            -webkit-background-clip: text;
+                            -webkit-text-fill-color: transparent;
+                        }
+                    </style>
+                    <a class="gradient-header tracking-tight" href="/recipes"
+                        >Query anything</a
+                    >
+                    <span class="tracking-tight">
+                        with old-school cool SQL
+                    </span>
+                </h1>
+                <p class="text-white/70 text-sm mt-3">
+                    From your Chrome tabs to your Notion database, passing
+                    through your GitHub stars, there is a SQL query for that.
+                    One query language, tens of APIs
+                </p>
+                <div class="flex mt-6 gap-3">
+                    <a href="/docs/#installation" class="button"> Install </a>
+                    <a href="/docs" class="button button-silent">
+                        Documentation
+                    </a>
+                </div>
+                <p class="text-white/40 text-xs mt-4">
+                    Supports GNU/Linux, macOS and Windows
+                </p>
+            </div>
+            <style>
+                #fake-terminal {
+                    background: #171717;
+                    box-shadow: 0px 0px 94.2px 7px rgba(124, 111, 231, 0.17);
+                }
+            </style>
+            <div
+                id="right-header"
+                class="flex flex-col basis-5/12 mt-4 md:mt-0"
+            >
+                <div
+                    id="fake-terminal"
+                    class="bg-neutral-900/10 rounded-lg overflow-hidden shadow border border-[#655cc327] w-full
          flex flex-col justify-between md:w-[450px] text-wrap"
-        >
-          <div class="text-xs flex items-center justify-between p-3">
-            <svg
-              viewBox="0 0 64 12"
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-3 w-16"
-            >
-              <circle cx="6" cy="6" r="5" fill="#FF5F56"></circle>
-              <circle cx="24" cy="6" r="5" fill="#FFBD2E"></circle>
-              <circle cx="42" cy="6" r="5" fill="#27C93F"></circle>
-            </svg>
-            <p x-text="title"></p>
-            <div class="h-3 w-16"></div>
-          </div>
-          <style is:global>
-            code .hljs-comment {
-              @apply text-white/50;
-            }
+                >
+                    <div class="text-xs flex items-center justify-between p-3">
+                        <svg
+                            viewBox="0 0 64 12"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-3 w-16"
+                        >
+                            <circle cx="6" cy="6" r="5" fill="#FF5F56"></circle>
+                            <circle cx="24" cy="6" r="5" fill="#FFBD2E"
+                            ></circle>
+                            <circle cx="42" cy="6" r="5" fill="#27C93F"
+                            ></circle>
+                        </svg>
+                        <p x-text="title"></p>
+                        <div class="h-3 w-16"></div>
+                    </div>
+                    <style is:global>
+                        code .hljs-comment {
+                            @apply text-white/50;
+                        }
 
-            code .hljs-operator {
-              color: #ff79c6;
-            }
+                        code .hljs-operator {
+                            color: #ff79c6;
+                        }
 
-            code .hljs-keyword,
-            code .hljs-selector-tag {
-              color: #bd93f9;
-            }
+                        code .hljs-keyword,
+                        code .hljs-selector-tag {
+                            color: #bd93f9;
+                        }
 
-            code .hljs-attr,
-            code .hljs-built_in {
-              color: #8be9fd;
-            }
+                        code .hljs-attr,
+                        code .hljs-built_in {
+                            color: #8be9fd;
+                        }
 
-            code .hljs-string {
-              color: #50fa7b;
-            }
-          </style>
-          <pre
-            class="text-white/70 text-sm min-h-[20ex] p-4 flex overflow-auto break-all whitespace-pre-wrap"><code x-html="code" class="my-auto" />
+                        code .hljs-string {
+                            color: #50fa7b;
+                        }
+                    </style>
+                    <pre
+                        class="text-white/70 text-sm min-h-[20ex] p-4 flex overflow-auto break-all whitespace-pre-wrap"><code x-html="code" class="my-auto" />
           </pre>
-          <div class="bg-neutral-950/30 text-xs flex items-center gap-4 p-3">
-            <svg
-              viewBox="0 0 100 100"
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-2 fill-green-300"
-              style="filter: drop-shadow(0px 0px 9.8px rgba(100, 243, 157, 1.53));"
-            >
-              <circle cx="
-              50" cy="50" r="50"></circle>
-            </svg>
-            <p class="text-white/50" x-text="footer"></p>
-          </div>
-        </div>
-        <p class="text-xs mt-3 text-white/40">
-          Each elapsed time corresponds to the real result of the first query
-          after a warm-up query
-        </p>
-      </div>
-    </header>
-    <div class="w-full flex gap-2 overflow-y-auto justify-between py-6">
-      {
-        elements.map((element) => (
-          <div
-            class="p-4 min-w-24 rounded-lg bg-[#181818] hover:bg-[#242424] border-primary border-2 transition-all flex-col justify-start items-center gap-3 inline-flex
+                    <div
+                        class="bg-neutral-950/30 text-xs flex items-center gap-4 p-3"
+                    >
+                        <svg
+                            viewBox="0 0 100 100"
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="h-2 fill-green-300"
+                            style="filter: drop-shadow(0px 0px 9.8px rgba(100, 243, 157, 1.53));"
+                        >
+                            <circle cx="
+              50" cy="50" r="50"
+                            ></circle>
+                        </svg>
+                        <p class="text-white/50" x-text="footer"></p>
+                    </div>
+                </div>
+                <p class="text-xs mt-3 text-white/40">
+                    Each elapsed time corresponds to the real result of the
+                    first query after a warm-up query
+                </p>
+            </div>
+        </header>
+        <div class="w-full flex gap-2 overflow-y-auto justify-between py-6">
+            {
+                elements.map((element) => (
+                    <div
+                        class="p-4 min-w-24 rounded-lg bg-[#181818] hover:bg-[#242424] border-primary border-2 transition-all flex-col justify-start items-center gap-3 inline-flex
             hover:shadow-outline-primary cursor-pointer text-white/70
             "
-            x-on:mouseover={`title = '${element.title}'; code = \`${element.code}\`; footer = '${element.footer}'`}
-          >
-            <div class="text-white/70" set:html={element.icon} />
-            <p class=" text-sm">{element.name}</p>
-          </div>
-        ))
-      }
+                        x-on:mouseover={`title = '${element.title}'; code = \`${element.code}\`; footer = '${element.footer}'`}
+                    >
+                        <div class="text-white/70" set:html={element.icon} />
+                        <p class=" text-sm">{element.name}</p>
+                    </div>
+                ))
+            }
+        </div>
     </div>
-  </div>
-  <!-- Features -->
-  <div>
-    <div class="py-6 w-full text-center">
-      <h2
-        class="md:text-4xl text-3xl font-bold bg-gradient-to-r from-[#FF7EA5] to-[#FF4C83] bg-clip-text text-transparent"
-      >
-        Full of features
-      </h2>
-      <p class="text-white/70 text-sm mt-1">and more to come</p>
+    <!-- Features -->
+    <div>
+        <div class="py-6 w-full text-center">
+            <h2
+                class="md:text-4xl text-3xl font-bold bg-gradient-to-r from-[#FF7EA5] to-[#FF4C83] bg-clip-text text-transparent"
+            >
+                Full of features
+            </h2>
+            <p class="text-white/70 text-sm mt-1">and more to come</p>
+        </div>
+        <div class="md:grid-cols-3 md:grid-rows-3 grid gap-2">
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg row-start-1 col-start-1 md:row-span-3 text-center"
+            >
+                <img
+                    src="/images/mysql-compatibility.png"
+                    alt="MySQL compatibility"
+                    class="aspect-[520/360] w-auto h-auto opacity-70"
+                />
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    Built-in MySQL server
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    so that you can connect Anyquery to Metabase, Drizzle or
+                    your favourite ORM
+                </p>
+            </div>
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-2"
+            >
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    JSON, CSV, TSV, Parquet support
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    Import/export data from/to your favourite file format
+                </p>
+            </div>
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-2"
+            >
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    It’s just SQLite
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    Supports the whole SQLite ecosystem e.g. <a
+                        class="underline underline-offset-2"
+                        href="https://litestream.io/">Litestream</a
+                    >, <a
+                        class="underline underline-offset-2"
+                        href="https://datasette.io/">Datasette</a
+                    >
+                </p>
+            </div>
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-3"
+            >
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    Join support
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    Do SQL join between APIs, files, and SQLite tables
+                </p>
+            </div>
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-3"
+            >
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    Supports alternative query language
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    You don’t like SQL. Fine, use <a
+                        class="underline underline-offset-2"
+                        href="https://prql-lang.org/">PRQL</a
+                    >. Used to Microsoft Kusto, all good use <a
+                        class="underline underline-offset-2"
+                        href="https://pql.dev/">PQL</a
+                    >
+                </p>
+            </div>
+            <div
+                class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-3 md:col-start-2 md:col-span-2"
+            >
+                <h3 class="text-white/90 font-medium text-sm tracking-tight">
+                    Easy to build integrations for developers
+                </h3>
+                <p class="text-white/50 text-xs mt-1">
+                    A read-only plugin is only one function that gets called
+                    until no more data is available. <br />
+                    Moreover, Anyquery features a dev mode to help you build your
+                    plugin
+                </p>
+            </div>
+        </div>
     </div>
-    <div class="md:grid-cols-3 md:grid-rows-3 grid gap-2">
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg row-start-1 col-start-1 md:row-span-3 text-center"
-      >
-        <img
-          src="/images/mysql-compatibility.png"
-          alt="MySQL compatibility"
-          class="aspect-[520/360] w-auto h-auto opacity-70"
-        />
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          Built-in MySQL server
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          so that you can connect Anyquery to Metabase, Drizzle or your
-          favourite ORM
-        </p>
-      </div>
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-2"
-      >
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          JSON, CSV, TSV, Parquet support
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          Import/export data from/to your favourite file format
-        </p>
-      </div>
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-2"
-      >
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          It’s just SQLite
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          Supports the whole SQLite ecosystem e.g. <a
-            class="underline underline-offset-2"
-            href="https://litestream.io/">Litestream</a
-          >, <a
-            class="underline underline-offset-2"
-            href="https://datasette.io/">Datasette</a
-          >
-        </p>
-      </div>
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-3"
-      >
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          Join support
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          Do SQL join between APIs, files, and SQLite tables
-        </p>
-      </div>
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-3"
-      >
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          Supports alternative query language
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          You don’t like SQL. Fine, use <a
-            class="underline underline-offset-2"
-            href="https://prql-lang.org/">PRQL</a
-          >. Used to Microsoft Kusto, all good use <a
-            class="underline underline-offset-2"
-            href="https://pql.dev/">PQL</a
-          >
-        </p>
-      </div>
-      <div
-        class="bg-[#111] border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-3 md:col-start-2 md:col-span-2"
-      >
-        <h3 class="text-white/90 font-medium text-sm tracking-tight">
-          Easy to build integrations for developers
-        </h3>
-        <p class="text-white/50 text-xs mt-1">
-          A read-only plugin is only one function that gets called until no more
-          data is available. <br />
-          Moreover, Anyquery features a dev mode to help you build your plugin
-        </p>
-      </div>
-    </div>
-  </div>
-  <!-- Integrations -->
-  <div
-    class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
-    style="background-image: url('/images/integrations_logo.png'); 
+    <!-- Integrations -->
+    <div
+        class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
+        style="background-image: url('/images/integrations_logo.png'); 
     background-size: cover; 
     background-repeat:no-repeat;
     background-position: center center;"
-  >
-    <h2 class="text-2xl font-bold">
-      An extensive list of <span class="text-[#7C91FF]">integrations</span>
-    </h2>
-    <p class="text-white/70 text-sm">that you will love using</p>
-    <a href="/integrations" class="button mt-4">See all integrations</a>
-  </div>
-  <!-- Use cases -->
-  <div class="w-full">
-    <h2 class="md:text-3xl text-2xl font-bold mb-4">Use cases</h2>
-    <div class="flex md:flex-row flex-col justify-between gap-4">
-      <div
-        class="p-6 rounded-2xl border border-[#202020] flex-1 flex-col justify-start items-start gap-1.5 inline-flex"
-      >
-        <h3 class="text-white/90 font-lg tracking-tight">Migrate your data</h3>
-        <p class="text-sm text-white/60">
-          Migrate your data between SaaS platforms with ease! Effortlessly
-          transfer your Safari tabs to Pocket, your Hacker News comments into a
-          Google Sheets spreadsheet, etc. The possibilities are limitless
-        </p>
-      </div>
-      <div
-        class="p-6 rounded-2xl border border-[#202020] flex-col flex-1 justify-start items-start gap-1.5 inline-flex"
-      >
-        <h3 class="text-white/90 font-lg tracking-tight">Explore your data</h3>
-        <p class="text-sm text-white/60">
-          Struggling to retrieve data from API endpoints? Anyquery does it for
-          you. Simply craft your SQL query and we handle everything else. And
-          thanks to the MySQL compatibility, you can use any MySQL client for
-          data exploration such as Metabase, Redash, Superset, etc.
-        </p>
-      </div>
+    >
+        <h2 class="text-2xl font-bold">
+            An extensive list of <span class="text-[#7C91FF]">integrations</span
+            >
+        </h2>
+        <p class="text-white/70 text-sm">that you will love using</p>
+        <a href="/integrations" class="button mt-4">See all integrations</a>
     </div>
-  </div>
-  <!-- Open source disclaimer -->
-  <div class="w-full text-center py-10">
-    <h3 class="text-2xl md:text-3xl">We ❤️ open source</h3>
-    <p class="text-white/70 text-sm mt-1">Anyquery is AGPL v3 licensed</p>
-  </div>
-  <!-- Download -->
-  <div
-    class="flex flex-col md:flex-row gap-4 justify-between items-center mb-12 mt-8"
-  >
-    <div class="">
-      <h2 class="md:text-3xl text-2xl font-bold">Getting started</h2>
-      <p class="text-white/70 text-sm mt-1">
-        Anyquery runs locally with a CLI that you can install with this command
-      </p>
+    <!-- Use cases -->
+    <div class="w-full">
+        <h2 class="md:text-3xl text-2xl font-bold mb-4">Use cases</h2>
+        <div class="flex md:flex-row flex-col justify-between gap-4">
+            <div
+                class="p-6 rounded-2xl border border-[#202020] flex-1 flex-col justify-start items-start gap-1.5 inline-flex"
+            >
+                <h3 class="text-white/90 font-lg tracking-tight">
+                    Migrate your data
+                </h3>
+                <p class="text-sm text-white/60">
+                    Migrate your data between SaaS platforms with ease!
+                    Effortlessly transfer your Safari tabs to Pocket, your
+                    Hacker News comments into a Google Sheets spreadsheet, etc.
+                    The possibilities are limitless
+                </p>
+            </div>
+            <div
+                class="p-6 rounded-2xl border border-[#202020] flex-col flex-1 justify-start items-start gap-1.5 inline-flex"
+            >
+                <h3 class="text-white/90 font-lg tracking-tight">
+                    Explore your data
+                </h3>
+                <p class="text-sm text-white/60">
+                    Struggling to retrieve data from API endpoints? Anyquery
+                    does it for you. Simply craft your SQL query and we handle
+                    everything else. And thanks to the MySQL compatibility, you
+                    can use any MySQL client for data exploration such as
+                    Metabase, Redash, Superset, etc.
+                </p>
+            </div>
+        </div>
     </div>
+    <!-- Open source disclaimer -->
+    <div class="w-full text-center py-10">
+        <h3 class="text-2xl md:text-3xl">We ❤️ open source</h3>
+        <p class="text-white/70 text-sm mt-1">Anyquery is AGPL v3 licensed</p>
+    </div>
+    <!-- Download -->
+    <div
+        class="flex flex-col md:flex-row gap-4 justify-between items-center mb-12 mt-8"
+    >
+        <div class="">
+            <h2 class="md:text-3xl text-2xl font-bold">Getting started</h2>
+            <p class="text-white/70 text-sm mt-1">
+                Anyquery runs locally with a CLI that you can install with this
+                command
+            </p>
+        </div>
 
-    <div class="flex flex-col w-full md:max-w-[50%]">
-      <div
-        class="px-4 py-3 min-h-14 bg-[#191919] flex flex-row justify-start gap-3 items-center rounded-lg shadow border border-[#373737]
+        <div class="flex flex-col w-full md:max-w-[50%]">
+            <div
+                class="px-4 py-3 min-h-14 bg-[#191919] flex flex-row justify-start gap-3 items-center rounded-lg shadow border border-[#373737]
         text-xs overflow-x-scroll max-w-fit ml-auto"
-      >
-        <img
-          id="install-logo"
-          src={"/images/apple-logo.svg"}
-          alt="Apple logo"
-          class="w-6 h-6 aspect-square fill-white text-white/70"
-        />
-        <pre><code id="install-code">brew install julien040/anyquery/anyquery</code></pre>
-      </div>
-      <a
-        href="/docs/#installation"
-        class="underline text-right text-sm ml-auto mt-2 text-white/60"
-        >See other platforms</a
-      >
+            >
+                <img
+                    id="install-logo"
+                    src={"/images/apple-logo.svg"}
+                    alt="Apple logo"
+                    class="w-6 h-6 aspect-square fill-white text-white/70"
+                />
+                <pre><code id="install-code">brew install julien040/anyquery/anyquery</code></pre>
+            </div>
+            <a
+                href="/docs/#installation"
+                class="underline text-right text-sm ml-auto mt-2 text-white/60"
+                >See other platforms</a
+            >
+        </div>
+        <script defer>
+            // Detect the OS so that we can display the correct command
+
+            /* Credit: https://stackoverflow.com/a/38241481 */
+            function getOS() {
+                const userAgent = window.navigator.userAgent,
+                    platform =
+                        window.navigator?.userAgentData?.platform ||
+                        window.navigator.platform,
+                    macosPlatforms = [
+                        "macOS",
+                        "Macintosh",
+                        "MacIntel",
+                        "MacPPC",
+                        "Mac68K",
+                    ],
+                    windowsPlatforms = ["Win32", "Win64", "Windows", "WinCE"],
+                    iosPlatforms = ["iPhone", "iPad", "iPod"];
+                let os = null;
+
+                if (macosPlatforms.indexOf(platform) !== -1) {
+                    os = "Mac OS";
+                } else if (iosPlatforms.indexOf(platform) !== -1) {
+                    os = "iOS";
+                } else if (windowsPlatforms.indexOf(platform) !== -1) {
+                    os = "Windows";
+                } else if (/Android/.test(userAgent)) {
+                    os = "Android";
+                } else if (/Linux/.test(platform)) {
+                    os = "Linux";
+                }
+
+                return os;
+            }
+
+            try {
+                const os = getOS();
+                let command = "";
+                let logoURL = "";
+                switch (os) {
+                    case "Mac OS":
+                    case "iOS":
+                        command = "brew install julien040/anyquery/anyquery";
+                        logoURL = "/images/apple-logo.svg";
+                        break;
+                    case "Windows":
+
+                    case "Android":
+                        command = "choco install anyquery";
+                        logoURL = "/images/windows-logo.svg";
+                        break;
+
+                    case "Linux":
+                        command = `echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+sudo apt update
+sudo apt install anyquery`;
+                        logoURL = "/images/ubuntu-logo.svg";
+                        break;
+
+                    default:
+                        command = "brew install julien040/anyquery/anyquery";
+                        logoURL = "/images/apple-logo.svg";
+                        break;
+                }
+                // Update the command
+                const code = document.getElementById("install-code");
+                if (code) {
+                    code.innerText = command;
+                }
+                // Update the logo
+                const logoCode = document.getElementById("install-logo");
+                if (logoCode) {
+                    logoCode.src = logoURL;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        </script>
     </div>
-    <script defer>
-      // Detect the OS so that we can display the correct command
-
-      /* Credit: https://stackoverflow.com/a/38241481 */
-      function getOS() {
-        const userAgent = window.navigator.userAgent,
-          platform =
-            window.navigator?.userAgentData?.platform ||
-            window.navigator.platform,
-          macosPlatforms = [
-            "macOS",
-            "Macintosh",
-            "MacIntel",
-            "MacPPC",
-            "Mac68K",
-          ],
-          windowsPlatforms = ["Win32", "Win64", "Windows", "WinCE"],
-          iosPlatforms = ["iPhone", "iPad", "iPod"];
-        let os = null;
-
-        if (macosPlatforms.indexOf(platform) !== -1) {
-          os = "Mac OS";
-        } else if (iosPlatforms.indexOf(platform) !== -1) {
-          os = "iOS";
-        } else if (windowsPlatforms.indexOf(platform) !== -1) {
-          os = "Windows";
-        } else if (/Android/.test(userAgent)) {
-          os = "Android";
-        } else if (/Linux/.test(platform)) {
-          os = "Linux";
-        }
-
-        return os;
-      }
-
-      try {
-        const os = getOS();
-        let command = "";
-        let logoURL = "";
-        switch (os) {
-          case "Mac OS":
-          case "iOS":
-            command = "brew install julien040/anyquery/anyquery";
-            logoURL = "/images/apple-logo.svg";
-            break;
-          case "Windows":
-
-          case "Android":
-            command =
-              "scoop bucket add anyquery https://github.com/julien040/anyquery-scoop\nscoop install anyquery/anyquery";
-            logoURL = "/images/windows-logo.svg";
-            break;
-
-          case "Linux":
-            command = `echo "deb [trusted=yes] https://apt.anyquery.dev /" | sudo tee /etc/apt/sources.list.d/anyquery.list
-sudo apt-get update
-sudo apt-get install anyquery`;
-            logoURL = "/images/ubuntu-logo.svg";
-            break;
-
-          default:
-            command = "brew install julien040/anyquery/anyquery";
-            logoURL = "/images/apple-logo.svg";
-            break;
-        }
-        // Update the command
-        const code = document.getElementById("install-code");
-        if (code) {
-          code.innerText = command;
-        }
-        // Update the logo
-        const logoCode = document.getElementById("install-logo");
-        if (logoCode) {
-          logoCode.src = logoURL;
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    </script>
-  </div>
 </Main>

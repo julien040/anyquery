@@ -357,7 +357,23 @@ directory = "dist/anyquery_windows_arm64"
 executablePath = "anyquery.exe"
 ```
 
-Once the manifest file is created, you can publish the plugin by opening a pull request to the [Anyquery plugin repository](https://github.com/julien040/anyquery). Add your plugin to the `plugins` directory and create a pull request.
+### Registry guidelines
+
+To be able to publish a plugin to the Anyquery plugin repository, you need to follow these guidelines:
+
+- A maintainer must be able to inspect the source code (under an NDAs if necessary). Some exceptions can be made for proprietary plugins. Please contact me for more information (contact at anyquery.dev).
+- The plugin cannot download and execute code from the internet.
+- The plugin must not log to `stdout`. All logs and print messages should be to `stderr`. Replace `fmt` with `log`.
+- The plugin must not use `panic`. All errors should be returned to Anyquery.
+- The plugin must not use `os.Exit`. All errors should be returned to Anyquery.
+- The plugin must not use `os.Args`. All configurations should be passed as parameters.
+- The recommended column names are lowercase with underscores (e.g., `first_name`).
+- If the column name is reserved, prefix it with an underscore (e.g., `_type`).
+- If the plugin requires a token, the token should be passed as a parameter and not hardcoded in the plugin.
+- All plugins must have a README explaining how to install the plugin, the required configurations, and how to use the tables.
+- Please try as much as possible to avoid CGO. Using CGO might lead to delay in plugins publication.
+
+Once the manifest file is created, and you have ensured you follow the guidelines, you can publish the plugin by opening a pull request to the [Anyquery plugin repository](https://github.com/julien040/anyquery). Add your plugin to the `plugins` directory and create a pull request.
 
 ## Troubleshooting
 

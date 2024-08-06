@@ -54,7 +54,12 @@ export default defineConfig({
       }, {
         label: "As a library",
         link: "/docs/usage/as-a-library"
-      }]
+      },
+      {
+        label: "Troubleshooting and limitations",
+        link: "/docs/usage/troubleshooting"
+      },
+    ]
     }, {
       label: "Reference",
       items: [{

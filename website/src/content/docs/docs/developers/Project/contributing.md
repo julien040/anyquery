@@ -5,6 +5,20 @@ description: Learn how to contribute to Anyquery
 
 We welcome contributions to Anyquery. You can contribute minor patches by submitting a pull request to the repository. I don't currently accept big changes, but you can open an issue to discuss what you would like to contribute.
 
+## How to contribute
+
+1. Fork the repository
+2. Make your changes
+3. Submit a pull request
+
+To run a development version of Anyquery, you can clone the repository and run the following command:
+
+```bash
+make
+```
+
+You need to have Go and `gcc` installed on your machine.
+
 ## Testing
 
 Before submitting a pull request, please make sure that your changes pass the tests. You can run the tests with the following command:
@@ -23,9 +37,3 @@ When you submit a pull request, you will be asked to accept the CLA. If you have
 ## Code of Conduct
 
 Please note that this project is released with a Contributor Code of Conduct. By participating in this project you agree to abide by its terms. You can find the Code of Conduct [here](https://github.com/julien040/anyquery/blob/main/CODE_OF_CONDUCT.md).
-
-## How to contribute
-
-1. Fork the repository
-2. Make your changes
-3. Submit a pull request

@@ -23,6 +23,13 @@ for (const file of files) {
 	const title = text.match(/## (.*)/)[1];
 	// Strip the title from the markdown
 	text = text.replace(`## ${title}\n\n`, "");
+
+	// Strip the last two lines
+	text = text.split("\n").slice(0, -2).join("\n");
+
+	// Rewrite the links that ends with .md
+	text = text.replace(/\(([^)]+).md\)/g, "(../$1)");
+
 	const frontmatter = `---
 title: ${title}
 description: Learn how to use the ${title} command in AnyQuery.
