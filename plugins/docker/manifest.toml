@@ -1,0 +1,43 @@
+
+name = "docker"
+displayName = "Docker"
+version = "0.1.0"
+description = "Query docker containers, images, and networks"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/plugins/docker"
+homepage = "https://github.com/julien040/anyquery/plugins/docker"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["containers", "container", "images", "networks"]
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "docker"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "docker"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "docker"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "docker"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "docker.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "docker.exe"
