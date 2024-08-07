@@ -1,0 +1,49 @@
+
+name = "vercel"
+version = "0.1.0"
+description = "Query your projects, deployments and events from Vercel"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/vercel"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/vercel"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["projects", "deployments"]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A vercel personal access token created at https://vercel.com/account/tokens"
+type = "string"
+required = true # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "vercel"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "vercel"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "vercel"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "vercel"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "vercel.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "vercel.exe"
