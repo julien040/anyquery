@@ -7,16 +7,22 @@ description: Using AnyQuery as a go library
 [Namespaces](https://pkg.go.dev/github.com/julien040/anyquery@v0.0.0-20240727154302-ea05a02d7d9b/namespace) in Anyquery represent an instance of Anyquery. Once initialized, it returns a [sql.DB](https://pkg.go.dev/database/sql#DB) ([database/sql](https://pkg.go.dev/database/sql)) instance that can be used to interact with the database.
 
 ```go
+package main
+
+import (
+    "github.com/hashicorp/go-hclog"
+    "github.com/julien040/anyquery/namespace"
+)
 // Create a new namespace
 instance, err := namespace.NewNamespace(namespace.NamespaceConfig{
-        InMemory: inMemory,
-        ReadOnly: readOnly,
-        Path:     path,
+        InMemory: false,
+        ReadOnly: true,
+        Path:    "path/to/db",
         Logger: hclog.FromStandardLogger(loPlugin.StandardLog(), &hclog.LoggerOptions{
             Level:       hclog.LevelFromString(logLevel),
             DisableTime: true,
         }),
-        DevMode: dev,
+        DevMode: false,
     })
     if err != nil {
         return err

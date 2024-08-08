@@ -29,7 +29,7 @@ But let's see a quick example. Type `anyquery` in your terminal to open the shel
 SELECT full_name, stargazers_count, pushed_at FROM github_repositories_from_user('asg017') WHERE name LIKE '%sqlite%';
 
 -- Count rows of a remote 75MB CSV file
-SELECT * FROM read_csv('https://raw.githubusercontent.com/datadesk/california-coronavirus-data/master/latimes-place-totals.csv', header=true);
+SELECT count(*) FROM read_csv('https://raw.githubusercontent.com/datadesk/california-coronavirus-data/master/latimes-place-totals.csv', header=true);
 
 -- Insert into a Notion database all repositories of nalgeon related to SQLite
 INSERT INTO notion_database(repo, stars, last_push) SELECT full_name, stargazers_count, pushed_at FROM github_repositories_from_user('nalgeon') WHERE description LIKE '%sqlite%';

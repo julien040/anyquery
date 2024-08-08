@@ -372,6 +372,12 @@ To be able to publish a plugin to the Anyquery plugin repository, you need to fo
 - If the plugin requires a token, the token should be passed as a parameter and not hardcoded in the plugin.
 - All plugins must have a README explaining how to install the plugin, the required configurations, and how to use the tables.
 - Please try as much as possible to avoid CGO. Using CGO might lead to delay in plugins publication.
+- All dates should be formatted as RFC3339 (e.g., `2022-01-01T00:00:00Z`). If the date is in a different format, it should be converted to RFC3339. ISO 8601, unix timestamps `YYYY-MM-DD`and hours are also accepted.
+- Other datatypes should be converted to JSON arrays and objects.
+- Created time of an item should be named `created_at`. Other time fields should be as much as possible suffixed with `_at` (e.g., `updated_at`, `deleted_at`).
+- If necessary, you can read the configuration from the environment variables. But configuration per connection must be passed as parameters.
+- Column parameters must never be in the row slice.
+- Try as much as possible to store cache in `XDG_CACHE_HOME/anyquery/plugins/plugin_name`. We recommend the use of [xdg](https://github.com/adrg/xdg) to get the cache directory.
 
 Once the manifest file is created, and you have ensured you follow the guidelines, you can publish the plugin by opening a pull request to the [Anyquery plugin repository](https://github.com/julien040/anyquery). Add your plugin to the `plugins` directory and create a pull request.
 
