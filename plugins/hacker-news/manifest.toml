@@ -1,7 +1,7 @@
 
 name = "hn"
 displayName = "Hacker News"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query user and post data from Hacker News"
 author = "julien040"
 license = "UNLICENSED"
@@ -10,7 +10,19 @@ homepage = "https://github.com/julien040/anyquery/tree/main/plugins/hacker-news"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["search", "post", "descendants", "user_posts"]
+tables = [
+        "search", 
+        "post", 
+        "descendants", 
+        "user_posts",
+        "top",
+        "new",
+        "best",
+        "ask",
+        "show",
+        "job",
+        "user"
+    ]
 
 # Results of GoReleaser
 [[file]]

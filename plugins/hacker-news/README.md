@@ -8,10 +8,23 @@ This plugin allows you to do queries on Hacker News.
 anyquery install hn
 ```
 
-## Usage
+## Usage and examples
 
 ```bash
 anyquery -q "SELECT * FROM hn_search('julien040')"
+```
+
+A few SQL examples:
+
+```sql
+-- Search for "Gut cli" in comments using the Algolia API
+SELECT * FROM hn_search('Gut cli') WHERE type = 'comment'
+-- Retrieve a post by its id
+SELECT * FROM hn_post(36391655)
+-- Find all the comments recursively for a given post id
+SELECT * FROM hn_descendants(36391655)
+-- Find all the posts ids of a user
+SELECT * FROM hn_user('julien040')
 ```
 
 ## Tables
@@ -111,7 +124,7 @@ SELECT * FROM hn_descendants WHERE id = 36391655
 
 ### `hn_user_posts`
 
-Find the last 100 posts of a user.
+Find the last 100 posts of a user from algolia.
 
 #### Parameters
 
@@ -138,6 +151,38 @@ SELECT * FROM hn_user_posts WHERE id = 'julien040'
 | 9            | parent      | INTEGER |
 | 10           | poll        | INTEGER |
 | 11           | kids        | TEXT    |
+
+### `hn_top`, `hn_new`, `hn_best`, `hn_ask`, `hn_show`, `hn_job`
+
+Get the post ids of the lists top, new, best, ask, show or job posts.
+
+#### Schema
+
+| Column index | Column name | type    |
+| ------------ | ----------- | ------- |
+| 0            | id          | INTEGER |
+
+### `hn_user`
+
+List all the posts of a user and the account creation date, karma and about (in HTML).
+
+#### Parameters
+
+You can specify the user name as a table argument or for the "id" column in the WHERE clause.
+
+```sql
+SELECT * FROM hn_user('julien040') -- is equivalent to
+SELECT * FROM hn_user WHERE id = 'julien040'
+```
+
+#### Schema
+
+| Column index | Column name | type    |
+| ------------ | ----------- | ------- |
+| 0            | created_at  | TEXT    |
+| 1            | karma       | INTEGER |
+| 2            | about       | TEXT    |
+| 3            | post_id     | INTEGER |
 
 ## Caveats
 
