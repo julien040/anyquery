@@ -39,6 +39,10 @@ export default defineConfig({
       }, {
         label: "Querying files",
         link: "/docs/usage/querying-files"
+      },
+      {
+        label: "Querying logs",
+        link: "/docs/usage/querying-log"
       }, {
         label: "Alternative languages (PRQL, PQL)",
         link: "/docs/usage/alternative-languages"

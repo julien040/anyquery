@@ -693,6 +693,8 @@ func middlewareFileQuery(queryData *QueryData) bool {
 			preExecBuilder.WriteString("toml_reader")
 		case "read_jsonl", "read_ndjson":
 			preExecBuilder.WriteString("jsonl_reader")
+		case "read_log":
+			preExecBuilder.WriteString("log_reader")
 		default:
 			// If the user writes read_foo, and we don't have a reader for foo
 			// we skip the table function

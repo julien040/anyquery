@@ -83,6 +83,10 @@ curl https://formulae.brew.sh/api/formula.json | anyquery -q "SELECT full_name, 
 cat file.json | anyquery -q "SELECT * FROM read_json('-');"
 ```
 
+:::note[Bigger than memory files]
+Anyquery will read the whole file in memory before parsing it. Reading from stdin will not be suitable for streaming files or files bigger than memory. In this case, save the pipe content to a file and query it.
+:::
+
 ## File formats
 
 ### JSON
@@ -147,6 +151,16 @@ SELECT * FROM read_csv('https://csvbase.com/meripaterson/stock-exchanges.csv', h
 -- Query a CSV file with a header and a custom delimiter
 SELECT * FROM read_csv('path/to/file.csv', header=true, delimiter=';');
 ```
+
+You also specify a schema for the CSV file, and any query will make the best effort to parse the file according to the schema.
+
+```sql title="Querying a CSV file with a schema" "schema='CREATE TABLE csv (id int, date varchar, cases int)'"
+SELECT * FROM read_csv('https://csvbase.com/rmirror/us-covid-cases', schema='CREATE TABLE csv (id int, date varchar, cases int)', header=true) LIMIT 30;
+```
+
+:::caution
+Types must be specified in their MySQL format. For example, `int`, `varchar`, `float`, etc.
+:::
 
 ### TSV
 
@@ -251,3 +265,4 @@ DROP TABLE my_tsv_table;
 ## Limitations
 
 - You cannot observe the schema of the file using the `PRAGMA table_info` or `DESCRIBE` statement. This is due to `anyquery` rewriting your query on the fly to create a temporary virtual table for the duration of the query. To observe the schema, you need to create a virtual table as specified in the MySQL server section.
+- You cannot use the `CREATE VIEW` statement with the `read_*` functions.

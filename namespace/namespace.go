@@ -308,6 +308,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("yaml_reader", &module.YamlModule{})
 			conn.CreateModule("toml_reader", &module.TomlModule{})
 			conn.CreateModule("jsonl_reader", &module.JSONlModule{})
+			conn.CreateModule("log_reader", &module.LogModule{})
 
 			// Register the string functions
 			// like position, repeat, replace, etc.
