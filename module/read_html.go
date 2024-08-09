@@ -165,7 +165,7 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 			if i > 0 {
 				schema.WriteString(", ")
 			}
-			schema.WriteString(col)
+			schema.WriteString("`" + col + "`")
 			schema.WriteString(" TEXT")
 		}
 		schema.WriteString(")")

@@ -164,6 +164,14 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 			return nil, fmt.Errorf("invalid schema provided")
 		}
 
+		if createTableStmt.TableSpec == nil {
+			return nil, fmt.Errorf("invalid schema provided")
+		}
+
+		if createTableStmt.TableSpec == nil {
+			return nil, fmt.Errorf("invalid schema provided")
+		}
+
 		for i, col := range createTableStmt.TableSpec.Columns {
 			lowerCaseType := strings.ToLower(col.Type.Type)
 			colType, ok := typeEquivalences[lowerCaseType]
@@ -207,7 +215,7 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		// Replace invalid characters
 		col.name = transformSQLiteValidName(col.name)
 
-		tableStatement.WriteString(col.name)
+		tableStatement.WriteString("`" + col.name + "`")
 		tableStatement.WriteString(" ")
 		switch col.colType {
 		case "int":

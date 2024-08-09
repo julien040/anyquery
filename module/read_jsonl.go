@@ -151,9 +151,9 @@ func (m *JSONlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		if i > 0 {
 			schema.WriteString(", ")
 		}
-		schema.WriteRune('"')
+		schema.WriteRune('`')
 		schema.WriteString(k)
-		schema.WriteRune('"')
+		schema.WriteRune('`')
 		schema.WriteString(" ")
 		schema.WriteString(mapColnameType[k])
 		mapColPositionName[i] = k
