@@ -590,13 +590,17 @@ func convertToSQLiteVal(val interface{}, c *sqlite3.SQLiteContext) {
 		c.ResultDouble(float64(v))
 	case []string, []float64, []float32, []int, []int64, []bool, []interface{}, []uint64,
 		[]uint32, []uint16, []int32, []int16, []int8:
-		// JSON encode the string slice
-		encoded, err := json.Marshal(v)
-		if err != nil {
-			// If the JSON encoding fails, we return NULL
+		if v == nil {
 			c.ResultNull()
 		} else {
-			c.ResultText(string(encoded))
+			// JSON encode the string slice
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				// If the JSON encoding fails, we return NULL
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
 		}
 
 	case nil:
