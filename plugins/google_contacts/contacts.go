@@ -11,7 +11,6 @@ import (
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
-	"google.golang.org/api/sheets/v4"
 )
 
 // A constructor to create a new table instance
@@ -58,7 +57,7 @@ func google_contactsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Database
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint:     google.Endpoint,
-		Scopes:       []string{sheets.SpreadsheetsScope},
+		Scopes:       []string{people.ContactsScope},
 	}
 
 	oauthClient := config.Client(context.Background(), &oauth2.Token{
