@@ -1,6 +1,6 @@
 # Anyquery
 
-<img src="https://anyquery.dev/images/logo.png" alt="Anyquery logo" width="96"></img>
+<img src="https://anyquery.dev/images/logo-shadow.png" alt="Anyquery logo" width="96"></img>
 
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/julien040/anyquery/total)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/m/julien040/anyquery)
@@ -8,16 +8,12 @@
 [![GitHub issues](https://img.shields.io/github/issues/julien040/anyquery)](https://github.com/julien040/anyquery/issues)
 [![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fregistry.anyquery.dev%2Fv0%2Fregistry%2F&query=%24.plugins_count&label=Integrations%20count&cacheSeconds=3600)](https://anyquery.dev/integrations/)
 
-Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [JSON](https://anyquery.dev/docs/usage/querying-files/#json), [CSV](https://anyquery.dev/docs/usage/querying-files/#csv), [Parquet](https://anyquery.dev/docs/usage/querying-files/#parquet), SQLite, [Airtable bases](https://anyquery.dev/integrations/airtable/), [Google Sheets](https://anyquery.dev/integrations/google_sheets/), [Notion databases](https://anyquery.dev/integrations/notion/), and more. It also supports running SQL queries on [remote files](https://anyquery.dev/docs/usage/querying-files/#remote-files) (HTTP, S3, GCS) and local apps ([Apple Notes](https://anyquery.dev/integrations/notes/), [Apple Reminders](https://anyquery.dev/integrations/reminders/), [Google Chrome Tabs](https://anyquery.dev/integrations/chrome/), etc.).
+Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [JSON](https://anyquery.dev/docs/usage/querying-files/#json), [CSV](https://anyquery.dev/docs/usage/querying-files/#csv), [Parquet](https://anyquery.dev/docs/usage/querying-files/#parquet), SQLite, [Airtable bases](https://anyquery.dev/integrations/airtable/), [Google Sheets](https://anyquery.dev/integrations/google_sheets/), [Notion databases](https://anyquery.dev/integrations/notion/), [logs file](https://anyquery.dev/docs/usage/querying-log/) using [Grok](https://www.elastic.co/guide/en/elasticsearch/reference/current/grok.html), and more. It also supports running SQL queries on [remote files](https://anyquery.dev/docs/usage/querying-files/#remote-files) (HTTP, S3, GCS) and local apps ([Apple Notes](https://anyquery.dev/integrations/notes/), [Apple Reminders](https://anyquery.dev/integrations/reminders/), [Google Chrome Tabs](https://anyquery.dev/integrations/chrome/), etc.).
 It's built on top of [SQLite](https://www.sqlite.org) and uses [plugins](https://anyquery.dev/integrations/) to extend its functionality.
 
 Moreover, it can acts as a [MySQL server](https://anyquery.dev/docs/usage/mysql-server/), allowing you to run SQL queries from your favorite MySQL-compatible client (e.g. [Looker Studio](https://anyquery.dev/connection-guide/looker-studio/), [DBeaver](https://anyquery.dev/connection-guide/dbeaver/), [TablePlus](https://anyquery.dev/connection-guide/tableplus/), [Metabase](https://anyquery.dev/connection-guide/metabase/), etc.).
 
 ![Anyquery header](https://anyquery.dev/images/release-header.png)
-
-## Installation
-
-The [documentation](https://anyquery.dev/docs/#installation) provides detailed instructions on how to install Anyquery on your system. You can install anyquery from Homebrew, APT, YUM/DNF, Scoop, Winget and Chocolatey. You can also download the binary from the [releases page](https://github.com/julien040/anyquery/releases).
 
 ## Usage
 
@@ -43,6 +39,60 @@ You can also launch the MySQL server with `anyquery server` and connect to it wi
 ```bash
 anyquery server &
 mysql -u root -h 127.0.0.1 -P 8070
+```
+
+## Installation
+
+The [documentation](https://anyquery.dev/docs/#installation) provides detailed instructions on how to install Anyquery on your system. You can install anyquery from Homebrew, APT, YUM/DNF, Scoop, Winget and Chocolatey. You can also download the binary from the [releases page](https://github.com/julien040/anyquery/releases).
+
+### Homebrew
+
+```zsh
+brew install julien040/anyquery/anyquery
+```
+
+### Snap
+
+```bash
+sudo snap install anyquery
+```
+
+### APT
+
+```bash
+echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+sudo apt update
+sudo apt install anyquery
+```
+
+### YUM/DNF
+
+```bash
+echo "[anyquery]
+name=Anyquery
+baseurl=https://yum.julienc.me/
+enabled=1
+gpgcheck=0" | sudo tee /etc/yum.repos.d/anyquery.repo
+sudo dnf install anyquery
+```
+
+### Scoop
+
+```powershell
+scoop bucket add anyquery https://github.com/julien040/anyquery-scoop
+scoop install anyquery
+```
+
+### Winget
+
+```powershell
+winget install JulienCagniart.anyquery
+```
+
+### Chocolatey
+
+```powershell
+choco install anyquery
 ```
 
 ## Plugins
