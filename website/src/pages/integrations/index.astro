@@ -29,7 +29,8 @@ const allPlugins: apiResponse = await fetchReg.json();
 allPlugins.plugins.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
 const remotePlugins = allPlugins.plugins.filter((plugin) => {
-    return plugin.type === "anyquery";
+    // Filter out test plugins that start with "sample"
+    return plugin.type === "anyquery" && !plugin.name.startsWith("sample");
 });
 
 const libraryPlugins = allPlugins.plugins.filter((plugin) => {
