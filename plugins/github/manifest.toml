@@ -1,6 +1,6 @@
 
 name = "github"
-version = "0.1.2"
+version = "0.1.3"
 description = "Query GitHub data"
 author = "julien040"
 license = "UNLICENSED"
@@ -29,6 +29,7 @@ tables = [
     "my_gists",
     "comments_from_issue",
     "my_issues",
+    "stargazers_from_repository",
 ]
 
 # The user configuration schema

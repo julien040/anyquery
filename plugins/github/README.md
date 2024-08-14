@@ -503,6 +503,27 @@ SELECT * FROM github_my_issue WHERE filter = 'subscribed';
 | 15           | is_pull_request    | TEXT    |
 | 16           | repository         | TEXT    |
 
+### `github_stargazers_from_repository`
+
+List the stargazers of a specific repository.
+
+```sql
+-- List all stargazers of Anyquery
+SELECT * FROM github_stargazers_from_repository('julien040/anyquery');
+-- List stargarzers per day of Anyquery
+SELECT date(starred_at) as day, count(*) FROM github_stargazers_from_repository('julien040/anyquery') GROUP BY day ORDER BY day;
+```
+
+#### Schema
+
+| Column index | Column name | type |
+| ------------ | ----------- | ---- |
+| 0            | login       | TEXT |
+| 1            | starred_at  | TEXT |
+| 2            | user_id     | TEXT |
+
 ## Caveats
 
 - The plugin is limited to 5000 requests per hour. If you reach this limit, you will have to wait an hour before making new requests. This is a limitation from the GitHub API.
+- Data is cached for 1 hour. If you want to clear the cache, run `anyquery -q "SELECT clear_plugin_cache('github')"`, and then restart Anyquery.
+- The plugin is read-only. You can't create, update, or delete data from GitHub.
