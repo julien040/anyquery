@@ -16,6 +16,7 @@ builds:
       - fts5
       - sqlite_json
       - sqlite_math_functions
+      - prql
     
     ldflags:
       - -s -w
@@ -46,6 +47,7 @@ builds:
       - fts5
       - sqlite_json
       - sqlite_math_functions
+      - prql
     
     ldflags:
       - -s -w
@@ -70,6 +72,7 @@ builds:
       - fts5
       - sqlite_json
       - sqlite_math_functions
+      - prql
     ldflags:
       - -s -w
     env:

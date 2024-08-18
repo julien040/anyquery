@@ -1,3 +1,5 @@
+//go:build prql
+
 package prql
 
 // #cgo CFLAGS: -I.
@@ -26,21 +28,6 @@ import (
 	"unsafe"
 )
 
-type SourceLocationError struct {
-	startLine   int
-	startColumn int
-	endLine     int
-	endColumn   int
-}
-
-type CompileMessage struct {
-	ErrorCode rune
-	// Annoted code containing the error and the hints
-	Display string
-	// The location of the error
-	LocationError SourceLocationError
-}
-
 func ToSQL(prqlQuery string) (string, []CompileMessage) {
 	res := C.to_sql(C.CString(prqlQuery))
 	a := res.messages
@@ -59,10 +46,10 @@ func ToSQL(prqlQuery string) (string, []CompileMessage) {
 			}
 
 			if message.location != nil {
-				compileMessage.LocationError.startLine = int(message.location.start_line)
-				compileMessage.LocationError.startColumn = int(message.location.start_col)
-				compileMessage.LocationError.endLine = int(message.location.end_line)
-				compileMessage.LocationError.endColumn = int(message.location.end_col)
+				compileMessage.LocationError.StartLine = int(message.location.start_line)
+				compileMessage.LocationError.StartColumn = int(message.location.start_col)
+				compileMessage.LocationError.EndLine = int(message.location.end_line)
+				compileMessage.LocationError.EndColumn = int(message.location.end_col)
 			}
 
 			messages[i] = compileMessage
