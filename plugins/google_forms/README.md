@@ -41,18 +41,19 @@ Then, you need to authenticate with Google. Go to the [Google Cloud Console](htt
     ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/create.png)
 3. If not done, configure the consent screen
     ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentScreen.png)
-    1. And fill the form with the required information
+    1. Select `External` and click on Create
+    2. And fill the form with the required information
         - Application name: AnyQuery
         - User support email: Your email
         - Developer contact information: Your email
         - Leave the rest as it is
 
         ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentFilled.png)
-    2. Click on Save and Continue
-    3. Click on Save and Continue and leave Scopes as it is
-    4. On test users, add the Google account you will use to query the responses
-    5. Click on Save and Continue
-    6. Click on Back to Dashboard
+    3. Click on Save and Continue
+    4. Click on Save and Continue and leave Scopes as it is
+    5. On test users, add the Google account you will use to query the responses
+    6. Click on Save and Continue
+    7. Click on Back to Dashboard
 4. Go back to the Credentials tab and click on Create Credentials
     ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/createCredentials.png)
 5. Select OAuth client ID, and select Web application
