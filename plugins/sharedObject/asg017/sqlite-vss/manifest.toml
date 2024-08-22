@@ -1,0 +1,29 @@
+
+name = "sqlite-vss-asg017"
+displayName = "sqlite-vss"
+version = "0.1.2"
+description = "Efficient vector search, based on Faiss"
+author = "asg017"
+license = "MIT"
+repository = "https://github.com/asg017/sqlite-vss"
+homepage = "https://github.com/asg017/sqlite-vss"
+type = "sharedObject"
+minimumAnyqueryVersion = "0.0.1"
+
+[[file]]
+platform = "linux/amd64"
+directory = "linux-amd64"
+executablePath = "vss0.so"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "darwin-amd64"
+executablePath = "vss0.dylib"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "darwin-arm64"
+executablePath = "vss0.dylib"
+
+
+
