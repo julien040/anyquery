@@ -1,0 +1,61 @@
+
+name = "nylas"
+version = "0.1.0"
+description = "Events/emails as a SQL database using Nylas"
+author = "julien040"
+license = "MIT"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/nylas"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/nylas"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = ["events", "emails"]
+
+# The user configuration schema
+[[userConfig]]
+name = "server_host"
+description = "Either api.us.nylas.com or api.eu.nylas.com depending on your account"
+type = "string"
+required = true # If the user must provide a value
+
+[[userConfig]]
+name = "grant_id"
+description = "The grant_id of your sandbox account. Learn more here https://developer.nylas.com/docs/v3/quickstart/"
+type = "string"
+required = true # If the user must provide a value
+
+[[userConfig]]
+name = "api_key"
+description = "The api_key of your sandbox account. Learn more here https://developer.nylas.com/docs/v3/quickstart/"
+type = "string"
+required = true # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "nylas"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "nylas"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "nylas"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "nylas"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "nylas.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "nylas.exe"
