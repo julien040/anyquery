@@ -35,10 +35,12 @@ func TestOutputJSON(t *testing.T) {
 	err = output.Close()
 	require.NoError(t, err, "The output should be closed without errors")
 
-	expected := `[{"age":25,"alive":true,"id":1,"name":"John","weight":80.5}` +
-		`,{"age":23,"alive":false,"id":2,"name":"Jane","weight":60.5}]` + "\n"
+	expected := `[{"age":25,"alive":true,"id":1,"name":"John","weight":80.5}
+ ,{"age":23,"alive":false,"id":2,"name":"Jane","weight":60.5}
+]
+`
 
-	require.Equal(t, expected, buf.String(), "The output should be correct")
+	require.Equal(t, expected, buf.String(), "The output should be correct for ugly JSON")
 
 	// Test the pretty print
 	buf.Reset()
@@ -66,17 +68,18 @@ func TestOutputJSON(t *testing.T) {
     "id": 1,
     "name": "John",
     "weight": 80.5
-  },
-  {
+  }
+ ,{
     "age": 23,
     "alive": false,
     "id": 2,
     "name": "Jane",
     "weight": 60.5
   }
-]` + "\n"
+]
+`
 
-	require.Equal(t, expected, buf.String(), "The output should be correct")
+	require.Equal(t, expected, buf.String(), "The output should be correct for pretty JSON")
 
 }
 

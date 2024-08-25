@@ -293,37 +293,51 @@ func (o *outputTable) Close() error {
  **********************/
 
 type jsonTableEncoder struct {
-	Columns []string
-	Writer  io.Writer
-	rows    []map[string]interface{}
-	Indent  bool
+	Columns         []string
+	Writer          io.Writer
+	encoder         *json.Encoder
+	Indent          bool
+	firstRowWritten bool
 }
 
 func (j *jsonTableEncoder) Write(row []interface{}) error {
-	mapToAppend := make(map[string]interface{})
-	for i, col := range j.Columns {
-		if i < len(row) {
-			mapToAppend[col] = row[i]
-		} else { // When the row is shorter than the columns, we set the column to nil
-			mapToAppend[col] = nil
+	if j.encoder == nil {
+		j.encoder = json.NewEncoder(j.Writer)
+		if j.Indent {
+			j.encoder.SetIndent("  ", "  ")
+		}
+		fmt.Fprint(j.Writer, "[")
+		if j.Indent {
+			fmt.Fprint(j.Writer, "\n")
 		}
 	}
-	j.rows = append(j.rows, mapToAppend)
+
+	// To separate the rows with a comma
+	if j.firstRowWritten {
+		fmt.Fprint(j.Writer, " ,")
+	} else {
+		if j.Indent {
+			fmt.Fprint(j.Writer, "  ")
+		}
+		j.firstRowWritten = true
+	}
+	mapToPrint := make(map[string]interface{})
+	for i, col := range j.Columns {
+		if i < len(row) {
+			mapToPrint[col] = row[i]
+		} else { // When the row is shorter than the columns, we set the column to nil
+			mapToPrint[col] = nil
+		}
+	}
+
+	j.encoder.Encode(mapToPrint)
 
 	return nil
 
 }
 func (j *jsonTableEncoder) Close() error {
-	// Create the encoder
-	encoder := json.NewEncoder(j.Writer)
-	if j.Indent {
-		encoder.SetIndent("", "  ")
-	}
-
-	// Write the rows
-	if err := encoder.Encode(j.rows); err != nil {
-		return err
-	}
+	// Print the closing bracket
+	fmt.Fprint(j.Writer, "]\n")
 
 	return nil
 }
