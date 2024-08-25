@@ -115,9 +115,15 @@ func (h *handler) NewConnection(c *mysql.Conn) {
 
 func (h *handler) ConnectionClosed(c *mysql.Conn) {
 	h.Logger.Info("Connection closed", "connectionID", c.ConnectionID, "username", c.User)
-
+	// You might be tempted to just have a top lock and just defer the unlock
+	//
+	// However, it's not working for some reasons when two connections are created at the same time
+	// (probably related to a global database/sql variable because test clients and the test server are using sql.register)
+	// Also, because conn.Close() can take some time, we don't want to block the other goroutines.
+	h.mutexConnectionMapperSQLite.Lock()
 	// Close the connection associated with the MySQL connection
 	if conn, ok := h.connectionMapperSQLite[c.ConnectionID]; ok {
+		h.mutexConnectionMapperSQLite.Unlock()
 		// Return the connection to the pool
 		err := conn.Close()
 		if err != nil {
@@ -127,7 +133,9 @@ func (h *handler) ConnectionClosed(c *mysql.Conn) {
 		h.mutexConnectionMapperSQLite.Lock()
 		delete(h.connectionMapperSQLite, c.ConnectionID)
 		h.mutexConnectionMapperSQLite.Unlock()
+
 	} else {
+		h.mutexConnectionMapperSQLite.Unlock()
 		h.Logger.Error("SQLite connection not found", "connectionID", c.ConnectionID, "username", c.User)
 	}
 
@@ -249,7 +257,9 @@ func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any)
 	h.Logger.Debug("Running query: ", "query", query)
 
 	// Retrieve the connection associated with the MySQL connection
+	h.mutexConnectionMapperSQLite.Lock() // To ensure we don't read during a write
 	conn, ok := h.connectionMapperSQLite[connectionID]
+	h.mutexConnectionMapperSQLite.Unlock()
 	if !ok {
 		h.Logger.Error("SQLite connection not found", "connectionID", connectionID)
 		return nil, fmt.Errorf("SQLite connection not found")
