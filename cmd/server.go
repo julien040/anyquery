@@ -11,6 +11,17 @@ var serverCmd = &cobra.Command{
 	Long: `Listens for incoming connections and allows you to run queries
 using any MySQL client.`,
 	RunE: controller.Server,
+	Example: `# Start the server by opening anyquery.db by default
+anyquery server 
+
+# Start the server on a specific host and port
+anyquery server --host 127.0.0.1 --port 3306
+
+# Start the server with a specific database
+anyquery server -d mydatabase.db
+
+# Increase the log level and redirect the output to a file
+anyquery server --log-level debug --log-file /var/log/anyquery.log`,
 }
 
 func init() {

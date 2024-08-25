@@ -13,7 +13,7 @@ See each sub-command's help for details on how to use the generated script.
 
 ### Options
 
-```
+```bash
   -h, --help   help for completion
 ```
 

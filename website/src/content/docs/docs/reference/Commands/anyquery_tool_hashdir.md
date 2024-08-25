@@ -9,13 +9,13 @@ Hash a directory
 
 Hash a directory and return a value that can be used in a plugin manifest.
 
-```
+```bash
 anyquery tool hashdir [dir] [flags]
 ```
 
 ### Options
 
-```
+```bash
   -h, --help   help for hashdir
 ```
 

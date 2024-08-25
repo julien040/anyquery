@@ -12,6 +12,7 @@ var registryCmd = &cobra.Command{
 	Aliases:    []string{"registries"},
 	SuggestFor: []string{"store"},
 	Args:       cobra.NoArgs,
+	Example:    "anyquery registry list",
 }
 
 var registryListCmd = &cobra.Command{
@@ -19,6 +20,7 @@ var registryListCmd = &cobra.Command{
 	Short:   "List the registries where plugins can be downloaded",
 	RunE:    controller.RegistryList,
 	Aliases: []string{"ls"},
+	Example: "anyquery registry list",
 }
 
 var registryAddCmd = &cobra.Command{
@@ -27,6 +29,7 @@ var registryAddCmd = &cobra.Command{
 	Args:    cobra.MaximumNArgs(2),
 	RunE:    controller.RegistryAdd,
 	Aliases: []string{"new", "create", "register", "install"},
+	Example: "anyquery registry add internal_reg https://registry.anyquery.dev/v0/registry/",
 }
 
 var registryRemoveCmd = &cobra.Command{
@@ -34,6 +37,7 @@ var registryRemoveCmd = &cobra.Command{
 	Short:   "Remove a registry",
 	RunE:    controller.RegistryRemove,
 	Aliases: []string{"rm", "delete"},
+	Example: "anyquery registry remove internal_reg",
 }
 
 var registryGetCmd = &cobra.Command{
@@ -42,6 +46,7 @@ var registryGetCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	RunE:    controller.RegistryGet,
 	Aliases: []string{"info", "show", "inspect"},
+	Example: "anyquery registry get internal_reg",
 }
 
 var registryRefreshCmd = &cobra.Command{
@@ -52,6 +57,7 @@ If a name is provided, only this registry will be refreshed. Otherwise, all regi
 	Args:    cobra.MaximumNArgs(1),
 	RunE:    controller.RegistryRefresh,
 	Aliases: []string{"update", "sync", "fetch", "pull"},
+	Example: "anyquery registry refresh",
 }
 
 func init() {

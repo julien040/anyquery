@@ -30,6 +30,9 @@ for (const file of files) {
 	// Rewrite the links that ends with .md
 	text = text.replace(/\(([^)]+).md\)/g, "(../$1)");
 
+	// Change the code blocks to be in the right language
+	text = text.replace(/```\n(?!\s*$)/gm, "```bash\n");
+
 	const frontmatter = `---
 title: ${title}
 description: Learn how to use the ${title} command in AnyQuery.

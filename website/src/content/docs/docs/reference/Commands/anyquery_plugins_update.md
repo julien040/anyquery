@@ -10,19 +10,25 @@ Update n or all plugins
 Update plugins
 If no plugin is specified, all plugins will be updated
 
-```
+```bash
 anyquery plugins update [...plugin] [flags]
+```
+
+### Examples
+
+```bash
+anyquery registry refresh && anyquery plugin update github
 ```
 
 ### Options
 
-```
+```bash
   -h, --help   help for update
 ```
 
 ### Options inherited from parent commands
 
-```
+```bash
   -c, --config string   Path to the configuration database
 ```
 

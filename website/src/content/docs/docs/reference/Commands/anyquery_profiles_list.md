@@ -13,13 +13,19 @@ If no argument is provided, the results will not be filtered.
 If only one argument is provided, the results will be filtered by the registry.
 If two arguments are provided, the results will be filtered by the registry and the plugin.
 
-```
+```bash
 anyquery profiles list [registry] [plugin] [flags]
+```
+
+### Examples
+
+```bash
+anyquery profiles list
 ```
 
 ### Options
 
-```
+```bash
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)
   -h, --help            help for list
@@ -29,7 +35,7 @@ anyquery profiles list [registry] [plugin] [flags]
 
 ### Options inherited from parent commands
 
-```
+```bash
   -c, --config string   Path to the configuration database
 ```
 

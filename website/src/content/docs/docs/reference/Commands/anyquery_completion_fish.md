@@ -20,13 +20,13 @@ To load completions for every new session, execute once:
 You will need to start a new shell for this setup to take effect.
 
 
-```
+```bash
 anyquery completion fish [flags]
 ```
 
 ### Options
 
-```
+```bash
   -h, --help              help for fish
       --no-descriptions   disable completion descriptions
 ```

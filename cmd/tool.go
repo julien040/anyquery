@@ -27,6 +27,7 @@ The password is hashed using the mysql_native_password algorithm
 which can be summarized as HEX(SHA1(SHA1(password)))`,
 	Aliases: []string{"hash-password", "mysql-native-password"},
 	RunE:    controller.MySQLPassword,
+	Example: `echo "password" | anyquery tool mysql-password`,
 }
 
 var toolDevCmd = &cobra.Command{
@@ -42,6 +43,8 @@ var toolDevInitCmd = &cobra.Command{
 	The module URL is the go mod URL of the plugin.`,
 	Args: cobra.RangeArgs(1, 2),
 	RunE: controller.DevInit,
+	Example: `# Initialize a new plugin in a new directory,
+anyquery tool dev init github.com/julien040/anyquery/plugins/voynich-manuscript voynich-manuscript`,
 }
 
 var toolDevNewTableCmd = &cobra.Command{
@@ -52,17 +55,20 @@ var toolDevNewTableCmd = &cobra.Command{
 	The table name must only contain alphanumeric characters and underscores. Other characters will be replaced by underscores.`,
 	Args: cobra.ExactArgs(1),
 	RunE: controller.DevNewTable,
+	Example: `# Inside the plugin directory, create a new table file
+anyquery tool dev new-table my_table`,
 }
 
 var toolGenerateDocCmd = &cobra.Command{
 	Use:   "generate-doc [dir]",
 	Short: "Generate the markdown documentation of the CLI",
-	Args: cobra.ExactArgs(1),
+	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		return doc.GenMarkdownTree(rootCmd, args[0])
 	},
+	Example: `# Generate the doc in the docs directory
+anyquery tool generate-doc docs`,
 }
-
 
 func init() {
 	rootCmd.AddCommand(toolCmd)

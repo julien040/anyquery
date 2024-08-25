@@ -12,6 +12,8 @@ var profilesCmd = &cobra.Command{
 Alias to profile list.`,
 	Aliases: []string{"profile"},
 	RunE:    controller.ProfileList,
+	Example: `# List the profiles
+anyquery profiles`,
 }
 
 var profilesUpdateCmd = &cobra.Command{
@@ -22,7 +24,8 @@ var profilesUpdateCmd = &cobra.Command{
 If only two arguments are provided, we consider that the registry is the default one.
 If no argument is provided, the command will prompt you the registry, the plugin and the profile to update.
 Note: This command requires the tty to be interactive.`,
-	RunE: controller.ProfileUpdate,
+	RunE:    controller.ProfileUpdate,
+	Example: `anyquery profiles update default github myprofile`,
 }
 
 var profilesNewCmd = &cobra.Command{
@@ -35,6 +38,7 @@ If no argument is provided, the command will prompt you the registry, the plugin
 Note: This command requires the tty to be interactive.`,
 	RunE:    controller.ProfileNew,
 	Aliases: []string{"create", "add"},
+	Example: `anyquery profiles new default github default`,
 }
 
 var profilesListCmd = &cobra.Command{
@@ -47,6 +51,7 @@ If only one argument is provided, the results will be filtered by the registry.
 If two arguments are provided, the results will be filtered by the registry and the plugin.`,
 	Aliases: []string{"ls"},
 	RunE:    controller.ProfileList,
+	Example: `anyquery profiles list`,
 }
 
 var profilesDeleteCmd = &cobra.Command{
@@ -58,6 +63,7 @@ If only two arguments are provided, we consider that the registry is the default
 If no argument is provided, the command will prompt you the registry, the plugin and the profile to create.`,
 	Aliases: []string{"rm", "remove"},
 	RunE:    controller.ProfileDelete,
+	Example: `anyquery profiles delete default github default`,
 }
 
 func init() {

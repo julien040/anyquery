@@ -5,13 +5,13 @@ description: Learn how to use the anyquery plugins command in AnyQuery.
 
 Print the plugins installed on the system
 
-```
+```bash
 anyquery plugins [flags]
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string   Path to the configuration database
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)

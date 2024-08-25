@@ -11,13 +11,19 @@ Hash a password from stdin to be used in an authentification file.
 The password is hashed using the mysql_native_password algorithm
 which can be summarized as HEX(SHA1(SHA1(password)))
 
-```
+```bash
 anyquery tool mysql-password [flags]
+```
+
+### Examples
+
+```bash
+echo "password" | anyquery tool mysql-password
 ```
 
 ### Options
 
-```
+```bash
   -h, --help   help for mysql-password
 ```
 

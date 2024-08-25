@@ -5,13 +5,19 @@ description: Learn how to use the anyquery registry get command in AnyQuery.
 
 Print informations about a registry
 
-```
+```bash
 anyquery registry get [name] [flags]
+```
+
+### Examples
+
+```bash
+anyquery registry get internal_reg
 ```
 
 ### Options
 
-```
+```bash
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)
   -h, --help            help for get
@@ -21,7 +27,7 @@ anyquery registry get [name] [flags]
 
 ### Options inherited from parent commands
 
-```
+```bash
   -c, --config string   Path to the configuration database
 ```
 

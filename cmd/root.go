@@ -17,13 +17,13 @@ by writing SQL queries. It can be extended with plugins`,
 	// Thanks https://github.com/spf13/cobra/issues/340#issuecomment-243790200
 	SilenceUsage: true,
 	RunE:         controller.Query,
-	Example: `-- Run a one-off query
+	Example: `# Run a one-off query
 anyquery -d mydatabase.db -q "SELECT * FROM mytable"
 
--- Open the interactive shell
+# Open the interactive shell
 anyquery -d mydatabase.db
 
--- Open a database in memory
+# Open a database in memory
 anyquery -d ":memory:"
 `,
 }

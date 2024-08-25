@@ -10,13 +10,26 @@ Manage the aliases
 Manage the aliases.
 They help you use another name for a table so that you don't have to write profileName_pluginName_tableName every time.
 
-```
+```bash
 anyquery alias [flags]
+```
+
+### Examples
+
+```bash
+# List the aliases
+anyquery alias
+
+# Add an alias
+anyquery alias add myalias mytable
+
+# Delete an alias
+anyquery alias delete myalias
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string   Path to the configuration database
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)

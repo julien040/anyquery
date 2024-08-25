@@ -10,13 +10,20 @@ Write the boilerplate for a new table
 Write the boilerplate for a new table in the specified file.
 	The table name must only contain alphanumeric characters and underscores. Other characters will be replaced by underscores.
 
-```
+```bash
 anyquery tool dev new-table [table name] [flags]
+```
+
+### Examples
+
+```bash
+# Inside the plugin directory, create a new table file
+anyquery tool dev new-table my_table
 ```
 
 ### Options
 
-```
+```bash
   -h, --help   help for new-table
 ```
 

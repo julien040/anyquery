@@ -5,13 +5,19 @@ description: Learn how to use the anyquery registry command in AnyQuery.
 
 List the registries where plugins can be downloaded
 
-```
+```bash
 anyquery registry [flags]
+```
+
+### Examples
+
+```bash
+anyquery registry list
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string   Path to the configuration database
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)

@@ -7,7 +7,7 @@ Development tools
 
 ### Options
 
-```
+```bash
   -h, --help   help for dev
 ```
 

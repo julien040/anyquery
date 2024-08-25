@@ -11,13 +11,29 @@ Run a SQL query on the data sources installed on the system.
 The query can be specified as an argument or read from stdin.
 If no query is provided, the command will launch an interactive input.
 
-```
+```bash
 anyquery query [database file] [sql query] [flags]
+```
+
+### Examples
+
+```bash
+# Run a one-off query
+anyquery query -d mydatabase.db -q "SELECT * FROM mytable"
+
+# Open the interactive shell
+anyquery query -d mydatabase.db
+
+# Open the interactive shell in memory
+anyquery query
+
+# Query from stdin
+echo "SELECT * FROM mytable" | anyquery query -d mydatabase.db
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string       Path to the configuration database
       --csv                 Output format as CSV
   -d, --database string     Database to connect to (a path or :memory:)

@@ -7,7 +7,7 @@ Tools to help you with using anyquery
 
 ### Options
 
-```
+```bash
   -h, --help   help for tool
 ```
 

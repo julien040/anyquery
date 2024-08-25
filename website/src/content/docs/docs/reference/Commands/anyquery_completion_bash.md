@@ -29,13 +29,13 @@ To load completions for every new session, execute once:
 You will need to start a new shell for this setup to take effect.
 
 
-```
+```bash
 anyquery completion bash
 ```
 
 ### Options
 
-```
+```bash
   -h, --help              help for bash
       --no-descriptions   disable completion descriptions
 ```

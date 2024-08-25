@@ -31,13 +31,13 @@ To load completions for every new session, execute once:
 You will need to start a new shell for this setup to take effect.
 
 
-```
+```bash
 anyquery completion zsh [flags]
 ```
 
 ### Options
 
-```
+```bash
   -h, --help              help for zsh
       --no-descriptions   disable completion descriptions
 ```

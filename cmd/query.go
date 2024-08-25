@@ -13,6 +13,17 @@ The query can be specified as an argument or read from stdin.
 If no query is provided, the command will launch an interactive input.`,
 	RunE:    controller.Query,
 	Aliases: []string{"q", "run"},
+	Example: `# Run a one-off query
+anyquery query -d mydatabase.db -q "SELECT * FROM mytable"
+
+# Open the interactive shell
+anyquery query -d mydatabase.db
+
+# Open the interactive shell in memory
+anyquery query
+
+# Query from stdin
+echo "SELECT * FROM mytable" | anyquery query -d mydatabase.db`,
 }
 
 func init() {

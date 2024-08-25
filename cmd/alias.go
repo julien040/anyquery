@@ -12,6 +12,14 @@ var aliasCmd = &cobra.Command{
 They help you use another name for a table so that you don't have to write profileName_pluginName_tableName every time.`,
 	Aliases: []string{"aliases"},
 	RunE:    controller.AliasList,
+	Example: `# List the aliases
+anyquery alias
+
+# Add an alias
+anyquery alias add myalias mytable
+
+# Delete an alias
+anyquery alias delete myalias`,
 }
 
 var aliasAddCmd = &cobra.Command{
@@ -20,7 +28,8 @@ var aliasAddCmd = &cobra.Command{
 	Short:   "Add an alias",
 	Long: `Add an alias.
 The alias name must be unique and not already used by a table.`,
-	RunE: controller.AliasAdd,
+	RunE:    controller.AliasAdd,
+	Example: `anyquery alias add myalias mytable`,
 }
 
 var aliasDeleteCmd = &cobra.Command{
@@ -29,6 +38,7 @@ var aliasDeleteCmd = &cobra.Command{
 	Aliases: []string{"rm", "remove"},
 	Args:    cobra.MaximumNArgs(1),
 	RunE:    controller.AliasDelete,
+	Example: `anyquery alias delete myalias`,
 }
 
 var aliasListCmd = &cobra.Command{

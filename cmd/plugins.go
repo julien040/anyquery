@@ -22,6 +22,7 @@ var pluginInstallCmd = &cobra.Command{
 	Args:       cobra.MaximumNArgs(2),
 	SuggestFor: []string{"get"},
 	RunE:       controller.PluginInstall,
+	Example:    `anyquery plugin install github`,
 }
 
 var pluginUninstallCmd = &cobra.Command{
@@ -32,13 +33,15 @@ var pluginUninstallCmd = &cobra.Command{
 	Aliases: []string{"rm", "remove", "delete"},
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    controller.PluginUninstall,
+	Example: `anyquery plugin uninstall github`,
 }
 
 var pluginUpdateCmd = &cobra.Command{
-	Use:   "update [...plugin]",
-	Short: "Update n or all plugins",
-	Long:  "Update plugins\nIf no plugin is specified, all plugins will be updated",
-	RunE:  controller.PluginUpdate,
+	Use:     "update [...plugin]",
+	Short:   "Update n or all plugins",
+	Long:    "Update plugins\nIf no plugin is specified, all plugins will be updated",
+	RunE:    controller.PluginUpdate,
+	Example: `anyquery registry refresh && anyquery plugin update github`,
 }
 
 func init() {

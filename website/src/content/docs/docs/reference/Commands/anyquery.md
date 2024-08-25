@@ -10,13 +10,27 @@ A tool to query any data source
 Anyquery allows you to query any data source
 by writing SQL queries. It can be extended with plugins
 
-```
+```bash
 anyquery [database] [query] [flags]
+```
+
+### Examples
+
+```bash
+# Run a one-off query
+anyquery -d mydatabase.db -q "SELECT * FROM mytable"
+
+# Open the interactive shell
+anyquery -d mydatabase.db
+
+# Open a database in memory
+anyquery -d ":memory:"
+
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string       Path to the configuration database
       --csv                 Output format as CSV
   -d, --database string     Database to connect to (a path or :memory:)
@@ -38,7 +52,6 @@ anyquery [database] [query] [flags]
   -q, --query string        Query to run
       --read-only           Start the server in read-only mode
       --readonly            Start the server in read-only mode
-  -v, --version             Print the version of the program
 ```
 
 ### SEE ALSO

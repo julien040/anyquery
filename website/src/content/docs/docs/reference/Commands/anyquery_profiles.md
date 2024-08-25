@@ -10,13 +10,20 @@ Print the profiles installed on the system
 Print the profiles installed on the system.
 Alias to profile list.
 
-```
+```bash
 anyquery profiles [registry] [plugin] [flags]
+```
+
+### Examples
+
+```bash
+# List the profiles
+anyquery profiles
 ```
 
 ### Options
 
-```
+```bash
   -c, --config string   Path to the configuration database
       --csv             Output format as CSV
       --format string   Output format (pretty, json, csv, plain)
