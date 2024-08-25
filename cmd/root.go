@@ -17,9 +17,19 @@ by writing SQL queries. It can be extended with plugins`,
 	// Thanks https://github.com/spf13/cobra/issues/340#issuecomment-243790200
 	SilenceUsage: true,
 	RunE:         controller.Query,
+	Example: `-- Run a one-off query
+anyquery -d mydatabase.db -q "SELECT * FROM mytable"
+
+-- Open the interactive shell
+anyquery -d mydatabase.db
+
+-- Open a database in memory
+anyquery -d ":memory:"
+`,
 }
 
-func Execute() {
+func Execute(version string) {
+	rootCmd.Version = version
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
@@ -28,8 +38,6 @@ func Execute() {
 
 func init() {
 	rootCmd.Flags().Bool("no-input", false, "Do not launch an interactive input")
-	rootCmd.Flags().BoolP("version", "v", false, "Print the version of the program")
-
 	addFlag_commandModifiesConfiguration(rootCmd)
 	addFlag_commandPrintsData(rootCmd)
 	rootCmd.Flags().StringP("database", "d", "", "Database to connect to (a path or :memory:)")

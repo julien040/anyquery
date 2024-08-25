@@ -20,10 +20,12 @@ builds:
     
     ldflags:
       - -s -w
+      - -X "main.version={{.Version}}"
     env:
       - CGO_ENABLED=1
-      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH"
+      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH:CGO_LDFLAGS"
       - CGO_CFLAGS=-O2
+      - CGO_LDFLAGS=-lssp -fstack-protector
       - >-
         {{- if eq .Os "windows" }}
           {{- if eq .Arch "amd64" }}CC=x86_64-w64-mingw32-gcc{{- end }}
@@ -51,15 +53,18 @@ builds:
     
     ldflags:
       - -s -w
+      - -X "main.version={{.Version}}"
     env:
       - CGO_ENABLED=1
-      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH"
+      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:CGO_LDFLAGS:GOOS:GOARCH"
       - CGO_CFLAGS=-O2
       - >-
         {{- if eq .Os "linux" }}
-          {{- if eq .Arch "amd64" }}CC=gcc{{- end }}
+          {{- if eq .Arch "amd64" }}CC=musl-gcc{{- end }}
           {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- end }}
         {{- end }}
+      - >-
+        {{- if eq .Arch "amd64" }}CGO_LDFLAGS=-static{{- end }}
 
     goos:
       - linux
@@ -75,6 +80,7 @@ builds:
       - prql
     ldflags:
       - -s -w
+      - -X "main.version={{.Version}}"
     env:
       - CGO_ENABLED=1
       - CGO_CFLAGS="-O2"
