@@ -10,7 +10,7 @@ version: 2
 
 builds:
   - id: windows
-    gobinary: ./orbstack_go.sh
+    gobinary: ./orbstack_go_win.sh
     tags:
       - vtable
       - fts5
@@ -25,7 +25,6 @@ builds:
       - CGO_ENABLED=1
       - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:GOOS:GOARCH:CGO_LDFLAGS"
       - CGO_CFLAGS=-O2
-      - CGO_LDFLAGS=-lssp -fstack-protector
       - >-
         {{- if eq .Os "windows" }}
           {{- if eq .Arch "amd64" }}CC=x86_64-w64-mingw32-gcc{{- end }}
@@ -172,7 +171,7 @@ snapcrafts:
     title: anyquery
     name: anyquery
     license: AGPL-3.0
-    publish: false
+    publish: true
 
 brews:
   - name: anyquery
