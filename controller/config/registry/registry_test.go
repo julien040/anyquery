@@ -280,6 +280,9 @@ func TestRegistry(t *testing.T) {
 	})
 
 	t.Run("Install a plugin", func(t *testing.T) {
+		if !(runtime.GOOS == "darwin" && runtime.GOARCH == "arm64") && !(runtime.GOOS == "linux" && runtime.GOARCH == "amd64") {
+			t.Skip("Skipping test because the plugin is not compatible with the current OS")
+		}
 
 		pathPlugin, err := InstallPlugin(query, "default", "sqlean")
 		require.NoError(t, err)
