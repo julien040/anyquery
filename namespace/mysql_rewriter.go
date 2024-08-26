@@ -594,10 +594,11 @@ func rewriteSelectStatement(parsedQuery *sqlparser.Statement) {
 			// We replace the locate function by instr
 			cursor.Replace(&sqlparser.FuncExpr{
 				Name: sqlparser.NewIdentifierCI("instr"),
-				Exprs: []sqlparser.SelectExpr{
-					sqlparser.NewAliasedExpr(node.Str, ""),
-					sqlparser.NewAliasedExpr(node.SubStr, ""),
-				},
+				Exprs: sqlparser.Exprs(
+					[]sqlparser.Expr{
+						node.Str,
+						node.SubStr,
+					}),
 			})
 
 		case *sqlparser.FuncExpr:
