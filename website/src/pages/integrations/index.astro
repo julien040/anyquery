@@ -1,4 +1,5 @@
 ---
+import { slugify } from "../../functions/slugify";
 import Main from "../../layouts/main.astro";
 import { getCollection } from "astro:content";
 const entries = [];
@@ -49,7 +50,7 @@ const integrations = await getCollection("integrations");
         {
             remotePlugins.map((plugin) => (
                 <a
-                    href={`/integrations/${plugin.name}`}
+                    href={`/integrations/${slugify(plugin.name)}`}
                     class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
                 >
                     <img
@@ -73,15 +74,20 @@ const integrations = await getCollection("integrations");
         {
             libraryPlugins.map((plugin) => (
                 <a
-                    href={`/integrations/${plugin.name}`}
+                    href={`/integrations/${slugify(plugin.name)}`}
                     class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
                 >
+                    <div class="flex gap-2 items-center mb-4">
+                        <img
+                            src={plugin.icon}
+                            alt={plugin.author}
+                            class="w-8 h-8 rounded-md"
+                        />
+                        <p class="text-xs text-white/60">{plugin.author}</p>
+                    </div>
                     <h2 class="text-lg">{plugin.display_name}</h2>
                     <p class="break-words text-sm text-white/60 mb-2">
                         {plugin.description}
-                    </p>
-                    <p class="text-xs text-white/40 mt-auto">
-                        By {plugin.author}
                     </p>
                 </a>
             ))

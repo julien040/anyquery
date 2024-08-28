@@ -6,6 +6,8 @@ import hljs from "highlight.js";
 
 import Main from "../../layouts/main.astro";
 import "../../markdown.css";
+
+import { slugify } from "../../functions/slugify";
 export async function getStaticPaths() {
     const entries = [];
 
@@ -42,7 +44,7 @@ export async function getStaticPaths() {
         });
 
         entries.push({
-            params: { plugin: plugin.name },
+            params: { plugin: slugify(plugin.name) },
             props: {
                 rawTitle: plugin.name,
                 title: plugin.display_name,
@@ -60,6 +62,30 @@ export async function getStaticPaths() {
                 type: plugin.type,
             },
         });
+    }
+
+    entries.push({
+        params: { plugin: slugify("@asg017/anyquery") },
+        props: {
+            rawTitle: "@asg017/sqlite",
+            title: "SQLite",
+            description:
+                "SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.",
+            author: "asg017",
+            version: "1.0.0",
+            readme: "<h1>SQLite</h1><p>SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.</p>",
+            icon: "https://avatars.githubusercontent.com/u/29721698?v=4",
+            license: "MIT",
+            homepage: "https://example.com",
+            tables: ["users"],
+            compatiblePlatform: ["linux", "windows", "macos"],
+            versions: ["1.0.0"],
+            type: "anyquery",
+        },
+    });
+
+    for (const entry of entries) {
+        console.log(entry.params);
     }
 
     return entries;
