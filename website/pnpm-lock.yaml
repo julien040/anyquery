@@ -53,6 +53,9 @@ importers:
       marked:
         specifier: ^13.0.2
         version: 13.0.2
+      marked-alert:
+        specifier: ^2.0.2
+        version: 2.0.2(marked@13.0.2)
       marked-gfm-heading-id:
         specifier: ^4.0.0
         version: 4.0.0(marked@13.0.2)
@@ -69,6 +72,9 @@ importers:
       '@types/dompurify':
         specifier: ^3.0.5
         version: 3.0.5
+      '@types/jsdom':
+        specifier: ^21.1.7
+        version: 21.1.7
 
 packages:
 
@@ -734,6 +740,9 @@ packages:
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
 
+  '@types/jsdom@21.1.7':
+    resolution: {integrity: sha512-yOriVnggzrnQ3a9OKOCxaVuSug3w3/SbOj5i7VwXWZEyUNl3bLF9V3MfxGbZKuwqJOQyRfqXyROBB1CoZLFWzA==}
+
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
 
@@ -751,6 +760,9 @@ packages:
 
   '@types/sax@1.2.7':
     resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
+
+  '@types/tough-cookie@4.0.5':
+    resolution: {integrity: sha512-/Ad8+nIOV7Rl++6f1BdKxFSMgmoqEoYbHRpPcx3JEfv8VRsQe9Z4mCXeJBzxs7mbHY/XOZZuXlRNfhpVPbs6ZA==}
 
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
@@ -1576,6 +1588,11 @@ packages:
 
   markdown-table@3.0.3:
     resolution: {integrity: sha512-Z1NL3Tb1M9wH4XESsCDEksWoKTdlUafKc4pt0GRwjUyXaCFZ+dc3g2erqB6zm3szA2IUSi7VnPI+o/9jnxh9hw==}
+
+  marked-alert@2.0.2:
+    resolution: {integrity: sha512-noyAFamoS2+/pI1wU3FgQyZTqtSoHgfeHLAl4jplTlX2x5hx9LeerApKUGxgtlbI7RyuANX/HT6TMPQJ6AzYaA==}
+    peerDependencies:
+      marked: '>=7.0.0'
 
   marked-gfm-heading-id@4.0.0:
     resolution: {integrity: sha512-p53gp+nBIGeryucXzUFP8w67wtpin68+jOFBPw5m9FUfqx2ngAunO/I6KU6J3Xm3fyuv2JsSDxz0Z+pYVrHrwg==}
@@ -3290,6 +3307,12 @@ snapshots:
     dependencies:
       '@types/unist': 3.0.2
 
+  '@types/jsdom@21.1.7':
+    dependencies:
+      '@types/node': 17.0.45
+      '@types/tough-cookie': 4.0.5
+      parse5: 7.1.2
+
   '@types/mdast@4.0.4':
     dependencies:
       '@types/unist': 3.0.2
@@ -3307,6 +3330,8 @@ snapshots:
   '@types/sax@1.2.7':
     dependencies:
       '@types/node': 17.0.45
+
+  '@types/tough-cookie@4.0.5': {}
 
   '@types/trusted-types@2.0.7': {}
 
@@ -4319,6 +4344,10 @@ snapshots:
   markdown-extensions@2.0.0: {}
 
   markdown-table@3.0.3: {}
+
+  marked-alert@2.0.2(marked@13.0.2):
+    dependencies:
+      marked: 13.0.2
 
   marked-gfm-heading-id@4.0.0(marked@13.0.2):
     dependencies:

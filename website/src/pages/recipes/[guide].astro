@@ -1,0 +1,86 @@
+---
+import Main from "../../layouts/main.astro";
+import "../../markdown.css";
+import { getCollection } from "astro:content";
+import DOMPurify from "isomorphic-dompurify";
+import { Marked } from "marked";
+import { markedHighlight } from "marked-highlight";
+import hljs from "highlight.js";
+
+export async function getStaticPaths() {
+    const marked = new Marked(
+        markedHighlight({
+            langPrefix: "hljs language-",
+            highlight: (code: string, lang: string) => {
+                const language = hljs.getLanguage(lang) ? lang : "plaintext";
+                return hljs.highlight(code, { language }).value;
+            },
+        })
+    );
+    const entries: {
+        params: { guide: string };
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        props: any;
+    }[] = [];
+
+    const guides = await getCollection("recipes");
+
+    for (const guide of guides) {
+        entries.push({
+            params: { guide: guide.slug },
+            props: {
+                entry: guide,
+                content: DOMPurify.sanitize(await marked.parse(guide.body)),
+            },
+        });
+    }
+
+    return entries;
+}
+
+const { entry, content } = Astro.props;
+
+const guides = await getCollection("recipes");
+// Take 3 random guides
+const randomGuides = guides.sort(() => 0.5 - Math.random()).slice(0, 6);
+---
+
+<Main title={entry.data.title + " - Anyquery"}>
+    <main class="flex flex-wrap justify-between">
+        <article class="px-1 md:w-4/6 w-full max-w-[75ch]" set:html={content} />
+        <aside
+            class="w-[31%] p-4 rounded-lg bg-black/20 hidden md:block border border-white/10 max-h-min"
+        >
+            <h2 class="text-lg mt-0">What is Anyquery?</h2>
+            <p class="text-white/70 text-sm">
+                <a class="underline" href="https://anyquery.dev">Anyquery</a> is
+                a SQL query engine that allows you to query data from multiple sources
+                (Airtable, Google Sheets, CSV, Shopify, etc.) using SQL.
+                <br /><br /> You can use Anyquery to create a single source of truth
+                for your data, create custom dashboards using third-party tools like
+                Metabase, and extract your data from Saas platforms.
+                <h2 class="text-lg">Other cool guides</h2>
+                <div class="flex flex-col gap-4">
+                    {
+                        randomGuides.map((guide) => (
+                            <a
+                                class="flex flex-col p-4 bg-white/10 rounded-md "
+                                href={`/guides/${guide.slug}`}
+                            >
+                                <p class="text-md font-semibold tracking-tight mb-1 flex ">
+                                    {guide.data.title}
+                                </p>
+                                <p
+                                    class="text-white/50
+                                 text-xs"
+                                >
+                                    {guide.data.description}
+                                </p>
+                            </a>
+                        ))
+                    }
+                </div>
+            </p>
+        </aside>
+    </main>
+</Main>

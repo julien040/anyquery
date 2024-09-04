@@ -3,6 +3,9 @@ import DOMPurify from "isomorphic-dompurify";
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
+import markedAlert from "marked-alert";
+import { gfmHeadingId } from "marked-gfm-heading-id";
+import dom from "jsdom";
 
 import Main from "../../layouts/main.astro";
 import "../../markdown.css";
@@ -10,7 +13,7 @@ import "../../markdown.css";
 import { slugify } from "../../functions/slugify";
 export async function getStaticPaths() {
     const entries = [];
-
+    const { JSDOM } = dom;
     // Get all the remote plugins
     const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
         headers: {
@@ -25,13 +28,84 @@ export async function getStaticPaths() {
                 return hljs.highlight(code, { language }).value;
             },
         })
-    );
+    )
+        .use(markedAlert())
+        .use(gfmHeadingId({}));
     const remotePlugins: any = await fetchReg.json();
     for (const plugin of remotePlugins.plugins) {
         const sanitized = DOMPurify.sanitize(
             await marked.parse(plugin.page_content)
         );
 
+        // Parse the images src using the sanitized html
+        // If it starts with ./ or /, prefix it with the repo url
+        //
+        // This is a workaround for the images not being displayed on the website
+        // because fetched from the repository README.md
+        const parsed = new JSDOM(sanitized);
+        let images = parsed.window.document.querySelectorAll("img, source");
+        images.forEach((img) => {
+            let isSrcSet = false;
+            let src = img.getAttribute("src");
+            if (!src) {
+                src = img.getAttribute("srcset");
+                if (!src) {
+                    return;
+                }
+                isSrcSet = true;
+            }
+
+            if (src.startsWith("./") || src.startsWith("/")) {
+                // Regex if the homepage follows the format https://github.com/user/repo/tree/branch/whatever
+                // And extract the branch, user and repo
+                // The tree, branch and whatever are optional !!!!!!!
+                const regex =
+                    /https:\/\/github.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+))?(?:\/([^/]+))?/;
+                const match = plugin.homepage.match(regex);
+                if (match) {
+                    const user = match[1];
+                    const repo = match[2];
+                    const branch = match[3] || "main";
+                    const prefix =
+                        match[4] ?? "" + src.replace(/^\/|^\.\//, ""); // Remove the leading / or ./
+                    if (isSrcSet) {
+                        img.setAttribute(
+                            "srcset",
+                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`
+                        );
+                    } else {
+                        img.setAttribute(
+                            "src",
+                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`
+                        );
+                    }
+                }
+            }
+        });
+
+        // Do exactly the same for the URLs
+        let links = parsed.window.document.querySelectorAll("a");
+        links.forEach((link) => {
+            let href = link.getAttribute("href");
+            if (href && (href.startsWith("./") || href.startsWith("/"))) {
+                // Regex if the homepage follows the format
+                const regex =
+                    /https:\/\/github.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+))?(?:\/([^/]+))?/;
+                const match = plugin.homepage.match(regex);
+                if (match) {
+                    const user = match[1];
+                    const repo = match[2];
+                    const branch = match[3] || "main";
+                    const prefix =
+                        match[4] ?? "" + href.replace(/^\/|^\.\//, ""); // Remove the leading / or ./
+
+                    link.setAttribute(
+                        "href",
+                        `https://github.com/${user}/${repo}/blob/${branch}/${prefix}`
+                    );
+                }
+            }
+        });
         const compatiblePlatform: string[] = [];
         if (plugin.versions.length > 0) {
             for (const platform in plugin.versions[0].files) {
@@ -51,7 +125,7 @@ export async function getStaticPaths() {
                 description: plugin.description,
                 author: plugin.author,
                 version: plugin.last_version,
-                readme: sanitized,
+                readme: parsed.serialize(),
                 icon: plugin.icon,
                 license: plugin.license,
                 homepage: plugin.homepage,
@@ -62,30 +136,6 @@ export async function getStaticPaths() {
                 type: plugin.type,
             },
         });
-    }
-
-    entries.push({
-        params: { plugin: slugify("@asg017/anyquery") },
-        props: {
-            rawTitle: "@asg017/sqlite",
-            title: "SQLite",
-            description:
-                "SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.",
-            author: "asg017",
-            version: "1.0.0",
-            readme: "<h1>SQLite</h1><p>SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.</p>",
-            icon: "https://avatars.githubusercontent.com/u/29721698?v=4",
-            license: "MIT",
-            homepage: "https://example.com",
-            tables: ["users"],
-            compatiblePlatform: ["linux", "windows", "macos"],
-            versions: ["1.0.0"],
-            type: "anyquery",
-        },
-    });
-
-    for (const entry of entries) {
-        console.log(entry.params);
     }
 
     return entries;

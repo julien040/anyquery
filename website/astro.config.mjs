@@ -114,8 +114,11 @@ export default defineConfig({
   },
   markdown: {
     shikiConfig: {
-      theme: "dracula",
-      wrap: true
-    }
+      theme: "github-dark",
+      wrap: false,
+      defaultColor:false
+    },
+
+    syntaxHighlight:"shiki"
   }
 });

@@ -1,0 +1,41 @@
+---
+import Main from "../../layouts/main.astro";
+import "../../markdown.css";
+import { getCollection } from "astro:content";
+
+const recipes = await getCollection("recipes");
+---
+
+<Main title={"Guides - Anyquery"}>
+    <h1 class="text-3xl mt-2">Recipes</h1>
+    <p class="mb-4">
+        I have written {recipes.length} tutorials using computer assistance to help
+        you get started with Anyquery. If you have any questions, or would like to
+        report a bug, please feel free to contact me of the <a
+            href="https://github.com/julien040/anyquery/issues/new"
+            class="text-blue-500"
+        >
+            GitHub issue tracker
+        </a>.
+    </p>
+    <main
+        class="grid
+            grid-cols-1
+            md:grid-cols-2
+            gap-2"
+    >
+        {
+            recipes.map((guide) => (
+                <a
+                    class="flex flex-col p-6 bg-black/40 rounded-lg border border-[#655cc339]"
+                    href={`/recipes/${guide.slug}`}
+                >
+                    <h2 class="text-lg mt-0">{guide.data.title}</h2>
+                    <p class="text-white/60 text-sm">
+                        {guide.data.description}
+                    </p>
+                </a>
+            ))
+        }
+    </main>
+</Main>
