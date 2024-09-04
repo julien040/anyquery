@@ -1,60 +1,61 @@
 h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 1rem;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
+    line-height: 1.2;
 }
 h2 {
-  font-size: 1.6rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 1rem;
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
 }
 h3 {
-  font-size: 1.3rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 1rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
 }
 h4,
 h5,
 h6 {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ffffff;
-  margin-bottom: 1rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 1rem;
 }
 p,
 li,
 table {
-  @apply text-white/80 text-sm;
+    @apply text-white/80 text-sm;
 }
 blockquote {
-  border-left: 4px solid #ffffff87;
-  padding-left: 1rem;
-  margin-left: 0;
-  margin-bottom: 1rem;
+    border-left: 4px solid #ffffff87;
+    padding-left: 1rem;
+    margin-left: 0;
+    margin-bottom: 1rem;
 }
 blockquote p,
 blockquote li,
 blockquote a {
-  @apply text-white/60 text-sm;
+    @apply text-white/60 text-sm;
 }
 /* Top level code */
 article > pre:has(code) {
-  @apply text-white/90 text-sm;
+    @apply text-white/90 text-sm;
 
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  margin-bottom: 1rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin-bottom: 1rem;
 }
 
 article > pre:has(code),
 .expressive-code {
-  background: #ffffff1a;
-  padding: 12px 16px;
-  border-radius: 4px;
+    background: #ffffff1a;
+    padding: 12px 16px;
+    border-radius: 4px;
 }
 
 /* Inline code */
@@ -66,76 +67,76 @@ article > h3 code,
 article > h4 code,
 article > h5 code,
 article > h6 code {
-  @apply text-white/70 text-[0.825rem];
-  background: #ffffff24;
-  padding: 2px 4px;
-  border-radius: 4px;
+    @apply text-white/70 text-[0.825rem];
+    background: #ffffff24;
+    padding: 2px 4px;
+    border-radius: 4px;
 }
 
 table {
-  border-collapse: separate;
-  @apply mt-3 border border-white/20 rounded-md bg-white/10;
+    border-collapse: separate;
+    @apply mt-3 border border-white/20 rounded-md bg-white/10;
 }
 table tr {
 }
 table td {
-  @apply p-2 md:py-2 md:px-8;
-  @apply border-t border-white/20;
+    @apply p-2 md:py-2 md:px-8;
+    @apply border-t border-white/20;
 }
 table td:not(:last-child) {
-  border-right: 1px solid #ffffff20;
+    border-right: 1px solid #ffffff20;
 }
 table th:not(:last-child) {
-  @apply border-r border-white/20;
+    @apply border-r border-white/20;
 }
 table thead th {
-  @apply md:px-2 md:py-1 p-1 text-white/70 text-[0.825rem] font-semibold;
+    @apply md:px-2 md:py-1 p-1 text-white/70 text-[0.825rem] font-semibold;
 }
 
 ol,
 ul,
 menu {
-  list-style: circle;
-  margin: 0.5rem 0;
-  padding: 0 1rem;
+    list-style: circle;
+    margin: 0.5rem 0;
+    padding: 0 1rem;
 }
 h1,
 h2 {
-  @apply mt-5 mb-1;
+    @apply mt-5 mb-1;
 }
 h3,
 h4,
 h5,
 h6 {
-  @apply mt-4 mb-1;
+    @apply mt-4 mb-1;
 }
 article p {
-  @apply mt-1 mb-2;
+    @apply mt-1 mb-2;
 }
 
 article a {
-  @apply underline underline-offset-2;
+    @apply underline underline-offset-2;
 }
 
 /* Code */
 
 code .hljs-comment {
-  @apply text-white/50;
+    @apply text-white/50;
 }
 
 code .hljs-operator {
-  color: #ff79c6;
+    color: #ff79c6;
 }
 
 code .hljs-keyword {
-  color: #bd93f9;
+    color: #bd93f9;
 }
 
 code .hljs-attr,
 code .hljs-built_in {
-  color: #8be9fd;
+    color: #8be9fd;
 }
 
 code .hljs-string {
-  color: #50fa7b;
+    color: #50fa7b;
 }

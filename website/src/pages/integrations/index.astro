@@ -2,7 +2,6 @@
 import { slugify } from "../../functions/slugify";
 import Main from "../../layouts/main.astro";
 import { getCollection } from "astro:content";
-const entries = [];
 
 // Get all the remote plugins
 const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
