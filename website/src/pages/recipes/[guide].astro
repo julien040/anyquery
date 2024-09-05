@@ -65,7 +65,7 @@ const randomGuides = guides.sort(() => 0.5 - Math.random()).slice(0, 6);
                         randomGuides.map((guide) => (
                             <a
                                 class="flex flex-col p-4 bg-white/10 rounded-md "
-                                href={`/guides/${guide.slug}`}
+                                href={`/recipes/${guide.slug}`}
                             >
                                 <p class="text-md font-semibold tracking-tight mb-1 flex ">
                                     {guide.data.title}
