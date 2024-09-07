@@ -64,34 +64,31 @@ export default defineConfig({
         link: "/docs/usage/troubleshooting"
       },
     ]
-    }, {
+    }, 
+    
+    {
       label: "Reference",
       items: [{
         label: "Functions",
         link: "/docs/reference/functions"
       }, {
-        label: "CLI",
+        label: "CLI commands",
         autogenerate: {
           directory: "docs/reference/Commands"
         },
         collapsed: true
       }]
-    }, {
-      autogenerate: {
-        directory: "connection-guide"
-      },
-      label: "Connection guide"
-    }, {
+    },
+    {
       autogenerate: {
         directory: "docs/developers"
       },
       label: "Developers"
     }, {
       autogenerate: {
-        directory: "recipes"
+        directory: "connection-guide"
       },
-      label: "Recipes",
-      collapsed: false
+      label: "Connection guide"
     }],
     head: [
     /* 
@@ -105,7 +102,7 @@ export default defineConfig({
         "data-collect-dnt": "true",
         async: true,
         defer: true,
-        src: "https://sa.anyquery.dev/latest.js"
+        src: "https://sa.anyquery.dev/latest.js",
       }
     }]
   }), sitemap()],
