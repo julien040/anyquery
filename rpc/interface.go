@@ -52,6 +52,110 @@ type InternalExchangeInterface interface {
 // and is passed to the plugin during initialization
 type PluginConfig map[string]interface{}
 
+// Returns a string value for the key in the plugin configuration
+//
+// If the key does not exist or is not a string, it returns an empty string
+func (p PluginConfig) GetString(key string) string {
+	inter, ok := p[key]
+	if ok {
+		if str, ok := inter.(string); ok {
+			return str
+		}
+	}
+	return ""
+}
+
+// Returns an int value for the key in the plugin configuration
+//
+// If the key does not exist or is not an int, it returns 0
+func (p PluginConfig) GetInt(key string) int64 {
+	inter, ok := p[key]
+	if ok {
+		if i, ok := inter.(int64); ok {
+			return i
+		}
+	}
+	return 0
+}
+
+// Returns a float value for the key in the plugin configuration
+//
+// If the key does not exist or is not a float, it returns 0
+func (p PluginConfig) GetFloat(key string) float64 {
+	inter, ok := p[key]
+	if ok {
+		if f, ok := inter.(float64); ok {
+			return f
+		}
+	}
+	return 0
+}
+
+// Returns a bool value for the key in the plugin configuration
+//
+// If the key does not exist or is not a bool, it returns false
+func (p PluginConfig) GetBool(key string) bool {
+	inter, ok := p[key]
+	if ok {
+		if b, ok := inter.(bool); ok {
+			return b
+		}
+	}
+	return false
+}
+
+// Returns a string array for the key in the plugin configuration
+//
+// If the key does not exist or is not a string array, it returns nil
+func (p PluginConfig) GetStringArray(key string) []string {
+	inter, ok := p[key]
+	if ok {
+		if arr, ok := inter.([]string); ok {
+			return arr
+		}
+	}
+	return nil
+}
+
+// Returns an int array for the key in the plugin configuration
+//
+// If the key does not exist or is not an int array, it returns nil
+func (p PluginConfig) GetIntArray(key string) []int64 {
+	inter, ok := p[key]
+	if ok {
+		if arr, ok := inter.([]int64); ok {
+			return arr
+		}
+	}
+	return nil
+}
+
+// Returns a float array for the key in the plugin configuration
+//
+// If the key does not exist or is not a float array, it returns nil
+func (p PluginConfig) GetFloatArray(key string) []float64 {
+	inter, ok := p[key]
+	if ok {
+		if arr, ok := inter.([]float64); ok {
+			return arr
+		}
+	}
+	return nil
+}
+
+// Returns a bool array for the key in the plugin configuration
+//
+// If the key does not exist or is not a bool array, it returns nil
+func (p PluginConfig) GetBoolArray(key string) []bool {
+	inter, ok := p[key]
+	if ok {
+		if arr, ok := inter.([]bool); ok {
+			return arr
+		}
+	}
+	return nil
+}
+
 // PluginManifest is a struct that holds the metadata of the plugin
 //
 // It is often represented as a JSON file in the plugin directory
@@ -261,6 +365,18 @@ type QueryConstraint struct {
 	OrderBy []OrderConstraint
 }
 
+// Returns the column constraint for the given column at the index columnID
+//
+// If the column does not exist, it returns nil
+func (qc QueryConstraint) GetColumnConstraint(columnID int) *ColumnConstraint {
+	for _, c := range qc.Columns {
+		if c.ColumnID == columnID {
+			return &c
+		}
+	}
+	return nil
+}
+
 type OrderConstraint struct {
 	ColumnID   int
 	Descending bool
@@ -270,4 +386,51 @@ type ColumnConstraint struct {
 	ColumnID int
 	Operator Operator
 	Value    interface{}
+}
+
+// Whether the column constraint is the equal operator
+func (cc *ColumnConstraint) IsEqual() bool {
+	if cc == nil {
+		return false
+	}
+	return cc.Operator == OperatorEqual
+}
+
+// Returns the string value of the column constraint
+//
+// If the value is not a string, or the constraints does not exist, it returns an empty string
+func (cc *ColumnConstraint) GetStringValue() string {
+	if cc == nil {
+		return ""
+	}
+	if str, ok := cc.Value.(string); ok {
+		return str
+	}
+	return ""
+}
+
+// Returns the int value of the column constraint
+//
+// If the value is not an int, or the constraints does not exist, it returns 0
+func (cc *ColumnConstraint) GetIntValue() int64 {
+	if cc == nil {
+		return 0
+	}
+	if i, ok := cc.Value.(int64); ok {
+		return i
+	}
+	return 0
+}
+
+// Returns the float value of the column constraint
+//
+// If the value is not a float, or the constraints does not exist, it returns 0
+func (cc *ColumnConstraint) GetFloatValue() float64 {
+	if cc == nil {
+		return 0
+	}
+	if f, ok := cc.Value.(float64); ok {
+		return f
+	}
+	return 0
 }
