@@ -145,7 +145,12 @@ func getArgs(args rpc.PluginConfig) (userConfig, error) {
 	}
 
 	if rawInt64, ok = args["port"].(int64); !ok {
-		return config, fmt.Errorf("port is not a number. Got %T", args["port"])
+		// Try to convert it from a float
+		if rawFloat, ok := args["port"].(float64); !ok {
+			return config, fmt.Errorf("port is not a number. Got %T", args["port"])
+		} else {
+			config.Port = int64(rawFloat)
+		}
 	} else if config.Port = rawInt64; config.Port == 0 {
 		return config, fmt.Errorf("port is 0")
 	}

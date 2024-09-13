@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	plugin := rpc.NewPlugin(foldersCreator, itemsCreator)
+	plugin := rpc.NewPlugin(foldersCreator, itemsCreator, itemsBodyCreator)
 	plugin.Serve()
 }

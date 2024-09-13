@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"crypto/md5"
 	"encoding/gob"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -16,6 +16,7 @@ import (
 	"github.com/dgraph-io/badger/v4"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
+	"github.com/emersion/go-message/mail"
 	"github.com/julien040/anyquery/rpc"
 )
 
@@ -23,7 +24,7 @@ import (
 // This function is called everytime a new connection is made to the plugin
 //
 // It should return a new table instance, the database schema and if there is an error
-func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, error) {
+func itemsBodyCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, error) {
 	config, err := getArgs(args.UserConfig)
 	if err != nil {
 		return nil, nil, err
@@ -42,7 +43,7 @@ func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 	// Create the cache folder
 	hashedUserConf := md5.Sum([]byte(fmt.Sprintf("%s-%s:%d", config.Username, config.Host, config.Port)))
 
-	cacheFolder := path.Join(xdg.CacheHome, "anyquery", "plugins", "imap", fmt.Sprintf("%x", hashedUserConf[:]))
+	cacheFolder := path.Join(xdg.CacheHome, "anyquery", "plugins", "imap", fmt.Sprintf("body-%x", hashedUserConf[:]))
 	err = os.MkdirAll(cacheFolder, 0755)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create cache folder: %w", err)
@@ -57,7 +58,7 @@ func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		return nil, nil, fmt.Errorf("failed to open badger database: %w", err)
 	}
 
-	return &itemsTable{
+	return &itemsBodyTable{
 			db:          db,
 			dialer:      dialer,
 			username:    config.Username,
@@ -121,11 +122,15 @@ func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					Name: "folder",
 					Type: rpc.ColumnTypeString,
 				},
+				{
+					Name: "body",
+					Type: rpc.ColumnTypeString,
+				},
 			},
 		}, nil
 }
 
-type itemsTable struct {
+type itemsBodyTable struct {
 	dialer          *client.Client
 	dialerMutex     *sync.Mutex
 	db              *badger.DB
@@ -135,7 +140,7 @@ type itemsTable struct {
 	password        string
 }
 
-type itemsCursor struct {
+type itemsBodyCursor struct {
 	folderIndex     int
 	folders         *[]string
 	folderSelected  bool
@@ -149,7 +154,7 @@ type itemsCursor struct {
 	password        string
 }
 
-func (t *itemsCursor) fillFolders() error {
+func (t *itemsBodyCursor) fillFolders() error {
 	// Get the list of folders if we haven't already
 	if *t.folders == nil {
 		mailboxes := make(chan *imap.MailboxInfo, 10)
@@ -182,7 +187,7 @@ func (t *itemsCursor) fillFolders() error {
 //
 // The constraints are used for optimization purposes to "pre-filter" the rows
 // If the rows returned don't match the constraints, it's not an issue. Anyquery will filter them out
-func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bool, error) {
+func (t *itemsBodyCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bool, error) {
 	// Get the list of UIDs if we haven't already
 	if *t.mailCountFolder == nil {
 		err := t.fillFolders()
@@ -270,15 +275,18 @@ func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 		// resulting in The specified message set is invalid.
 		seqSet.AddRange(uint32(t.offset+1), min(mailCount, t.offset+t.pageSize))
 
+		tempBody := &imap.BodySectionName{}
 		messages := make(chan *imap.Message, 10)
 		done := make(chan error, 1)
 		go func() {
 			done <- t.dialer.Fetch(seqSet, []imap.FetchItem{imap.FetchEnvelope, imap.FetchFlags, imap.FetchRFC822Size, imap.FetchInternalDate,
-				imap.FetchUid}, messages)
+				imap.FetchUid, tempBody.FetchItem(),
+			}, messages)
 		}()
 
 		for msg := range messages {
 			if msg == nil {
+				log.Printf("Message is nil")
 				continue
 			}
 			subject := interface{}(nil)
@@ -299,6 +307,42 @@ func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 				cc = serializeJSON(msg.Envelope.Cc)
 				bcc = serializeJSON(msg.Envelope.Bcc)
 			}
+
+			r := msg.GetBody(tempBody)
+			if r == nil {
+				log.Printf("Failed to get body for message %d", msg.Uid)
+				continue
+			}
+
+			// Read the body
+			mailReader, err := mail.CreateReader(r)
+			if err != nil {
+				log.Printf("Failed to create mail reader for message %d: %v", msg.Uid, err)
+				continue
+			}
+
+			// Get the HTML part
+			body := ""
+			for {
+				part, err := mailReader.NextPart()
+				if err != nil {
+					break
+				}
+
+				// Check if the part is text/plain or text/html
+				if strings.HasPrefix(part.Header.Get("Content-Type"), "text/") {
+					buf := new(bytes.Buffer)
+					_, err := buf.ReadFrom(part.Body)
+					if err != nil {
+						log.Printf("Failed to read body for message %d: %v", msg.Uid, err)
+						continue
+					}
+					body = buf.String()
+					break
+				}
+
+			}
+
 			rows = append(rows, []interface{}{
 				msg.Uid,
 				subject,
@@ -313,6 +357,7 @@ func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 				msg.Flags,
 				msg.Size,
 				folder,
+				body,
 			})
 		}
 
@@ -330,6 +375,8 @@ func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 			}
 			return nil, true, fmt.Errorf("failed to fetch emails: %v", err)
 		}
+
+		log.Printf("Requested %d emails, got %d", t.pageSize, len(rows))
 
 		// Save the page in the cache unless it's the last page
 		// This is to avoid saving the last page that might not be full
@@ -367,11 +414,11 @@ func (t *itemsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 }
 
 // Create a new cursor that will be used to read rows
-func (t *itemsTable) CreateReader() rpc.ReaderInterface {
+func (t *itemsBodyTable) CreateReader() rpc.ReaderInterface {
 	if t.dialerMutex == nil {
 		t.dialerMutex = &sync.Mutex{}
 	}
-	return &itemsCursor{
+	return &itemsBodyCursor{
 		folders:         &t.folders,
 		dialer:          t.dialer,
 		dialerMutex:     t.dialerMutex,
@@ -384,7 +431,7 @@ func (t *itemsTable) CreateReader() rpc.ReaderInterface {
 }
 
 // A slice of rows to insert
-func (t *itemsTable) Insert(rows [][]interface{}) error {
+func (t *itemsBodyTable) Insert(rows [][]interface{}) error {
 	return nil
 }
 
@@ -392,59 +439,18 @@ func (t *itemsTable) Insert(rows [][]interface{}) error {
 // The first element of each row is the primary key
 // while the rest are the values to update
 // The primary key is therefore present twice
-func (t *itemsTable) Update(rows [][]interface{}) error {
+func (t *itemsBodyTable) Update(rows [][]interface{}) error {
 	return nil
 }
 
 // A slice of primary keys to delete
-func (t *itemsTable) Delete(primaryKeys []interface{}) error {
+func (t *itemsBodyTable) Delete(primaryKeys []interface{}) error {
 	return nil
 }
 
 // A destructor to clean up resources
-func (t *itemsTable) Close() error {
+func (t *itemsBodyTable) Close() error {
 	t.db.Close()
 	t.dialer.Logout()
 	return nil
-}
-
-// Serialize a value to JSON and return nil if the value is not serializable
-// Therefore, nil will be replaced as NULL in the database
-func serializeJSON(v interface{}) interface{} {
-	// If of type adressMail, we convert it to an array of struct {email, name}
-	if v == nil {
-		return nil
-	}
-
-	if adressMail, ok := v.([]*imap.Address); ok {
-		// If the array is empty, return nil
-		if len(adressMail) == 0 {
-			return nil
-		}
-		arrayEmail := make([]struct {
-			Email string `json:"email"`
-			Name  string `json:"name"`
-		}, 0, len(adressMail))
-		for _, email := range adressMail {
-			if email == nil {
-				continue
-			}
-			arrayEmail = append(arrayEmail, struct {
-				Email string `json:"email"`
-				Name  string `json:"name"`
-			}{
-				Email: email.Address(),
-				Name:  email.PersonalName,
-			})
-		}
-
-		v = arrayEmail
-
-	}
-
-	serialized, err := json.Marshal(v)
-	if err != nil {
-		return nil
-	}
-	return string(serialized)
 }
