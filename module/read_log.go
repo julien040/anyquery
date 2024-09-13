@@ -147,7 +147,7 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		file = mmap
 	}
 
-	// Read the first 10 lines to determine the schema
+	// Read the first 1000 lines to determine the schema
 	i := 0
 	err = nil
 	parser, err := createGrokParser(patternFile)
@@ -156,7 +156,7 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 	}
 	colsType := map[string]string{}
 	buffer := bufio.NewReader(bytes.NewReader(file))
-	for i < 10 && err == nil {
+	for i < 1000 && err == nil {
 		var line []byte
 		line, err = buffer.ReadBytes('\n')
 		if err != nil {
