@@ -588,7 +588,68 @@ func convertToSQLiteVal(val interface{}, c *sqlite3.SQLiteContext) {
 		c.ResultDouble(v)
 	case float32:
 		c.ResultDouble(float64(v))
-	case []string, []float64, []float32, []int, []int64, []bool, []interface{}, []uint64,
+	// Write a special case for []string, []float64, []int, []bool, []int64
+	case []string:
+		// JSON encode the string slice
+		if len(v) == 0 {
+			c.ResultNull()
+		} else {
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
+		}
+	case []float64:
+		// JSON encode the string slice
+		if len(v) == 0 {
+			c.ResultNull()
+		} else {
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
+		}
+	case []int:
+		// JSON encode the string slice
+		if len(v) == 0 {
+			c.ResultNull()
+		} else {
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
+		}
+	case []int64:
+		// JSON encode the string slice
+		if len(v) == 0 {
+			c.ResultNull()
+		} else {
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
+		}
+	case []bool:
+		// JSON encode the string slice
+		if len(v) == 0 {
+			c.ResultNull()
+		} else {
+			encoded, err := json.Marshal(v)
+			if err != nil {
+				c.ResultNull()
+			} else {
+				c.ResultText(string(encoded))
+			}
+		}
+	case []float32, []interface{}, []uint64,
 		[]uint32, []uint16, []int32, []int16, []int8:
 		if v == nil {
 			c.ResultNull()

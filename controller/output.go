@@ -324,6 +324,17 @@ func (j *jsonTableEncoder) Write(row []interface{}) error {
 	mapToPrint := make(map[string]interface{})
 	for i, col := range j.Columns {
 		if i < len(row) {
+			// Sometimes, a column might be returned as a string of its JSON representation
+			// We will check if row[i] is a string and if it is, we will check if it's starting with a { or a [
+			if str, ok := row[i].(string); ok {
+				if strings.HasPrefix(str, "{") || strings.HasPrefix(str, "[") {
+					var v interface{}
+					if err := json.Unmarshal([]byte(str), &v); err == nil {
+						mapToPrint[col] = v
+						continue
+					}
+				}
+			}
 			mapToPrint[col] = row[i]
 		} else { // When the row is shorter than the columns, we set the column to nil
 			mapToPrint[col] = nil
@@ -337,7 +348,11 @@ func (j *jsonTableEncoder) Write(row []interface{}) error {
 }
 func (j *jsonTableEncoder) Close() error {
 	// Print the closing bracket
-	fmt.Fprint(j.Writer, "]\n")
+	if j.firstRowWritten {
+		fmt.Fprint(j.Writer, "]\n")
+	} else {
+		fmt.Fprint(j.Writer, "[]\n")
+	}
 
 	return nil
 }
@@ -360,6 +375,17 @@ func (j *jsonLinesTableEncoder) Write(row []interface{}) error {
 	mapToAppend := make(map[string]interface{})
 	for i, col := range j.Columns {
 		if i < len(row) {
+			// Sometimes, a column might be returned as a string of its JSON representation
+			// We will check if row[i] is a string and if it is, we will check if it's starting with a { or a [
+			if str, ok := row[i].(string); ok {
+				if strings.HasPrefix(str, "{") || strings.HasPrefix(str, "[") {
+					var v interface{}
+					if err := json.Unmarshal([]byte(str), &v); err == nil {
+						mapToAppend[col] = v
+						continue
+					}
+				}
+			}
 			mapToAppend[col] = row[i]
 		} else { // When the row is shorter than the columns, we set the column to nil
 			mapToAppend[col] = nil
