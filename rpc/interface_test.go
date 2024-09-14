@@ -2,6 +2,7 @@ package rpc
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -13,6 +14,26 @@ func TestUserConfigHelpers(t *testing.T) {
 				ColumnID: 0,
 				Operator: OperatorEqual,
 				Value:    "value",
+			},
+			{
+				ColumnID: 2,
+				Operator: OperatorEqual,
+				Value:    "2024-01-01T00:00:00Z",
+			},
+			{
+				ColumnID: 3,
+				Operator: OperatorEqual,
+				Value:    1704067200,
+			},
+			{
+				ColumnID: 4,
+				Operator: OperatorEqual,
+				Value:    "true",
+			},
+			{
+				ColumnID: 5,
+				Operator: OperatorEqual,
+				Value:    1,
 			},
 		},
 	}
@@ -40,6 +61,26 @@ func TestUserConfigHelpers(t *testing.T) {
 
 	zeroValueFloat := constraints.GetColumnConstraint(1).GetFloatValue()
 	require.Equal(t, 0.0, zeroValueFloat)
+
+	// Check for time.Time value
+	timeValue := constraints.GetColumnConstraint(2).GetTimeValue()
+	require.Equal(t, "2024-01-01T00:00:00Z", timeValue.Format(time.RFC3339))
+
+	// Check for int64 value
+	intValue := constraints.GetColumnConstraint(3).GetIntValue()
+	require.Equal(t, int64(1704067200), intValue)
+
+	// Check for unix timestamp value
+	unixValue := constraints.GetColumnConstraint(3).GetTimeValue()
+	require.True(t, unixValue.Equal(time.Unix(1704067200, 0)))
+
+	// Check for bool value
+	boolValue := constraints.GetColumnConstraint(4).GetBoolValue()
+	require.Equal(t, true, boolValue)
+
+	boolValue = constraints.GetColumnConstraint(5).GetBoolValue()
+	require.Equal(t, true, boolValue)
+
 }
 
 func TestPluginConfigHelpers(t *testing.T) {
@@ -74,6 +115,6 @@ func TestPluginConfigHelpers(t *testing.T) {
 	require.Equal(t, 0.0, zeroValueFloat)
 
 	zeroValueArray := config.GetStringArray("missing")
-	require.Equal(t, []string{}, zeroValueArray)
+	require.Equal(t, []string([]string(nil)), zeroValueArray)
 
 }

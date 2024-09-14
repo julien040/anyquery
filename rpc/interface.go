@@ -1,5 +1,10 @@
 package rpc
 
+import (
+	"strconv"
+	"time"
+)
+
 // InternalExchangeInterface is an interface that defines the methods
 // that a plugin must implement to communicate with the main program
 //
@@ -398,39 +403,155 @@ func (cc *ColumnConstraint) IsEqual() bool {
 
 // Returns the string value of the column constraint
 //
-// If the value is not a string, or the constraints does not exist, it returns an empty string
+// If the value is not a string, it'll try to convert it to a string
+// If it fails or the constraints does not exist, it returns an empty string
 func (cc *ColumnConstraint) GetStringValue() string {
 	if cc == nil {
 		return ""
 	}
-	if str, ok := cc.Value.(string); ok {
-		return str
+	switch v := cc.Value.(type) {
+	case string:
+		return v
+	case int64:
+		return strconv.FormatInt(v, 10)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	// Shoud be impossible
+	case bool:
+		return strconv.FormatBool(v)
 	}
 	return ""
 }
 
 // Returns the int value of the column constraint
 //
-// If the value is not an int, or the constraints does not exist, it returns 0
+// If the value is not an int, it'll try to convert it to an int
+// If it fails or the constraints does not exist, it returns 0
 func (cc *ColumnConstraint) GetIntValue() int64 {
 	if cc == nil {
 		return 0
 	}
-	if i, ok := cc.Value.(int64); ok {
-		return i
+	switch v := cc.Value.(type) {
+	case string:
+		val, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return 0
+		}
+		return val
+	case int64:
+		return v
+	case int:
+		return int64(v)
+	case float64:
+		return int64(v)
+	default:
+		return 0
 	}
-	return 0
 }
 
 // Returns the float value of the column constraint
 //
-// If the value is not a float, or the constraints does not exist, it returns 0
+// If the value is not a float, it'll try to convert it to a float
+// If it fails or the constraints does not exist, it returns 0
 func (cc *ColumnConstraint) GetFloatValue() float64 {
 	if cc == nil {
 		return 0
 	}
-	if f, ok := cc.Value.(float64); ok {
-		return f
+	switch v := cc.Value.(type) {
+	case string:
+		val, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			return 0
+		}
+		return val
+	case float64:
+		return v
+	case int64:
+		return float64(v)
+	default:
+		return 0
 	}
-	return 0
+}
+
+// Returns the bool value of the column constraint
+//
+// If the value is not a bool, it'll try to convert it to a bool
+// If it fails or the constraints does not exist, it returns false
+func (cc *ColumnConstraint) GetBoolValue() bool {
+	if cc == nil {
+		return false
+	}
+	switch v := cc.Value.(type) {
+	// Should be impossible
+	case bool:
+		return v
+	case int64, int:
+		return v == 1
+	case float64:
+		return v == 1
+	case string:
+		val, err := strconv.ParseBool(v)
+		if err != nil {
+			return false
+		}
+		return val
+	default:
+		return false
+	}
+
+}
+
+// Returns the time value of the column constraint
+//
+// If the value is not a time.Time, it'll try to convert it to a time.Time
+// If it fails or the constraints does not exist, it returns the zero value of time.Time
+//
+// Supported formats are:
+//   - time.RFC3339
+//   - time.RFC822
+//   - time.RubyDate
+//   - time.UnixDate
+//   - time.DateTime
+//   - time.DateOnly
+//   - Unix timestamp (int64 or float64)
+func (cc *ColumnConstraint) GetTimeValue() time.Time {
+	if cc == nil {
+		return time.Time{}
+	}
+
+	supportedFormats := []string{
+		time.RFC3339,
+		time.RFC822,
+		time.RubyDate,
+		time.UnixDate,
+		time.DateTime,
+		time.DateOnly,
+	}
+
+	switch v := cc.Value.(type) {
+	// Should be impossible
+	case time.Time:
+		return v
+	case *time.Time:
+		if v == nil {
+			return time.Time{}
+		}
+		return *v
+	case string:
+		for _, format := range supportedFormats {
+			t, err := time.Parse(format, v)
+			if err == nil {
+				return t
+			}
+		}
+		return time.Time{}
+	case int64:
+		return time.Unix(v, 0)
+	case int:
+		return time.Unix(int64(v), 0)
+	case float64:
+		return time.Unix(int64(v), 0)
+	default:
+		return time.Time{}
+	}
 }
