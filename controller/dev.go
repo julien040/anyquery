@@ -39,6 +39,18 @@ import "github.com/julien040/anyquery/rpc"
 //
 // It should return a new table instance, the database schema and if there is an error
 func {{.TableName}}Creator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, error) {
+	// Example: get a token from the user configuration
+	// token := args.UserConfig.GetString("token")
+	// if token == "" {
+	// 	return nil, nil, fmt.Errorf("token must be set in the plugin configuration")
+	// }
+
+	// Example: open a cache connection
+	/* cache, err := helper.NewCache(helper.NewCacheArgs{
+		Paths:         []string{"{{.TableName}}", "{{.TableName}}" + "_cache"},
+		EncryptionKey: []byte("my_secret_key"),
+	})*/
+
 	return &{{.TableName}}Table{}, &rpc.DatabaseSchema{
 		HandlesInsert: false,
 		HandlesUpdate: false,
@@ -56,15 +68,27 @@ func {{.TableName}}Creator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseS
 				Name:        "name",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				IsRequired:  false,
 			},
 		},
 	}, nil
 }
 
+// The table struct
+// There is one per connection to the plugin and is created by the creator function
+// In there, you can store any state you need to read the rows (e.g. a database connection, an API token, etc.)
 type {{.TableName}}Table struct {
 }
 
+// The cursor struct
+// There is one per query and is created by the createReader function
+// In there, you can store any state you need to read the rows (e.g. a database connection from {{.TableName}}Table, an offset, a cursor, etc.)
 type {{.TableName}}Cursor struct {
+}
+
+// Create a new cursor that will be used to read rows
+func (t *{{.TableName}}Table) CreateReader() rpc.ReaderInterface {
+	return &{{.TableName}}Cursor{}
 }
 
 // Return a slice of rows that will be returned to Anyquery and filtered.
@@ -73,16 +97,22 @@ type {{.TableName}}Cursor struct {
 // The constraints are used for optimization purposes to "pre-filter" the rows
 // If the rows returned don't match the constraints, it's not an issue. Anyquery will filter them out
 func (t *{{.TableName}}Cursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bool, error) {
+	// Example: Extract the name from the constraints
+	// name := constraints.GetColumnConstraint(0).GetStringValue()
+	// if name == "" {
+	// 	return nil, true, fmt.Errorf("name must be set")
+	// }
 	return nil, true, nil
-}
-
-// Create a new cursor that will be used to read rows
-func (t *{{.TableName}}Table) CreateReader() rpc.ReaderInterface {
-	return &{{.TableName}}Cursor{}
 }
 
 // A slice of rows to insert
 func (t *{{.TableName}}Table) Insert(rows [][]interface{}) error {
+	// Example: insert the rows in a database
+	// for _, row := range rows {
+	// 	err := db.Insert(row[0], row[1], row[2])
+	// 	if err != nil {
+	// 		return err
+	// 	}
 	return nil
 }
 
