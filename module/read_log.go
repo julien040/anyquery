@@ -11,7 +11,7 @@ import (
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/mattn/go-sqlite3"
-	"github.com/vjeantet/grok"
+	"github.com/trivago/grok"
 )
 
 //go:embed template.grok
@@ -24,8 +24,7 @@ type LogTable struct {
 	file        []byte
 	mmap        mmap.MMap
 	colPosition map[string]int
-	pattern     string
-	filePattern string // A file that contains the custom grok patterns
+	parser      *grok.CompiledGrok
 }
 
 type LogCursor struct {
@@ -33,13 +32,12 @@ type LogCursor struct {
 	eof         bool
 	currentRow  map[int]interface{}
 	colPosition map[string]int
-	parser      *grok.Grok
+	parser      *grok.CompiledGrok
 	rowID       int64
 	pattern     string
 }
 
-func createGrokParser(filePattern string) (*grok.Grok, error) {
-	// Read the template file
+func extractPatternsFromStr(grokTemplate string) map[string]string {
 	patterns := map[string]string{}
 	lines := strings.Split(grokTemplate, "\n")
 	for _, line := range lines {
@@ -53,26 +51,39 @@ func createGrokParser(filePattern string) (*grok.Grok, error) {
 		}
 		patterns[parts[0]] = parts[1]
 	}
+	return patterns
+}
 
-	parser, err := grok.NewWithConfig(&grok.Config{
+func createGrokParser(filePattern string) (*grok.Grok, error) {
+	// Read the template file
+	patterns := extractPatternsFromStr(grokTemplate)
+
+	// Read the custom patterns
+	if filePattern != "" {
+		file, err := os.ReadFile(filePattern)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read the custom grok patterns file: %s", err)
+		}
+
+		customPatterns := extractPatternsFromStr(string(file))
+		// Overwrite the default patterns
+		for key, value := range customPatterns {
+			patterns[key] = value
+		}
+	}
+
+	parser, err := grok.New(grok.Config{
 		NamedCapturesOnly: true,
 		Patterns:          patterns,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the grok parser: %s", err)
 	}
-	if filePattern != "" {
-		err = parser.AddPatternsFromPath(filePattern)
-		if err != nil {
-			return nil, fmt.Errorf("failed to add custom patterns: %s", err)
-		}
-	}
 
 	return parser, nil
 }
 
 func (m *LogModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
-
 	return m.Connect(c, args)
 }
 
@@ -147,57 +158,42 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		file = mmap
 	}
 
-	// Read the first 1000 lines to determine the schema
-	i := 0
-	err = nil
 	parser, err := createGrokParser(patternFile)
 	if err != nil {
 		return nil, err
 	}
-	colsType := map[string]string{}
-	buffer := bufio.NewReader(bytes.NewReader(file))
-	for i < 1000 && err == nil {
-		var line []byte
-		line, err = buffer.ReadBytes('\n')
-		if err != nil {
-			break
-		}
 
-		elems, err := parser.Parse(pattern, string(line))
-		if err != nil {
-			continue
-		}
-		for fieldName, _ := range elems {
-			if _, ok := colsType[fieldName]; ok {
-				continue
-			}
-			// Later we'll parse the type from the string
-			colsType[fieldName] = "TEXT"
-		}
-
-		i++
-	}
-
-	if len(colsType) == 0 {
-		return nil, fmt.Errorf("failed to determine the schema. Make sure the pattern is correct")
+	compiledParser, err := parser.Compile(pattern)
+	if err != nil {
+		return nil, fmt.Errorf("failed to compile the pattern: %s. Make sure the pattern is a valid grok pattern", err)
 	}
 
 	// Create the table
 	builder := strings.Builder{}
 	builder.WriteString("CREATE TABLE log (")
-	i = 0
 	colPosition := map[string]int{}
-	for key, colType := range colsType {
+	// We incremenent i by ourselves here because we want to skip empty fields
+	// At the same time, it allows us to see if we have any fields at all
+	i := 0
+	for _, colName := range compiledParser.GetFields() {
+		if colName == "" {
+			continue
+		}
 		if i > 0 {
 			builder.WriteString(", ")
 		}
-		builder.WriteString("`" + key + "`")
+		builder.WriteString("`" + colName + "`")
 		builder.WriteString(" ")
-		builder.WriteString(colType)
-		colPosition[key] = i
+		builder.WriteString("UNKNOWN")
+		colPosition[colName] = i
 		i++
 	}
 	builder.WriteString(");")
+
+	// Fail if no fields were found
+	if i == 0 {
+		return nil, fmt.Errorf("no fields found in the pattern")
+	}
 
 	err = c.DeclareVTab(builder.String())
 
@@ -210,25 +206,16 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		file:        file,
 		mmap:        mmap,
 		colPosition: colPosition,
-		pattern:     pattern,
-		filePattern: patternFile,
+		parser:      compiledParser,
 	}, nil
 }
 
 func (t *LogTable) Open() (sqlite3.VTabCursor, error) {
-
-	// Create a new parser
-	parser, err := createGrokParser(t.filePattern)
-	if err != nil {
-		return nil, err
-	}
-
 	return &LogCursor{
 		reader:      bufio.NewReader(bytes.NewReader(t.file)),
-		parser:      parser,
 		eof:         false,
 		colPosition: t.colPosition,
-		pattern:     t.pattern,
+		parser:      t.parser,
 		rowID:       0,
 	}, nil
 }
@@ -257,21 +244,23 @@ func (t *LogCursor) fillCurrentRow() error {
 	line, err := t.reader.ReadBytes('\n')
 	if err == io.EOF {
 		t.eof = true
+		t.currentRow = nil
+		return nil
 	} else if err != nil {
 		return fmt.Errorf("failed to read the next line: %s", err)
 	}
 
 	// Parse the line
-	elems, err := t.parser.Parse(t.pattern, string(line))
+	elems, err := t.parser.ParseTyped(line)
 	if err != nil {
 		return fmt.Errorf("failed to parse the line: %s", err)
 	}
 
 	// Fill the current row
 	t.currentRow = map[int]interface{}{}
-	for fieldName, fieldValue := range elems {
-		if pos, ok := t.colPosition[fieldName]; ok {
-			t.currentRow[pos] = fieldValue
+	for name, val := range elems {
+		if pos, ok := t.colPosition[name]; ok {
+			t.currentRow[pos] = val
 		}
 	}
 
