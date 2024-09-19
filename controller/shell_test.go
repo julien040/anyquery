@@ -64,6 +64,26 @@ func TestQuerySplitter(t *testing.T) {
 			query:    "    .mode\n\nSELECT * FROM table;    .exit  ",
 			expected: []string{".mode", "SELECT * FROM table", ".exit"},
 		},
+		{
+			name: "a query with a comment and a sql command",
+			query: `-- This is a; comment
+SELECT * FROM table`,
+			expected: []string{"-- This is a; comment\nSELECT * FROM table"},
+		},
+		{
+			name: "a query with a multi-line comment and a sql command",
+			query: `/*
+This is a multi-line comment; with a semi-colon
+Hey
+*/
+SELECT * FROM table; .exit`,
+			expected: []string{"/*\nThis is a multi-line comment; with a semi-colon\nHey\n*/\nSELECT * FROM table", ".exit"},
+		},
+		{
+			name:     "a query with a multi-line comment in the middle of a sql command",
+			query:    `SELECT *  /* This is a 'multi-line' comment; with "a" semi-colon*/ FROM table; .exit`,
+			expected: []string{"SELECT *  /* This is a 'multi-line' comment; with \"a\" semi-colon*/ FROM table", ".exit"},
+		},
 	}
 
 	for _, tt := range test {

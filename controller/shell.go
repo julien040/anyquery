@@ -146,7 +146,7 @@ func (p *shell) AddMiddleware(m middleware) {
 //
 // If a middleware returns false, the pipeline stops.
 // The pipeline will always run the middlewares in the order they were added
-func (p *shell) Run(rawQuery string) bool {
+func (p *shell) Run(rawQuery string, args ...interface{}) bool {
 	queries := splitMultipleQuery(rawQuery)
 
 	if len(queries) == 0 {
@@ -163,6 +163,7 @@ func (p *shell) Run(rawQuery string) bool {
 			SQLQuery: query,
 			Config:   p.Config,
 			DB:       p.DB,
+			Args:     args,
 		}
 
 		// If the query is .read, we read the file
@@ -407,7 +408,7 @@ func splitMultipleQuery(sqlQuery string) []string {
 	// isDotCommand => true if the query is a dot command or a slash command
 	// isEscaped => true if the character is escaped (in a string '' or "")
 	// mustResetWord => true if we find a query that can be appened to queries
-	var isDotCommand, isEscapedSimpleQuote, isEscapedDoubleQuote, mustResetWord bool
+	var isDotCommand, isEscapedSimpleQuote, isEscapedDoubleQuote, isMultiLineComment, isSingleLineComment, mustResetWord bool
 
 	queries := make([]string, 0)
 	// The index character of the current query
@@ -429,6 +430,25 @@ func splitMultipleQuery(sqlQuery string) []string {
 			// we can assume that it is a slash command
 			if i == 0 {
 				isDotCommand = true
+			}
+
+		case '/':
+			if len(sqlQuery) > i+1 && sqlQuery[i+1] == '*' {
+				isMultiLineComment = true
+			}
+
+		case '*':
+			// If we find a star and we are in a slash command
+			// we can assume that it is the end of the slash command
+			if isMultiLineComment && len(sqlQuery) > i+1 &&
+				sqlQuery[i+1] == '/' {
+				isMultiLineComment = false
+			}
+		case '-':
+			// If we find a dash and we are at the beginning of the query
+			// we can assume that it is a single line comment
+			if i == 0 && len(sqlQuery) > i+1 && sqlQuery[i+1] == '-' {
+				isSingleLineComment = true
 			}
 
 		case '.':
@@ -454,7 +474,7 @@ func splitMultipleQuery(sqlQuery string) []string {
 			//
 			// It could be simplified as mustResetWord = condition
 			// but I prefer to keep it like this for readability
-			if !isEscapedSimpleQuote && !isEscapedDoubleQuote {
+			if !isEscapedSimpleQuote && !isEscapedDoubleQuote && !isMultiLineComment && !isSingleLineComment {
 				mustResetWord = true
 			}
 
@@ -467,8 +487,12 @@ func splitMultipleQuery(sqlQuery string) []string {
 
 			// If we find a newline, we're not in a string
 			// and it's a dot command, it means that the query is finished
-			if !isEscapedSimpleQuote && !isEscapedDoubleQuote && isDotCommand {
+			if !isEscapedSimpleQuote && !isEscapedDoubleQuote && !isMultiLineComment && !isSingleLineComment && isDotCommand {
 				mustResetWord = true
+			}
+
+			if isSingleLineComment {
+				isSingleLineComment = false
 			}
 
 		}
@@ -477,7 +501,7 @@ func splitMultipleQuery(sqlQuery string) []string {
 		// unless it is a newline and it is a dot command
 		//
 		// Or it's a ; and we are not in a string
-		if !((c == '\n' && isDotCommand) || (c == ';' && !isEscapedSimpleQuote && !isEscapedDoubleQuote)) {
+		if !((c == '\n' && isDotCommand) || (c == ';' && !isEscapedSimpleQuote && !isEscapedDoubleQuote && !isMultiLineComment && !isSingleLineComment)) {
 			tempQuery.WriteRune(c)
 		}
 		currentPosition++
@@ -495,6 +519,8 @@ func splitMultipleQuery(sqlQuery string) []string {
 			mustResetWord = false
 			isEscapedSimpleQuote = false
 			isEscapedDoubleQuote = false
+			isMultiLineComment = false
+			isSingleLineComment = false
 		}
 
 	}
