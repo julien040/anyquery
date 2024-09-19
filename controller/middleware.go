@@ -434,20 +434,32 @@ func middlewareSlashCommand(queryData *QueryData) bool {
 
 }
 
-type tableFunction struct {
-	name     string
-	args     []string
-	position int
-	alias    string
+type table struct {
+	name       string
+	stringArgs []string
+	position   int
+	alias      string
 }
 
 // Extract the table functions from the query parsed by pg_query
-func extractTableFunctions(fromClause []*pg_query.Node) []tableFunction {
-	result := []tableFunction{}
-
+func extractTableFunctions(fromClause []*pg_query.Node) []table {
+	result := []table{}
 	for ithTable, item := range fromClause {
 		funcCall := item.GetRangeFunction()
 		if funcCall == nil {
+			// This is a regular table
+			rangeVar := item.GetRangeVar()
+			if rangeVar != nil {
+				tableToAppend := &table{
+					name:       rangeVar.Relname,
+					stringArgs: []string{},
+					position:   ithTable,
+				}
+				if rangeVar.Alias != nil {
+					tableToAppend.alias = rangeVar.Alias.Aliasname
+				}
+				result = append(result, *tableToAppend)
+			}
 			continue
 		}
 		alias := ""
@@ -469,13 +481,13 @@ func extractTableFunctions(fromClause []*pg_query.Node) []tableFunction {
 					}
 					// Get the table name
 					tableName := funcCall.Funcname[0].GetString_().Sval
-					// Get args
-					args := []string{}
+					// Get stringArgs
+					stringArgs := []string{}
 					for _, arg := range funcCall.Args {
 						// e.g. "foo", "bar"
 						columnRef := arg.GetColumnRef()
 						if columnRef != nil {
-							args = append(args, columnRef.Fields[0].GetString_().Sval)
+							stringArgs = append(stringArgs, columnRef.Fields[0].GetString_().Sval)
 						}
 
 						// e.g. 1, 'a", 1.0, true
@@ -483,23 +495,23 @@ func extractTableFunctions(fromClause []*pg_query.Node) []tableFunction {
 						if constRef != nil {
 							svalStr := constRef.GetSval()
 							if svalStr != nil {
-								args = append(args, svalStr.Sval)
+								stringArgs = append(stringArgs, svalStr.Sval)
 							}
 							svalBool := constRef.GetBoolval()
 							if svalBool != nil {
 								if svalBool.Boolval {
-									args = append(args, "true")
+									stringArgs = append(stringArgs, "true")
 								} else {
-									args = append(args, "false")
+									stringArgs = append(stringArgs, "false")
 								}
 							}
 							svalInt := constRef.GetIval()
 							if svalInt != nil {
-								args = append(args, strconv.Itoa(int(svalInt.Ival)))
+								stringArgs = append(stringArgs, strconv.Itoa(int(svalInt.Ival)))
 							}
 							svalFloat := constRef.GetFval()
 							if svalFloat != nil {
-								args = append(args, svalFloat.Fval)
+								stringArgs = append(stringArgs, svalFloat.Fval)
 							}
 						}
 
@@ -557,17 +569,17 @@ func extractTableFunctions(fromClause []*pg_query.Node) []tableFunction {
 								}
 							}
 
-							args = append(args, leftSide+" = "+rightSide)
+							stringArgs = append(stringArgs, leftSide+" = "+rightSide)
 
 						}
 
 					}
 
-					result = append(result, tableFunction{
-						name:     tableName,
-						args:     args,
-						position: ithTable,
-						alias:    alias,
+					result = append(result, table{
+						name:       tableName,
+						stringArgs: stringArgs,
+						position:   ithTable,
+						alias:      alias,
 					})
 				}
 			}
@@ -586,6 +598,70 @@ func generateRandomString(size int) string {
 	}
 	return result.String()
 
+}
+
+func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
+	res := []*pg_query.SelectStmt{}
+	for _, stmt := range Result.Stmts {
+		// Try to get the select, insert as select, create table as select, with select
+		selectStmt := stmt.Stmt.GetSelectStmt()
+		if selectStmt != nil {
+			res = append(res, selectStmt)
+
+			// Extract the WITH clause
+			withStmt := selectStmt.WithClause
+			if withStmt != nil {
+				for _, cte := range withStmt.Ctes {
+					tableExpr := cte.GetCommonTableExpr()
+					if tableExpr != nil && tableExpr.Ctequery != nil {
+						selectStmtWith := tableExpr.Ctequery.GetSelectStmt()
+						if selectStmtWith != nil {
+							res = append(res, selectStmtWith)
+						}
+					}
+				}
+			}
+
+			fromClause := selectStmt.FromClause
+			if fromClause != nil {
+				for _, from := range fromClause {
+					subSelect := from.GetRangeSubselect()
+					if subSelect != nil {
+						selectStmtSub := subSelect.Subquery.GetSelectStmt()
+						if selectStmtSub != nil {
+							res = append(res, selectStmtSub)
+						}
+					}
+				}
+			}
+		}
+		insertStmt := stmt.Stmt.GetInsertStmt()
+		if insertStmt != nil {
+			selectStmtIns := insertStmt.SelectStmt.GetSelectStmt()
+			if selectStmtIns != nil {
+				res = append(res, selectStmt)
+			}
+		}
+
+		createTableStmt := stmt.Stmt.GetCreateTableAsStmt()
+		if createTableStmt != nil {
+			selectStmtCre := createTableStmt.Query.GetSelectStmt()
+			if selectStmtCre != nil {
+				res = append(res, selectStmtCre)
+			}
+		}
+
+		withStmt := stmt.Stmt.GetWithClause()
+		if withStmt != nil {
+			for _, cte := range withStmt.Ctes {
+				selectStmtWith := cte.GetSelectStmt()
+				if selectStmtWith != nil {
+					res = append(res, selectStmtWith)
+				}
+			}
+		}
+	}
+	return res
 }
 
 // Prefix the query like SELECT * FROM read_json with a CREATE VIRTUAL TABLE statement
@@ -635,98 +711,79 @@ func middlewareFileQuery(queryData *QueryData) bool {
 		return true
 	}
 
-	selectStmt := Result.Stmts[0].Stmt.GetSelectStmt()
-	if selectStmt == nil {
-		// To handle INSERT INTO SELECT
-		insertStmt := Result.Stmts[0].Stmt.GetInsertStmt()
-		if insertStmt == nil {
-			// To handle CREATE TABLE AS SELECT
-			createTableStmt := Result.Stmts[0].Stmt.GetCreateTableAsStmt()
-			if createTableStmt == nil {
-				return true
-			} else {
-				selectStmt = createTableStmt.Query.GetSelectStmt()
-				if selectStmt == nil {
-					return true
-				}
-			}
-		} else {
-			selectStmt = insertStmt.SelectStmt.GetSelectStmt()
-			if selectStmt == nil {
-				return true
-			}
-		}
-
+	// Extract the select statements
+	selectStmts := extractSelectStmt(Result)
+	if len(selectStmts) == 0 {
+		return true
 	}
-
-	// Get the from clause
-	tableFunctions := extractTableFunctions(selectStmt.FromClause)
-	for _, tableFunction := range tableFunctions {
-		// Check if the table function is a file module
-		/* if tableFunction.name != "read_json" && tableFunction.name != "read_csv" && tableFunction.name != "read_parquet" &&
-			tableFunction.name != "read_html" && tableFunction.name != "read_yaml" && tableFunction.name != "read_toml" &&
-			tableFunction.name != "read_jsonl" && tableFunction.name != "read_ndjson" {
-			continue
-		} */
-		if !strings.HasPrefix(tableFunction.name, "read_") {
-			continue
-		}
-
-		// Replace the table function with a random one
-		tableName := generateRandomString(16)
-		preExecBuilder := strings.Builder{}
-		preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
-		preExecBuilder.WriteString(tableName)
-		preExecBuilder.WriteString(" USING ")
-		switch tableFunction.name {
-		case "read_json":
-			preExecBuilder.WriteString("json_reader")
-		case "read_csv":
-			preExecBuilder.WriteString("csv_reader")
-		case "read_parquet":
-			preExecBuilder.WriteString("parquet_reader")
-		case "read_html":
-			preExecBuilder.WriteString("html_reader")
-		case "read_yaml":
-			preExecBuilder.WriteString("yaml_reader")
-		case "read_toml":
-			preExecBuilder.WriteString("toml_reader")
-		case "read_jsonl", "read_ndjson":
-			preExecBuilder.WriteString("jsonl_reader")
-		case "read_log":
-			preExecBuilder.WriteString("log_reader")
-		default:
-			// If the user writes read_foo, and we don't have a reader for foo
-			// we skip the table function
-			continue
-		}
-
-		preExecBuilder.WriteString("(")
-		for i, arg := range tableFunction.args {
-			if i > 0 {
-				preExecBuilder.WriteString(", ")
+	for _, selectStmt := range selectStmts {
+		tableFunctions := extractTableFunctions(selectStmt.FromClause)
+		for _, tableFunction := range tableFunctions {
+			// Check if the table function is a file module
+			/* if tableFunction.name != "read_json" && tableFunction.name != "read_csv" && tableFunction.name != "read_parquet" &&
+				tableFunction.name != "read_html" && tableFunction.name != "read_yaml" && tableFunction.name != "read_toml" &&
+				tableFunction.name != "read_jsonl" && tableFunction.name != "read_ndjson" {
+				continue
+			} */
+			if !strings.HasPrefix(tableFunction.name, "read_") {
+				continue
 			}
-			preExecBuilder.WriteRune('"')
-			preExecBuilder.WriteString(arg)
-			preExecBuilder.WriteRune('"')
+			// Replace the table function with a random one
+			tableName := generateRandomString(16)
+			preExecBuilder := strings.Builder{}
+			preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
+			preExecBuilder.WriteString(tableName)
+			preExecBuilder.WriteString(" USING ")
+			switch tableFunction.name {
+			case "read_json":
+				preExecBuilder.WriteString("json_reader")
+			case "read_csv":
+				preExecBuilder.WriteString("csv_reader")
+			case "read_parquet":
+				preExecBuilder.WriteString("parquet_reader")
+			case "read_html":
+				preExecBuilder.WriteString("html_reader")
+			case "read_yaml":
+				preExecBuilder.WriteString("yaml_reader")
+			case "read_toml":
+				preExecBuilder.WriteString("toml_reader")
+			case "read_jsonl", "read_ndjson":
+				preExecBuilder.WriteString("jsonl_reader")
+			case "read_log":
+				preExecBuilder.WriteString("log_reader")
+			default:
+				// If the user writes read_foo, and we don't have a reader for foo
+				// we skip the table function
+				continue
+			}
+
+			preExecBuilder.WriteString("(")
+			for i, arg := range tableFunction.stringArgs {
+				if i > 0 {
+					preExecBuilder.WriteString(", ")
+				}
+				preExecBuilder.WriteRune('"')
+				preExecBuilder.WriteString(arg)
+				preExecBuilder.WriteRune('"')
+			}
+			preExecBuilder.WriteString(");")
+
+			// Add the pre-execution statement
+			queryData.PreExec = append(queryData.PreExec, preExecBuilder.String())
+
+			// Add a post-execution statement to drop the table
+			queryData.PostExec = append(queryData.PostExec, "DROP TABLE "+tableName+";")
+
+			// Replace the table function with the new table name
+			var tempTableName *pg_query.Node
+			if tableFunction.alias == "" {
+				tempTableName = pg_query.MakeSimpleRangeVarNode(tableName, int32(tableFunction.position))
+			} else {
+				tempTableName = pg_query.MakeFullRangeVarNode("", tableName, tableFunction.alias, int32(tableFunction.position))
+			}
+			selectStmt.FromClause[tableFunction.position] = tempTableName
+
 		}
-		preExecBuilder.WriteString(");")
-
-		// Add the pre-execution statement
-		queryData.PreExec = append(queryData.PreExec, preExecBuilder.String())
-
-		// Add a post-execution statement to drop the table
-		queryData.PostExec = append(queryData.PostExec, "DROP TABLE "+tableName+";")
-
-		// Replace the table function with the new table name
-		var tempTableName *pg_query.Node
-		if tableFunction.alias == "" {
-			tempTableName = pg_query.MakeSimpleRangeVarNode(tableName, int32(tableFunction.position))
-		} else {
-			tempTableName = pg_query.MakeFullRangeVarNode("", tableName, tableFunction.alias, int32(tableFunction.position))
-		}
-		selectStmt.FromClause[tableFunction.position] = tempTableName
-
 	}
 
 	newQuery, err := pg_query.Deparse(Result)
