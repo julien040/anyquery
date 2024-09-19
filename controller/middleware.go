@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -716,7 +717,10 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	if len(selectStmts) == 0 {
 		return true
 	}
+	// So that we don't deparse if we don't need to
+	modifiedTableCount := 0
 	for _, selectStmt := range selectStmts {
+
 		tableFunctions := extractTableFunctions(selectStmt.FromClause)
 		for _, tableFunction := range tableFunctions {
 			// Check if the table function is a file module
@@ -728,6 +732,7 @@ func middlewareFileQuery(queryData *QueryData) bool {
 			if !strings.HasPrefix(tableFunction.name, "read_") {
 				continue
 			}
+			modifiedTableCount++
 			// Replace the table function with a random one
 			tableName := generateRandomString(16)
 			preExecBuilder := strings.Builder{}
@@ -786,11 +791,14 @@ func middlewareFileQuery(queryData *QueryData) bool {
 		}
 	}
 
-	newQuery, err := pg_query.Deparse(Result)
-	if err != nil {
-		return true
+	if modifiedTableCount > 0 {
+		newQuery, err := pg_query.Deparse(Result)
+		newQuery = regexp.MustCompile(`@[\s]+([a-zA-Z0-9_]+)`).ReplaceAllString(newQuery, "@$1")
+		if err != nil {
+			return true
+		}
+		queryData.SQLQuery = newQuery
 	}
-	queryData.SQLQuery = newQuery
 
 	return true
 }

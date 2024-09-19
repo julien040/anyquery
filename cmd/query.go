@@ -12,7 +12,7 @@ var queryCmd = &cobra.Command{
 The query can be specified as an argument or read from stdin.
 If no query is provided, the command will launch an interactive input.`,
 	RunE:    controller.Query,
-	Aliases: []string{"q", "run"},
+	Aliases: []string{"q"},
 	Example: `# Run a one-off query
 anyquery query -d mydatabase.db -q "SELECT * FROM mytable"
 
