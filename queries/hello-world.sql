@@ -1,5 +1,5 @@
 /*
-title = "Example"
+title = "Hello World"
 description = "Always return hello world for testing purposes"
  */
 SELECT

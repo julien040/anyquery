@@ -1,6 +1,6 @@
 /*
 title = "GitHub Stars per day"
-description = "Discover the number of stars per day for a given repository. This query returns the top 10 days with the most stars."
+description = "Discover the number of stars per day for a given repository ordered by date (recent first)"
 
 plugins = ["github"]
 
@@ -17,4 +17,4 @@ FROM
 GROUP BY
     DAY
 ORDER BY
-    stars DESC;
+    day DESC;
