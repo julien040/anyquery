@@ -25,12 +25,7 @@ func PluginsList(cmd *cobra.Command, args []string) error {
 
 	// We get the plugins
 	ctx := context.Background()
-	_, err = queries.GetPlugins(ctx)
-	if err != nil {
-		return fmt.Errorf("could not get the plugins: %w", err)
-	}
-
-	rows, err := db.Query("SELECT * FROM plugin_installed")
+	plugins, err := queries.GetPlugins(ctx)
 	if err != nil {
 		return fmt.Errorf("could not get the plugins: %w", err)
 	}
@@ -38,12 +33,21 @@ func PluginsList(cmd *cobra.Command, args []string) error {
 	// We print the plugins
 	output := outputTable{
 		Writer: os.Stdout,
+		Columns: []string{
+			"name",
+			"description",
+			"homepage",
+			"version",
+			"registry",
+			"tablename",
+			"author",
+			"library",
+		},
 	}
 
 	output.InferFlags(cmd.Flags())
-	err = output.WriteSQLRows(rows)
-	if err != nil {
-		return fmt.Errorf("could not write the plugins: %w", err)
+	for _, plugin := range plugins {
+		output.AddRow(plugin.Name, plugin.Description.String, plugin.Homepage.String, plugin.Version, plugin.Registry, plugin.Tablename, plugin.Author.String, plugin.Issharedextension)
 	}
 
 	err = output.Close()
