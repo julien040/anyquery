@@ -8,6 +8,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/adrg/xdg"
 	"github.com/edsrzf/mmap-go"
@@ -15,11 +16,12 @@ import (
 )
 
 // downloadFile downloads a file from a source URL to a destination path
-// If the destination file already exists and its size is superior to 0,
+// If the destination file already exists, its size is superior to 0,
+// and the file is not older than maxAge seconds, then
 // the file is not downloaded again
 //
 // The destination path is created if it doesn't exist
-func downloadFile(src string, dst string) error {
+func downloadFile(src string, dst string, maxAge int64) error {
 	// Create the directory if it doesn't exist
 	err := os.MkdirAll(path.Dir(dst), 0755)
 	if err != nil {
@@ -36,7 +38,8 @@ func downloadFile(src string, dst string) error {
 	// Check if the file is already downloaded and its size superior to 0
 	// If so, we don't need to download it again
 	info, err := os.Stat(dst)
-	if err == nil && info.Size() > 0 {
+	currentUnixTime := time.Now().Unix()
+	if err == nil && info.Size() > 0 && info.ModTime().Unix() > currentUnixTime-maxAge {
 		needToDownload = false
 	}
 
@@ -75,7 +78,8 @@ func openMmapedFile(src string) (mmap.MMap, error) {
 	// Find the cached destination
 	filePath, err := findCachedDestination(src)
 
-	err = downloadFile(src, filePath)
+	// Download the file and cache it for 24 hours
+	err = downloadFile(src, filePath, 60*60*24)
 	if err != nil {
 		return nil, err
 	}

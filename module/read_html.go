@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
@@ -38,6 +39,8 @@ func (v *HtmlModule) DestroyModule() {}
 func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	fileName := ""
 	cssSelector := ""
+	cacheTTL := "60"
+	cacheTTLParsed := int64(60)
 
 	if len(args) > 3 {
 		fileName = strings.Trim(args[3], "' \"")
@@ -59,12 +62,25 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		{"selector", &cssSelector},
 		{"css_selector", &cssSelector},
 		{"css", &cssSelector},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 
 	parseArgs(params, args)
 
 	if fileName == "" {
 		return nil, fmt.Errorf("missing file argument. Example: SELECT * FROM read_html('file=https://example.com');")
+	}
+
+	if cacheTTL != "" {
+		// Try to convert the cache TTL to an integer
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
 	}
 
 	var file *os.File
@@ -80,8 +96,8 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 			return nil, err
 		}
 
-		// Download the file
-		err = downloadFile(fileName, filePath)
+		// Download the file and cache it for 60 seconds
+		err = downloadFile(fileName, filePath, cacheTTLParsed)
 		if err != nil {
 			return nil, fmt.Errorf("failed to download file: %s", err)
 		}

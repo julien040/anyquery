@@ -68,7 +68,7 @@ To query a file from GCS, you need to set `GOOGLE_APPLICATION_CREDENTIALS` to th
 SELECT * FROM read_json('gcs::https://www.googleapis.com/storage/v1/bucket/file.json');
 ```
 
-All files will be cached in the local filesystem to avoid downloading them multiple times. To clear the cache, you can use the `clear_file_cache` function.
+All files will be cached in the local filesystem (for 24 hours) to avoid downloading them multiple times. To clear the cache, you can use the `clear_file_cache` function.
 
 ```sql
 SELECT clear_file_cache();
@@ -215,6 +215,14 @@ FROM
 WHERE
   value ->> 'Key' = 'href'
   AND value ->> 'Val' LIKE '%amazon%';
+```
+
+You can also pass the parameters `cache`, `cache_ttl`, or `ttl` to the `read_html` function to reduce the time-to-live of the cache. Specify the time in seconds enclosed in single quotes.
+
+By default, the cache is set to 60 seconds for the `read_html` table. This means that if a query is run within 60 seconds of the first query with the same URL, the result will be fetched from the cache and not from the actual website.
+
+```sql title="Querying the GDP of countries and caching the result for 1 hour"
+SELECT * FROM read_html('https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)', '.wikitable', cache='3600');
 ```
 
 ### Parquet
