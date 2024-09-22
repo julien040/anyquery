@@ -300,7 +300,13 @@ func (p *shell) Run(rawQuery string, args ...interface{}) bool {
 		for _, postExec := range queryData.PostExec {
 			_, err := queryData.DB.Exec(postExec)
 			if err != nil {
-				fmt.Fprintf(tempOutput, "Error running post exec query: %s\n", err.Error())
+				// Skip the errors for "nu such table" because they're expected
+				// when a create table pre exec query fails
+				// The error about why the table doesn't exist is already printed
+				// so we don't need to print that we cannot drop it
+				if !strings.Contains(err.Error(), "no such table:") {
+					fmt.Fprintf(tempOutput, "Error running post exec query: %s\n", err.Error())
+				}
 			}
 		}
 
