@@ -296,7 +296,19 @@ func PluginUninstall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not get the linked profiles: %w", err)
 	}
 
-	if len(linkedProfiles) > 0 {
+	// Let's set a special case for the default profile
+	// If there is only the default profile, we can delete it
+	if len(linkedProfiles) == 1 && linkedProfiles[0].Name == "default" {
+		err = queries.DeleteProfile(context.Background(), model.DeleteProfileParams{
+			Name:       "default",
+			Pluginname: pluginName,
+			Registry:   registryName,
+		})
+		if err != nil {
+			return fmt.Errorf("could not delete the default profile: %w", err)
+		}
+		fmt.Println("✅ Successfully deleted the default profile")
+	} else if len(linkedProfiles) > 0 {
 		fmt.Println("The plugin is linked to the following profiles:")
 		for _, profile := range linkedProfiles {
 			fmt.Println(profile.Name)
