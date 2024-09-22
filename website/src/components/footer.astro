@@ -16,7 +16,9 @@ const { footnote } = Astro.props;
             · <br />
             All rights reserved
         </p>
-        <div class="flex-row flex mt-6 gap-4 text-white/50">
+        <div
+            class="flex-row flex mt-6 gap-4 text-white/50 hover:text-white/60 transition-all"
+        >
             <a href="https://github.com/julien040/anyquery/">
                 <svg
                     class="w-5 h-5"
@@ -46,33 +48,85 @@ const { footnote } = Astro.props;
     >
         <div class="flex flex-col">
             <p class="text-white/50 mb-1">Guide</p>
-            <a href="/docs/#installation" class="">Install</a>
-            <a href="/docs/usage/running-queries/" class="">Running a query</a>
-            <a href="/docs/usage/mysql-server/" class="">MySQL compatibility</a>
-            <a href="/docs/usage/plugins/" class="">Install plugin</a>
-            <a href="/docs/usage/exporting-results/" class="">JSON/CSV export</a
+            <a
+                href="/docs/#installation"
+                class="hover:text-white/80 transition-all">Install</a
             >
-            <a href="/docs/developers/plugins/create-plugin/" class=""
-                >Developers</a
+            <a
+                href="/docs/usage/running-queries/"
+                class="hover:text-white/80 transition-all">Running a query</a
+            >
+            <a
+                href="/docs/usage/mysql-server/"
+                class="hover:text-white/80 transition-all"
+                >MySQL compatibility</a
+            >
+            <a
+                href="/docs/usage/plugins/"
+                class="hover:text-white/80 transition-all">Install plugin</a
+            >
+            <a
+                href="/docs/usage/exporting-results/"
+                class="hover:text-white/80 transition-all">JSON/CSV export</a
+            >
+            <a
+                href="/docs/developers/plugins/create-plugin/"
+                class="hover:text-white/80 transition-all">Developers</a
             >
         </div>
         <div class="flex flex-col">
             <p class="text-white/50 mb-1">Connection guide</p>
-            <a href="/connection-guide/drizzle" class="">Drizzle</a>
-            <a href="/connection-guide/datasette" class="">Datasette</a>
-            <a href="/connection-guide/tableplus" class="">TablePlus</a>
-            <a href="/connection-guide/metabase" class="">Metabase</a>
-            <a href="/connection-guide/datagrip" class="">Datagrip</a>
-            <a href='/connection-guide/dbeaver"' class="">DBeaver</a>
+            <a
+                href="/connection-guide/drizzle"
+                class="hover:text-white/80 transition-all">Drizzle</a
+            >
+            <a
+                href="/connection-guide/datasette"
+                class="hover:text-white/80 transition-all">Datasette</a
+            >
+            <a
+                href="/connection-guide/tableplus"
+                class="hover:text-white/80 transition-all">TablePlus</a
+            >
+            <a
+                href="/connection-guide/metabase"
+                class="hover:text-white/80 transition-all">Metabase</a
+            >
+            <a
+                href="/connection-guide/datagrip"
+                class="hover:text-white/80 transition-all">Datagrip</a
+            >
+            <a
+                href='/connection-guide/dbeaver"'
+                class="hover:text-white/80 transition-all">DBeaver</a
+            >
         </div>
         <div class="flex flex-col">
             <p class="text-white/50 mb-1">Popular plugins</p>
-            <a href="/integrations/notion" class="">Notion</a>
-            <a href="/integrations/airtable" class="">Airtable</a>
-            <a href="/integrations/github" class="">GitHub</a>
-            <a href="/integrations/notes" class="">Apple Notes</a>
-            <a href="/integrations/git" class="">Git</a>
-            <a href="/integrations/google_sheets" class="">Google Sheets</a>
+            <a
+                href="/integrations/notion"
+                class="hover:text-white/80 transition-all">Notion</a
+            >
+            <a
+                href="/integrations/airtable"
+                class="hover:text-white/80 transition-all">Airtable</a
+            >
+            <a
+                href="/integrations/github"
+                class="hover:text-white/80 transition-all">GitHub</a
+            >
+            <a
+                href="/integrations/notes"
+                class="hover:text-white/80 transition-all">Apple Notes</a
+            >
+            <a
+                href="/integrations/git"
+                class="hover:text-white/80 transition-all">Git</a
+            >
+            <a
+                href="/integrations/google_sheets"
+                class="hover:text-white/80 transition-all">Google Sheets</a
+            >
         </div>
     </div>
 </footer>
