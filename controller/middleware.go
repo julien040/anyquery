@@ -603,10 +603,30 @@ func generateRandomString(size int) string {
 
 func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
 	res := []*pg_query.SelectStmt{}
+	stmtToExtract := []*pg_query.Node{}
 	for _, stmt := range Result.Stmts {
+		if stmt == nil {
+			continue
+		}
+		stmtToExtract = append(stmtToExtract, stmt.Stmt)
+	}
+	for _, stmt := range stmtToExtract {
+		if stmt == nil {
+			continue
+		}
 		// Try to get the select, insert as select, create table as select, with select
-		selectStmt := stmt.Stmt.GetSelectStmt()
+		selectStmt := stmt.GetSelectStmt()
 		if selectStmt != nil {
+			// Let's check if the select statement is an UNION, INTERSECT or EXCEPT
+			if selectStmt.Op == pg_query.SetOperation_SETOP_UNION || selectStmt.Op == pg_query.SetOperation_SETOP_INTERSECT || selectStmt.Op == pg_query.SetOperation_SETOP_EXCEPT {
+				if selectStmt.Larg != nil {
+					res = append(res, selectStmt.Larg)
+				}
+				if selectStmt.Rarg != nil {
+					res = append(res, selectStmt.Rarg)
+				}
+			}
+
 			res = append(res, selectStmt)
 
 			// Extract the WITH clause
@@ -636,7 +656,7 @@ func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
 				}
 			}
 		}
-		insertStmt := stmt.Stmt.GetInsertStmt()
+		insertStmt := stmt.GetInsertStmt()
 		if insertStmt != nil {
 			selectStmtIns := insertStmt.SelectStmt.GetSelectStmt()
 			if selectStmtIns != nil {
@@ -644,7 +664,7 @@ func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
 			}
 		}
 
-		createTableStmt := stmt.Stmt.GetCreateTableAsStmt()
+		createTableStmt := stmt.GetCreateTableAsStmt()
 		if createTableStmt != nil {
 			selectStmtCre := createTableStmt.Query.GetSelectStmt()
 			if selectStmtCre != nil {
@@ -652,7 +672,7 @@ func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
 			}
 		}
 
-		withStmt := stmt.Stmt.GetWithClause()
+		withStmt := stmt.GetWithClause()
 		if withStmt != nil {
 			for _, cte := range withStmt.Ctes {
 				selectStmtWith := cte.GetSelectStmt()
@@ -720,7 +740,6 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	// So that we don't deparse if we don't need to
 	modifiedTableCount := 0
 	for _, selectStmt := range selectStmts {
-
 		tableFunctions := extractTableFunctions(selectStmt.FromClause)
 		for _, tableFunction := range tableFunctions {
 			// Check if the table function is a file module
