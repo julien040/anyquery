@@ -56,10 +56,12 @@ export default defineConfig({
         label: "MySQL server",
         link: "/docs/usage/mysql-server"
       }, {
+        label: "Query hub (community queries)",
+        link: "/docs/usage/query-hub"
+      },{
         label: "As a library",
         link: "/docs/usage/as-a-library"
-      },
-      {
+      },{
         label: "Troubleshooting and limitations",
         link: "/docs/usage/troubleshooting"
       },

@@ -1,0 +1,33 @@
+---
+title: Query Hub
+description: Reusing queries from the community to answer questions on your data
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+![Query Hub](https://github.com/julien040/anyquery/raw/main/queries/community-repo.png?raw=true)
+
+Sometimes we want to answer a simple data question, but we don't want (or know how) to write the SQL query. The Query Hub is a collection of SQL queries that you can run on your data
+
+For example, let's say you want the count of commits someone made on a Git repository. You could use a community query to get this information.
+
+## Usage
+
+You can find the full extent of the community repository [here](/queries). If you want to suggest a query, feel free to do so [here](https://github.com/julien040/anyquery/discussions/new?category=ideas) or directly open a pull request on the [repository](
+    https://github.com/julien040/anyquery/tree/queries).
+
+<LinkCard title="Community repository" href="/queries"
+description="The full list of queries in the community repository."
+/>
+
+Once you have found a query you want to run, you can use the `anyquery run` command to execute it. Just copy the command and run it in your terminal.
+
+```bash
+anyquery run hello_world
+```
+
+Anyquery will take care of asking you for the necessary information to run the query.
+
+## Reference
+
+You can find the full documentation of the `anyquery run` command [here](/docs/reference/commands/anyquery_run).

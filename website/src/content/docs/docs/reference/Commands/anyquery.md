@@ -63,5 +63,6 @@ anyquery -d ":memory:"
 * [anyquery profiles](../anyquery_profiles)	 - Print the profiles installed on the system
 * [anyquery query](../anyquery_query)	 - Run a SQL query
 * [anyquery registry](../anyquery_registry)	 - List the registries where plugins can be downloaded
+* [anyquery run](../anyquery_run)	 - Run a SQL query from the community repository
 * [anyquery server](../anyquery_server)	 - Lets you connect to anyquery remotely
 * [anyquery tool](../anyquery_tool)	 - Tools to help you with using anyquery
