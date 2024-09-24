@@ -225,7 +225,7 @@ winget:
     repository:
       owner: julien040
       name: winget-anyquery
-      branch: main
+      branch: master
       pull_request:
         enabled: true
         draft: true
