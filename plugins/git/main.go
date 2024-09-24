@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -23,7 +24,6 @@ func openRepository(path string) (*git.Repository, error) {
 	pathToRepo := path
 	// Check if the path is a URL
 	// If so, clone the repository
-
 	if parsedUrl, err := url.ParseRequestURI(path); err == nil && parsedUrl.Scheme != "" {
 		// It's a URL that we will clone with git
 		hash := md5.Sum([]byte(path))
@@ -36,6 +36,14 @@ func openRepository(path string) (*git.Repository, error) {
 			output, err := cmd.CombinedOutput()
 			if err != nil {
 				return nil, fmt.Errorf("error cloning repository: %s", output)
+			}
+		} else {
+			// Pull the repository
+			cmd := exec.Command("git", "pull", "--rebase")
+			cmd.Dir = cachePath
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				log.Printf("error pulling repository %s: %s", path, output)
 			}
 		}
 

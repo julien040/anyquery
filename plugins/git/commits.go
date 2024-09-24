@@ -63,9 +63,10 @@ type commitsTable struct {
 }
 
 type commitsCursor struct {
-	iter          object.CommitIter
-	iterExhausted bool
-	repository    *git.Repository
+	iter           object.CommitIter
+	iterExhausted  bool
+	repository     *git.Repository
+	alreadyVisited map[string]bool
 }
 
 // Return a slice of rows that will be returned to Anyquery and filtered.
@@ -120,6 +121,11 @@ func (t *commitsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 			break
 		}
 
+		if t.alreadyVisited[commit.Hash.String()] {
+			continue
+		}
+		t.alreadyVisited[commit.Hash.String()] = true
+
 		rows = append(rows, []interface{}{
 			commit.Hash.String(),
 			commit.Author.Name,
@@ -133,12 +139,23 @@ func (t *commitsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 
 	}
 
+	// Do a bit of cleanup because this cursor is not going to be used anymore
+	// but a reference to the cursor will still be kept by Anyquery
+	// So we do a bit of cleanup for the garbage collector
+	if t.iterExhausted {
+		t.alreadyVisited = nil
+		t.repository = nil
+		t.iter.Close()
+	}
+
 	return rows, t.iterExhausted, nil
 }
 
 // Create a new cursor that will be used to read rows
 func (t *commitsTable) CreateReader() rpc.ReaderInterface {
-	return &commitsCursor{}
+	return &commitsCursor{
+		alreadyVisited: make(map[string]bool),
+	}
 }
 
 // A slice of rows to insert

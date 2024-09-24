@@ -75,9 +75,10 @@ type commit_diffTable struct {
 }
 
 type commit_diffCursor struct {
-	iter          object.CommitIter
-	iterExhausted bool
-	repository    *git.Repository
+	iter           object.CommitIter
+	iterExhausted  bool
+	repository     *git.Repository
+	alreadyVisited map[string]bool
 }
 
 // Return a slice of rows that will be returned to Anyquery and filtered.
@@ -132,10 +133,16 @@ func (t *commit_diffCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 			break
 		}
 
+		if t.alreadyVisited[commit.Hash.String()] {
+			continue
+		}
+
 		stats, err := commit.Stats()
 		if err != nil {
 			stats = nil
 		}
+
+		t.alreadyVisited[commit.Hash.String()] = true
 
 		for _, stat := range stats {
 			rows = append(rows, []interface{}{
@@ -155,12 +162,21 @@ func (t *commit_diffCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 
 	}
 
+	// Do a bit of cleanup if the iterator is exhausted
+	if t.iterExhausted {
+		t.iter.Close()
+		t.alreadyVisited = nil
+		t.repository = nil
+	}
+
 	return rows, t.iterExhausted, nil
 }
 
 // Create a new cursor that will be used to read rows
 func (t *commit_diffTable) CreateReader() rpc.ReaderInterface {
-	return &commit_diffCursor{}
+	return &commit_diffCursor{
+		alreadyVisited: make(map[string]bool),
+	}
 }
 
 // A slice of rows to insert
