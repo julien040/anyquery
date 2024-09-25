@@ -533,46 +533,39 @@ func (c *csvTableEncoder) Close() error {
  ******************/
 
 type prettyTableEncoder struct {
-	Columns       []string
-	Writer        io.Writer
-	internalTable *tablewriter.Table
-	rowWritten    int
-	columnLength  int
+	Columns        []string           // The columns of the table
+	Writer         io.Writer          // The writer where the output will be written
+	internalTable  *tablewriter.Table // The table that will be rendered
+	internalBuffer [][]string         // The buffer that will store the rows
+	rowWritten     int                // How many rows have been written
+	columnLength   int                // The default column length for tablewriter
+	maxColumnLen   []int              // The max length of each column
+	terminalWidth  int                // The width of the terminal
+	columnDropped  []int              // Index of the columns that have been dropped
 }
 
 func (p *prettyTableEncoder) Write(row []interface{}) error {
 	// If the table hasn't been created yet, create it
 	if p.internalTable == nil {
 		p.internalTable = tablewriter.NewWriter(p.Writer)
-		p.internalTable.SetHeader(p.Columns)
-		p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
 	}
 
-	// To have a pretty table that doesn't break, we will check if the writer is a terminal
-	// If it is, we'll divide the width by the number of columns to get the max width of each column
-	// We default to 40 if we can't get the width
-	if p.columnLength == 0 { // The zero value of an int is 0 so it means we didn't calculate it yet
-		p.columnLength = 40
-		if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
-			width, _, err := term.GetSize(int(f.Fd()))
-			if err == nil {
-				p.columnLength = width / max(1, len(p.Columns)) // We don't want to divide by 0
-			}
-		}
-
-		p.columnLength = p.columnLength - 3 // -4 to account for the padding
-		p.internalTable.SetColWidth(p.columnLength)
+	if p.maxColumnLen == nil {
+		p.maxColumnLen = make([]int, len(p.Columns))
 	}
+
 	// Convert the row to strings
 	rowStr := convertValueToStrSlice(row)
 
-	// We wrap the strings to the column length
 	for i, val := range rowStr {
-		rowStr[i] = wordWrap(val, p.columnLength)
+		// In case the passed row is bigger than the maxColumnLen, we'll skip the calculation
+		if i < len(p.maxColumnLen) && len(val) > p.maxColumnLen[i] {
+			p.maxColumnLen[i] = len(val)
+		}
 	}
 
 	// Write the row
-	p.internalTable.Append(rowStr)
+	p.internalBuffer = append(p.internalBuffer, rowStr)
 
 	p.rowWritten++
 
@@ -584,9 +577,84 @@ func (p *prettyTableEncoder) Close() error {
 	if p.internalTable == nil {
 		p.internalTable = tablewriter.NewWriter(p.Writer)
 		p.internalTable.SetHeader(p.Columns)
-	} else {
-		p.internalTable.Render()
+		p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
 	}
+
+	// To have a pretty table that doesn't break, we will check if the writer is a terminal
+	// If it is, we'll divide the width by the number of columns to get the max width of each column
+	// We default to 40 if we can't get the width
+	p.columnLength = 40
+	if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
+		var err error
+		p.terminalWidth, _, err = term.GetSize(int(f.Fd()))
+		if err == nil {
+			p.columnLength = p.terminalWidth / max(1, len(p.Columns)) // We don't want to divide by 0
+		}
+	}
+
+	p.columnLength = p.columnLength - 4 // -4 to account for the padding
+
+	// Short columns will takes less space than the p.columnLength
+	// therefore leaving credits for the longer columns
+	// We will note the credits, and the count of columns that have credits
+	// so that we can distribute the space evenly
+
+	credits := 0
+	creditColumns := 0
+	for _, val := range p.maxColumnLen {
+		if val < p.columnLength {
+			credits += p.columnLength - val - 2 // -2 to account for the padding
+			creditColumns++
+		}
+	}
+
+	// To ensure no division by 0
+	creditPerCol := 0
+	if creditColumns > 0 {
+		creditPerCol = credits / creditColumns
+	}
+	p.columnLength = p.columnLength + creditPerCol
+
+	// Drop columns if the col width is less than 10 characters
+	// We will drop the columns from index 1 up to having 10 characters per column on average
+	if p.terminalWidth > 0 && p.columnLength < 12 {
+		for i := len(p.Columns) - 1; i > 1; i-- {
+			if p.columnLength >= 12 {
+				break
+			}
+			p.columnLength = (p.terminalWidth / max(1, len(p.Columns))) - 4 + creditPerCol
+			p.columnDropped = append(p.columnDropped, i)
+			p.Columns = append(p.Columns[:i], p.Columns[i+1:]...)
+			for j := range p.internalBuffer {
+				p.internalBuffer[j] = append(p.internalBuffer[j][:i], p.internalBuffer[j][i+1:]...)
+			}
+
+		}
+	}
+
+	// Replace the column with ...
+	if len(p.columnDropped) > 0 {
+		p.Columns = append(p.Columns, "... (terminal too small)")
+		for i := range p.internalBuffer {
+			p.internalBuffer[i] = append(p.internalBuffer[i], "...")
+		}
+	}
+
+	p.internalTable.SetColWidth(p.columnLength)
+	p.internalTable.SetHeader(p.Columns)
+	p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
+
+	// Write the rows
+	for _, row := range p.internalBuffer {
+		// Wrap the row if needed
+		for i, val := range row {
+			row[i] = wordWrap(val, p.columnLength)
+		}
+		p.internalTable.Append(row)
+	}
+
+	// Render the table
+	p.internalTable.Render()
 
 	fmt.Fprintf(p.Writer, "%d results\n", p.rowWritten)
 	return nil
@@ -660,7 +728,9 @@ func wordWrap(s string, lengthLine int) string {
 		case ' ', '\n', ',', ';', ':', '/':
 			// We add -5 to take the opportunity to break the line earlier instead of never
 			if currentLineLength >= lengthLine-5 {
-				builder.WriteRune('\n')
+				if s[i] != '\n' {
+					builder.WriteRune('\n')
+				}
 				currentLineLength = 0
 			}
 			builder.WriteByte(s[i])
