@@ -740,6 +740,12 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	// So that we don't deparse if we don't need to
 	modifiedTableCount := 0
 	for _, selectStmt := range selectStmts {
+		if selectStmt == nil {
+			continue
+		}
+		if selectStmt.FromClause == nil {
+			continue
+		}
 		tableFunctions := extractTableFunctions(selectStmt.FromClause)
 		for _, tableFunction := range tableFunctions {
 			// Check if the table function is a file module
