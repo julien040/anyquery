@@ -15,7 +15,7 @@ SELECT
     created_at,
     title,
     repository,
-    'https://github.com' || repository || '/issues/' || "number" as url
+    'https://github.com/' || repository || '/issues/' || "number" as url
 FROM
     github_my_issues ('assigned')
 WHERE
