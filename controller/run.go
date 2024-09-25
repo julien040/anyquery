@@ -124,8 +124,9 @@ func Run(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get the current working directory: %s", err)
 	}
 
-	// Download the file if needed
-	if fileInfo, err := os.Stat(dest); err != nil || fileInfo.Size() == 0 {
+	// Download the file if needed (or older than 1 day)
+	secondsInDay := int64(60 * 60 * 24)
+	if fileInfo, err := os.Stat(dest); err != nil || fileInfo.Size() == 0 || time.Now().Unix()-fileInfo.ModTime().Unix() > secondsInDay {
 		client := &getter.Client{
 			Src:  urlToFetch,
 			Dst:  dest,
