@@ -42,7 +42,7 @@ blockquote a {
     @apply text-white/60 text-sm;
 }
 /* Top level code */
-article > pre:has(code) {
+article pre:has(code) {
     @apply text-white/90 text-sm;
 
     overflow-x: auto;

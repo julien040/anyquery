@@ -45,12 +45,42 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
         Anyquery. <br />
         Answer questions on your data easily using Anyquery and its hub of queries.
     </p>
+    <input
+        id="search"
+        aria-label="Search queries"
+        type="text"
+        placeholder="Search queries"
+        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-md text-sm text-white/70"
+    />
+    <script
+    >
+        document.getElementById("search").addEventListener("input", (e:Event) => {
+            if (!(e.target instanceof HTMLInputElement)) {
+                return;
+            }
+            const search = e.target.value.toLowerCase();
+            const queries = document.getElementById("queries").children;
+            for (let i = 0; i < queries.length; i++) {
+                const query = queries[i];
+                if (!(query instanceof HTMLElement)) {
+                    continue;
+                }
+                const title = query.querySelector("h3").innerText.toLowerCase();
+                const description = query.querySelector("p").innerText.toLowerCase();
+                if (title.includes(search) || description.includes(search)) {
+                    query.style.display = "block";
+                } else {
+                    query.style.display = "none";
+                }
+            }
+        });
+    </script>
     <div id="queries" class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-4">
         {
             allQueries.queries
                 .sort((a, b) => a.title.localeCompare(b.title))
                 .map((query) => (
-                    <div class="flex flex-col p-6 rounded-md bg-black border border-[#262626] tracking-tight">
+                    <div class="queries-item flex flex-col p-6 rounded-md bg-black border border-[#262626] tracking-tight">
                         <div class="flex justify-between">
                             <h3 class="text-xl">
                                 {query.title}{" "}
