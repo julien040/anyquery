@@ -45,8 +45,13 @@ const guides = await getCollection("recipes");
 const randomGuides = guides.sort(() => 0.5 - Math.random()).slice(0, 6);
 ---
 
-<Main title={entry.data.title + " - Anyquery"}>
-    <main class="flex flex-wrap justify-between">
+<Main
+    title={entry.data.title + " - Anyquery"}
+    ogImage="https://anyquery.dev/images/how-to-guides-og-image.png"
+>
+    <main class="flex
+    flex-wrap
+    justify-between">
         <article class="px-1 md:w-4/6 w-full max-w-[75ch]" set:html={content} />
         <aside
             class="w-[31%] p-4 rounded-lg bg-black/20 hidden md:block border border-white/10 max-h-min"

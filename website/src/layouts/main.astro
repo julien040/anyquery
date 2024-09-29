@@ -1,5 +1,23 @@
 ---
-const { title, description, footnote } = Astro.props;
+type Props = {
+    title: string;
+    description?: string;
+    footnote?: string;
+    ogTitle?: string;
+    ogImage?: string;
+    ogDescription?: string;
+    noIndex?: boolean;
+};
+
+const {
+    title,
+    description,
+    footnote,
+    ogImage,
+    ogDescription,
+    ogTitle,
+    noIndex,
+} = Astro.props;
 import "../font.css";
 import NavBar from "../components/navBar.astro";
 import Footer from "../components/footer.astro";
@@ -12,8 +30,17 @@ import Footer from "../components/footer.astro";
         <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <meta name="viewport" content="width=device-width" />
-        <meta name="description" content={description} />
+        <meta property="og:sitename" content="Anyquery" />
+        {description && <meta name="description" content={description} />}
         <link rel="sitemap" href="/sitemap-index.xml" />
+        {noIndex && <meta name="robots" content="noindex" />}
+        {ogImage && <meta property="og:image" content={ogImage} />}
+        {ogTitle && <meta property="og:title" content={ogTitle} />}
+        {
+            ogDescription && (
+                <meta property="og:description" content={ogDescription} />
+            )
+        }
     </head>
     <body class="max-w-5xl mx-auto p-6 min-h-screen flex flex-col">
         <NavBar />

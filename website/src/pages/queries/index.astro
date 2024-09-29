@@ -1,5 +1,5 @@
 ---
-import Main from "../layouts/main.astro";
+import Main from "../../layouts/main.astro";
 
 // Request the list of queries from the API
 const fetchQueries = await fetch("https://registry.anyquery.dev/v0/query/", {
@@ -36,6 +36,7 @@ const allQueries: apiResponse = await fetchQueries.json();
 
 <Main
     title="Query hub - Anyquery"
+    ogTitle="Anyquery - Pre-made SQL queries for any data source"
     description={`The query hub is a place where you can find pre-made SQL queries for Anyquery. 
 Anyquery allows you to run SQL queries on pretty-much any data source`}
 >
@@ -49,51 +50,61 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
         id="search"
         aria-label="Search queries"
         type="text"
-        placeholder="Search queries"
-        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-md text-sm text-white/70"
+        placeholder="🔍 Search queries"
+        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-lg text-sm text-white/70"
     />
-    <script
-    >
-        document.getElementById("search").addEventListener("input", (e:Event) => {
-            if (!(e.target instanceof HTMLInputElement)) {
-                return;
-            }
-            const search = e.target.value.toLowerCase();
-            const queries = document.getElementById("queries").children;
-            for (let i = 0; i < queries.length; i++) {
-                const query = queries[i];
-                if (!(query instanceof HTMLElement)) {
-                    continue;
+    <script>
+        const searchElement = document.getElementById("search");
+        if (searchElement) {
+            searchElement.addEventListener("input", (e: Event) => {
+                if (!(e.target instanceof HTMLInputElement)) {
+                    return;
                 }
-                const title = query.querySelector("h3").innerText.toLowerCase();
-                const description = query.querySelector("p").innerText.toLowerCase();
-                if (title.includes(search) || description.includes(search)) {
-                    query.style.display = "block";
-                } else {
-                    query.style.display = "none";
+                const search = e.target.value.toLowerCase();
+                const queries = document.getElementById("queries")?.children;
+                if (!queries) {
+                    return;
                 }
-            }
-        });
+                for (let i = 0; i < queries.length; i++) {
+                    const query = queries[i];
+                    if (!(query instanceof HTMLElement)) {
+                        continue;
+                    }
+                    const titleElement = query.querySelector("h3");
+                    const descriptionElement = query.querySelector("p");
+                    if (!titleElement || !descriptionElement) {
+                        continue;
+                    }
+                    const title = titleElement.innerText.toLowerCase();
+                    const description = descriptionElement.innerText.toLowerCase();
+                    if (title.includes(search) || description.includes(search)) {
+                        query.style.display = "flex";
+                    } else {
+                        query.style.display = "none";
+                    }
+                }
+            });
+        }
     </script>
-    <div id="queries" class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-4">
+    <div id="queries" class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-2">
         {
             allQueries.queries
                 .sort((a, b) => a.title.localeCompare(b.title))
                 .map((query) => (
-                    <div class="queries-item flex flex-col p-6 rounded-md bg-black border border-[#262626] tracking-tight">
+                    <div class="queries-item flex flex-col p-6 rounded-xl bg-black/80 border border-[#262626] tracking-tight shadow-outline-primary">
                         <div class="flex justify-between">
-                            <h3 class="text-xl">
+                            <h3 class="text-xl leading-6">
                                 {query.title}{" "}
-                                <a class="text-sm text-white/50 font-medium hover:underline transition-all"
+                                <a class="text-xs text-white/50 font-normal hover:underline transition-all"
                                 href={`https://github.com/${query.author}`}
                                 >
                                     by {query.author}
                                 </a>
                             </h3>
-                            <a class="h-6 w-6 p-1 bg-neutral-800 rounded-md text-white/70 hover:text-white/90 transition-all"
+                            <a class="p-1 bg-neutral-800 rounded-md text-white/70 hover:text-white/90 transition-all h-fit w-fit"
                             href={query.source_code} target="_blank" rel="noopener noreferrer">
                                 <svg
-                                
+                                class="h-4 w-4"
                                 viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <g id="Group">
                                 <path id="Vector" d="M7.31072 1.33107C7.40563 1.35762 7.49437 1.40262 7.57187 1.46349C7.64938 1.52435 7.71413 1.5999 7.76242 1.68581C7.81071 1.77171 7.8416 1.86629 7.85332 1.96414C7.86504 2.06199 7.85736 2.16119 7.83072 2.25607L5.61522 10.1496C5.56152 10.3411 5.43392 10.5035 5.26049 10.601C5.08707 10.6984 4.88203 10.723 4.69047 10.6693C4.49892 10.6156 4.33655 10.488 4.23908 10.3146C4.1416 10.1412 4.11702 9.93612 4.17072 9.74457L6.38622 1.85007C6.41283 1.75521 6.45786 1.66652 6.51875 1.58907C6.57964 1.51162 6.6552 1.44693 6.7411 1.39869C6.827 1.35044 6.92156 1.3196 7.01938 1.30791C7.11721 1.29622 7.21638 1.30392 7.31122 1.33057L7.31072 1.33107ZM3.78072 3.34857C3.92117 3.48919 4.00006 3.67982 4.00006 3.87857C4.00006 4.07732 3.92117 4.26794 3.78072 4.40857L2.19072 6.00007L3.78172 7.59107C3.92235 7.73177 4.00133 7.92257 4.00129 8.12149C4.00124 8.32042 3.92217 8.51119 3.78147 8.65182C3.64078 8.79245 3.44998 8.87143 3.25105 8.87138C3.05212 8.87133 2.86135 8.79226 2.72072 8.65157L0.599223 6.53007C0.458772 6.38944 0.379883 6.19882 0.379883 6.00007C0.379883 5.80132 0.458772 5.61069 0.599223 5.47007L2.72022 3.34857C2.78987 3.27887 2.87257 3.22359 2.9636 3.18587C3.05463 3.14814 3.15219 3.12873 3.25072 3.12873C3.34926 3.12873 3.44682 3.14814 3.53785 3.18587C3.62887 3.22359 3.71107 3.27887 3.78072 3.34857ZM8.22072 4.40857C8.14704 4.33991 8.08793 4.25711 8.04694 4.16511C8.00595 4.07311 7.98391 3.97379 7.98213 3.87309C7.98036 3.77239 7.99888 3.67236 8.0366 3.57897C8.07432 3.48558 8.13047 3.40075 8.20169 3.32953C8.2729 3.25831 8.35774 3.20217 8.45113 3.16445C8.54451 3.12673 8.64454 3.1082 8.74525 3.10998C8.84595 3.11175 8.94526 3.1338 9.03726 3.17479C9.12926 3.21578 9.21206 3.27488 9.28072 3.34857L11.4022 5.46957C11.5428 5.61021 11.6218 5.80095 11.6218 5.99982C11.6218 6.19869 11.5428 6.38942 11.4022 6.53007L9.28122 8.65157C9.21159 8.72123 9.12892 8.7765 9.03792 8.81422C8.94693 8.85193 8.8494 8.87136 8.7509 8.87138C8.6524 8.8714 8.55486 8.85203 8.46385 8.81435C8.37284 8.77668 8.29014 8.72145 8.22047 8.65182C8.15081 8.58218 8.09554 8.49951 8.05782 8.40852C8.02011 8.31753 8.00068 8.21999 8.00066 8.12149C8.00064 8.02299 8.02001 7.92546 8.05769 7.83444C8.09536 7.74343 8.15059 7.66073 8.22022 7.59107L9.81122 6.00007L8.22072 4.40857Z" fill="currentColor"/>
@@ -102,10 +113,11 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
                             </a>
 
                         </div>
-                        <p class="text-sm text-white/50">
+                        <p class="text-sm text-white/50 mt-1">
                             {query.description}
                         </p>
-                        <div class="flex items-center justify-between font-mono text-sm text-white/70 px-4 py-2 bg-neutral-600/30 border border-[#262626] rounded-md mt-4 mb-6">
+                        <div class="flex items-center justify-between font-mono text-sm text-white/70 px-4 py-2 bg-neutral-600/30 border border-[#262626] rounded-md mt-3 mb-6">
+
                             <svg
                                 class="h-6 w-6 mr-3"
                                 viewBox="0 0 13 14"
@@ -143,7 +155,9 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
                                 </g>
                             </svg>
                         </div>
-                        <div>
+                        {/* Spacer */}
+                        <div class="h-full">
+                        </div>
                             {query.required_plugins?.length > 0 && (
                                 <div class="text-[0.8rem] text-white/80 font-medium tracking-tight flex items-center">
                                     Plugins:{" "}
@@ -154,8 +168,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
                                     ))}
                                 </div>
                             )}
-                        </div>
-                        <div class="text-[0.8rem] text-white/50 flex flex-wrap gap-1 mt-1">
+                        <div class="text-[0.8rem] text-white/50 flex flex-wrap gap-1 pt-1">
                             <div>
                                 {query.arguments?.length > 1 ? (
                                     <p>

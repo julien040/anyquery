@@ -157,12 +157,21 @@ const elements: TerminalProps[] = [
 
 <Main
     title="Anyquery - Use SQL for everything"
-    description="Query anything with SQL, from your Chrome tabs to your Notion database"
+    description="SQL queries for any data source (e.g. Google Sheets, logs, JSON, Trello, Github, Notion, etc.). Open source and free."
     ,
     footnote=`Trademarks are the property of their respective owners.
 All benchmarks are performed on a Macbook Air M1 16GB.`
 >
     <!-- Header -->
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "url": "https://anyquery.dev",
+            "name": "Anyquery",
+            "description": "Query anything with SQL, whether it's a file, an API, logs, or a local app"
+        }
+    </script>
     <div
         x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
     >
@@ -214,7 +223,11 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
             <style>
                 #fake-terminal {
                     background: #171717;
+                    transition: transform 0.2s ease-in-out;
                     box-shadow: 0px 0px 94.2px 7px rgba(124, 111, 231, 0.17);
+                }
+                #fake-terminal:hover {
+                    transform: rotateX(-6deg) rotateY(-6deg);
                 }
             </style>
             <div
@@ -513,6 +526,26 @@ All benchmarks are performed on a Macbook Air M1 16GB.`
             </div>
         </div>
     </div>
+    <!-- Community repository -->
+    <div
+        class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
+        style="background-image: url('/images/bg-community-repository.png'); 
+    background-size: cover; 
+    background-repeat:no-repeat;
+    background-position: center center;"
+    >
+        <h2
+            class="text-3xl font-bold bg-gradient-to-r from-[#FF7EA5] to-[#FF4C83] bg-clip-text text-transparent"
+        >
+            Query hub
+        </h2>
+        <p class="text-white/70 text-sm mt-1">
+            Reuse SQL queries from the community to query anything, even without
+            SQL knowledge. <br /> Answer data questions in seconds
+        </p>
+        <a href="/queries" class="button mt-4">See the queries</a>
+    </div>
+
     <!-- Open source disclaimer -->
     <div class="w-full text-center py-10">
         <h3 class="text-2xl md:text-3xl">We ❤️ open source</h3>
