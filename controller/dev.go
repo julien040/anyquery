@@ -204,8 +204,8 @@ builds:
     binary: {{.ModuleName}}
     id: anyquery
     ldflags: "-s -w"
-	flags: # To ensure reproducible builds
-	  - -trimpath
+    flags: # To ensure reproducible builds
+      - -trimpath
 
     goarch:
       - amd64
