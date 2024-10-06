@@ -1,0 +1,34 @@
+
+version: 2
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    binary: click_up
+    id: anyquery
+    ldflags: "-s -w"
+    flags: # To ensure reproducible builds
+      - -trimpath
+
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: binary
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
