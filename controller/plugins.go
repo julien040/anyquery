@@ -101,12 +101,12 @@ func searchPlugin(querier *model.Queries) (string, string, error) {
 	return plugins[selectedIndex].Name, plugins[selectedIndex].Registry, nil
 }
 
-// Ensure the default registry is loaded, and refresh the registry if they haven't been updated in the last 7 days
+// Ensure the default registry is loaded, and refresh the registry if they haven't been updated in the last 2 days
 //
 // If the env variable ANYQUERY_SKIP_REGISTRY_CHECK is set, the function will return without doing anything
 func checkRegistries(querier *model.Queries) error {
-	// The number of seconds in a week
-	const timeDuration = 7 * 24 * 60 * 60
+	// The number of seconds in 2 days
+	const timeDuration = 2 * 24 * 60 * 60
 
 	ctx := context.Background()
 
