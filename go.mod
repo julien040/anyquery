@@ -20,12 +20,15 @@ require (
 	github.com/edsrzf/mmap-go v1.1.0
 	github.com/elk-language/go-prompt v1.1.5
 	github.com/gammazero/deque v0.2.1
+	github.com/go-resty/resty/v2 v2.15.3
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-json v0.10.3
 	github.com/hashicorp/go-getter v1.7.5
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-plugin v1.6.0
+	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hjson/hjson-go/v4 v4.4.0
+	github.com/huandu/go-sqlbuilder v1.30.1
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/julien040/go-ternary v0.0.0-20230119180150-f0435f66948e
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -42,6 +45,7 @@ require (
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 	golang.org/x/mod v0.19.0
 	golang.org/x/net v0.28.0
+	golang.org/x/oauth2 v0.21.0
 	golang.org/x/term v0.23.0
 	gopkg.in/yaml.v3 v3.0.1
 	vitess.io/vitess v0.10.3-0.20240826062207-e6843dc56a98
@@ -93,6 +97,7 @@ require (
 	github.com/hashicorp/go-safetemp v1.0.0 // indirect
 	github.com/hashicorp/go-version v1.7.0 // indirect
 	github.com/hashicorp/yamux v0.1.1 // indirect
+	github.com/huandu/xstrings v1.4.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jhump/protoreflect v1.16.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
@@ -127,11 +132,10 @@ require (
 	go.opentelemetry.io/otel/metric v1.28.0 // indirect
 	go.opentelemetry.io/otel/sdk v1.27.0 // indirect
 	go.opentelemetry.io/otel/trace v1.28.0 // indirect
-	golang.org/x/oauth2 v0.21.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	golang.org/x/time v0.5.0 // indirect
+	golang.org/x/time v0.6.0 // indirect
 	google.golang.org/api v0.189.0 // indirect
 	google.golang.org/genproto v0.0.0-20240730163845-b1a4ccb954bf // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240730163845-b1a4ccb954bf // indirect

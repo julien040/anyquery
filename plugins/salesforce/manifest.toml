@@ -1,0 +1,149 @@
+
+name = "salesforce"
+version = "0.1.0"
+description = "Query and INSERT/UPDATE/DELETE data from Salesforce"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/salesforce"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/salesforce"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = [
+        "account",
+        "contact",
+        "lead",
+        "opportunity",
+        "case",
+        "task",
+        "event",
+        "campaign",
+        "user",
+        "campaignmember",
+        "asset",
+        "contract",
+        "contractlineitem",
+        "servicecontract",
+        "solution",
+        "pricebook2",
+        "product2",
+        "productitem",
+        "pricebookentry",
+        "quote",
+        "quotelineitem",
+        "order",
+        "orderitem",
+        "invoice",
+        "invoiceline",
+        "report",
+        "dashboard",
+        "document",
+        "payment",
+        "paymentlineinvoice"
+    ]
+
+# Required
+[[userConfig]]
+name = "domain"
+description = """Your Salesforce domain. For example, if your Salesforce URL is https://mycompany.my.salesforce.com, your domain is mycompany.my.salesforce.com.
+If your URL is https://acmecorp.lightning.force.com, your domain is acmecorp.my.salesforce.com
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = true
+
+[[userConfig]]
+name = "encryption_key"
+description = """A 16, 24, or 32 characters long encryption key. Used to encrypt the cache for security reasons.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = true
+
+[[userConfig]]
+name = "cache_ttl"
+description = """The time-to-live in the cache in seconds for a query. After this time, the cache is invalidated, and anyquery will call Salesforce again.
+Lower values will make anyquery call Salesforce more often, but you will have more up-to-date data. Adjust this value according to your Salesforce API limits.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = true
+
+# Changes according to the chosen flow
+[[userConfig]]
+name = "client_id"
+description = """A salesforce consumer key. Necessary for Username/password, Web Server, and client credentials flows.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[userConfig]]
+name = "client_secret"
+description = """A salesforce consumer secret. Necessary for Username/password, refresh token, and client credentials flows.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[userConfig]]
+name = "access_token"
+description = """A salesforce access token generated using the sf CLI. Only used for the access token flow.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[userConfig]]
+name = "refresh_token"
+description = """A salesforce refresh token. Only used for the refresh token flow.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[userConfig]]
+name = "username"
+description = """Your Salesforce username. Only used for the username/password flow.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[userConfig]]
+name = "password"
+description = """Your Salesforce password. Only used for the username/password flow.
+Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
+"""
+type = "string"
+required = false # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "salesforce"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "salesforce"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "salesforce"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "salesforce"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "salesforce.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "salesforce.exe"
