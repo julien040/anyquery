@@ -66,7 +66,7 @@ description = """The time-to-live in the cache in seconds for a query. After thi
 Lower values will make anyquery call Salesforce more often, but you will have more up-to-date data. Adjust this value according to your Salesforce API limits.
 Learn more about it here: https://github.com/julien040/anyquery/tree/main/plugins/salesforce#configuration
 """
-type = "string"
+type = "int"
 required = true
 
 # Changes according to the chosen flow
