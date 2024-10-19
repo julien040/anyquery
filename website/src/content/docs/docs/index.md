@@ -50,13 +50,13 @@ gpgcheck=0" | sudo tee /etc/yum.repos.d/anyquery.repo
 sudo dnf install anyquery
 ```
 
-### Ubuntu, Debian, and derivatives (Snapcraft)
+<!-- ### Ubuntu, Debian, and derivatives (Snapcraft)
 
 [![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/anyquery)
 
 ```bash
 sudo snap install anyquery
-```
+``` -->
 
 ### MacOS (Homebrew)
 

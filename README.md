@@ -53,12 +53,12 @@ The [documentation](https://anyquery.dev/docs/#installation) provides detailed i
 ```zsh
 brew install julien040/anyquery/anyquery
 ```
-
+<!-- 
 ### Snap
 
 ```bash
 sudo snap install anyquery
-```
+``` -->
 
 ### APT
 
