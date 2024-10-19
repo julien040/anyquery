@@ -166,7 +166,7 @@ func TestNamespace(t *testing.T) {
 		require.NoError(t, err, "The connection should be registered")
 
 		// Run a simple query
-		rows, err := db.Query("SELECT A.id, A.name, B.id, B.name FROM test A, test2 B")
+		rows, err := db.Query("SELECT A.id, A.name FROM test A UNION ALL SELECT B.id, B.name FROM test2 B")
 		require.NoError(t, err, "The query should work")
 
 		// Each table return 2 rows so we should have 4 rows (cartesian product)
