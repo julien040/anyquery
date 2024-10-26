@@ -7,16 +7,14 @@ import (
 	"math/rand/v2"
 	"os"
 	"os/exec"
-	"regexp"
 	"strconv"
 	"strings"
 
 	"github.com/julien040/anyquery/namespace"
 	"github.com/julien040/anyquery/other/prql"
+	"github.com/julien040/anyquery/other/sqlparser"
 	"github.com/julien040/go-ternary"
-	pg_query "github.com/pganalyze/pg_query_go/v5"
 	"github.com/runreveal/pql"
-	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 func middlewareDotCommand(queryData *QueryData) bool {
@@ -442,154 +440,6 @@ type table struct {
 	alias      string
 }
 
-// Extract the table functions from the query parsed by pg_query
-func extractTableFunctions(fromClause []*pg_query.Node) []table {
-	result := []table{}
-	for ithTable, item := range fromClause {
-		funcCall := item.GetRangeFunction()
-		if funcCall == nil {
-			// This is a regular table
-			rangeVar := item.GetRangeVar()
-			if rangeVar != nil {
-				tableToAppend := &table{
-					name:       rangeVar.Relname,
-					stringArgs: []string{},
-					position:   ithTable,
-				}
-				if rangeVar.Alias != nil {
-					tableToAppend.alias = rangeVar.Alias.Aliasname
-				}
-				result = append(result, *tableToAppend)
-			}
-			continue
-		}
-		alias := ""
-		if funcCall.Alias != nil {
-			alias = funcCall.Alias.Aliasname
-		}
-		for _, function1 := range funcCall.Functions {
-			// Get the function name
-			nodeList, ok := function1.Node.(*pg_query.Node_List)
-			if !ok {
-				continue
-			}
-
-			for _, item := range nodeList.List.Items {
-				funcCall := item.GetFuncCall()
-				if funcCall != nil {
-					if len(funcCall.Funcname) < 1 {
-						continue
-					}
-					// Get the table name
-					tableName := funcCall.Funcname[0].GetString_().Sval
-					// Get stringArgs
-					stringArgs := []string{}
-					for _, arg := range funcCall.Args {
-						// e.g. "foo", "bar"
-						columnRef := arg.GetColumnRef()
-						if columnRef != nil {
-							stringArgs = append(stringArgs, columnRef.Fields[0].GetString_().Sval)
-						}
-
-						// e.g. 1, 'a", 1.0, true
-						constRef := arg.GetAConst()
-						if constRef != nil {
-							svalStr := constRef.GetSval()
-							if svalStr != nil {
-								stringArgs = append(stringArgs, svalStr.Sval)
-							}
-							svalBool := constRef.GetBoolval()
-							if svalBool != nil {
-								if svalBool.Boolval {
-									stringArgs = append(stringArgs, "true")
-								} else {
-									stringArgs = append(stringArgs, "false")
-								}
-							}
-							svalInt := constRef.GetIval()
-							if svalInt != nil {
-								stringArgs = append(stringArgs, strconv.Itoa(int(svalInt.Ival)))
-							}
-							svalFloat := constRef.GetFval()
-							if svalFloat != nil {
-								stringArgs = append(stringArgs, svalFloat.Fval)
-							}
-						}
-
-						// e.g. foo = bar
-						exprRef := arg.GetAExpr()
-						if exprRef != nil {
-							leftSide := ""
-							rightSide := ""
-							// Get the left side of the expression
-							left := exprRef.GetLexpr()
-							if left != nil && left.GetColumnRef() != nil && len(left.GetColumnRef().Fields) > 0 {
-								leftSide = left.GetColumnRef().Fields[0].GetString_().Sval
-							} else if left != nil && left.GetAConst() != nil {
-								if left.GetAConst() != nil {
-									if left.GetAConst().GetIval() != nil {
-										leftSide = strconv.Itoa(int(left.GetAConst().GetIval().Ival))
-									} else if left.GetAConst().GetFval() != nil {
-										leftSide = left.GetAConst().GetFval().Fval
-									} else if left.GetAConst().GetSval() != nil {
-										leftSide = left.GetAConst().GetSval().Sval
-									} else if left.GetAConst().GetBoolval() != nil {
-										if left.GetAConst().GetBoolval().Boolval {
-											leftSide = "true"
-										} else {
-											leftSide = "false"
-										}
-									} else {
-										leftSide = "NULL"
-									}
-								}
-							}
-
-							// Get the right side of the expression
-							right := exprRef.GetRexpr()
-							if right != nil && right.GetColumnRef() != nil && len(right.GetColumnRef().Fields) > 0 {
-								rightSide = right.GetColumnRef().Fields[0].GetString_().Sval
-							} else if right != nil && right.GetAConst() != nil {
-								if right.GetAConst() != nil {
-									if right.GetAConst().GetIval() != nil {
-										rightSide = strconv.Itoa(int(right.GetAConst().GetIval().Ival))
-									} else if right.GetAConst().GetFval() != nil {
-										rightSide = right.GetAConst().GetFval().Fval
-									} else if right.GetAConst().GetSval() != nil {
-										rightSide = right.GetAConst().GetSval().Sval
-									} else if right.GetAConst().GetBoolval() != nil {
-										if right.GetAConst().GetBoolval().Boolval {
-											rightSide = "true"
-										} else {
-											rightSide = "false"
-										}
-									} else {
-										rightSide = "NULL"
-									}
-
-								}
-							}
-
-							stringArgs = append(stringArgs, leftSide+" = "+rightSide)
-
-						}
-
-					}
-
-					result = append(result, table{
-						name:       tableName,
-						stringArgs: stringArgs,
-						position:   ithTable,
-						alias:      alias,
-					})
-				}
-			}
-		}
-	}
-
-	return result
-}
-
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 
 func generateRandomString(size int) string {
@@ -601,88 +451,16 @@ func generateRandomString(size int) string {
 
 }
 
-func extractSelectStmt(Result *pg_query.ParseResult) []*pg_query.SelectStmt {
-	res := []*pg_query.SelectStmt{}
-	stmtToExtract := []*pg_query.Node{}
-	for _, stmt := range Result.Stmts {
-		if stmt == nil {
-			continue
-		}
-		stmtToExtract = append(stmtToExtract, stmt.Stmt)
-	}
-	for _, stmt := range stmtToExtract {
-		if stmt == nil {
-			continue
-		}
-		// Try to get the select, insert as select, create table as select, with select
-		selectStmt := stmt.GetSelectStmt()
-		if selectStmt != nil {
-			// Let's check if the select statement is an UNION, INTERSECT or EXCEPT
-			if selectStmt.Op == pg_query.SetOperation_SETOP_UNION || selectStmt.Op == pg_query.SetOperation_SETOP_INTERSECT || selectStmt.Op == pg_query.SetOperation_SETOP_EXCEPT {
-				if selectStmt.Larg != nil {
-					res = append(res, selectStmt.Larg)
-				}
-				if selectStmt.Rarg != nil {
-					res = append(res, selectStmt.Rarg)
-				}
-			}
-
-			res = append(res, selectStmt)
-
-			// Extract the WITH clause
-			withStmt := selectStmt.WithClause
-			if withStmt != nil {
-				for _, cte := range withStmt.Ctes {
-					tableExpr := cte.GetCommonTableExpr()
-					if tableExpr != nil && tableExpr.Ctequery != nil {
-						selectStmtWith := tableExpr.Ctequery.GetSelectStmt()
-						if selectStmtWith != nil {
-							res = append(res, selectStmtWith)
-						}
-					}
-				}
-			}
-
-			fromClause := selectStmt.FromClause
-			if fromClause != nil {
-				for _, from := range fromClause {
-					subSelect := from.GetRangeSubselect()
-					if subSelect != nil {
-						selectStmtSub := subSelect.Subquery.GetSelectStmt()
-						if selectStmtSub != nil {
-							res = append(res, selectStmtSub)
-						}
-					}
-				}
-			}
-		}
-		insertStmt := stmt.GetInsertStmt()
-		if insertStmt != nil {
-			selectStmtIns := insertStmt.SelectStmt.GetSelectStmt()
-			if selectStmtIns != nil {
-				res = append(res, selectStmt)
-			}
-		}
-
-		createTableStmt := stmt.GetCreateTableAsStmt()
-		if createTableStmt != nil {
-			selectStmtCre := createTableStmt.Query.GetSelectStmt()
-			if selectStmtCre != nil {
-				res = append(res, selectStmtCre)
-			}
-		}
-
-		withStmt := stmt.GetWithClause()
-		if withStmt != nil {
-			for _, cte := range withStmt.Ctes {
-				selectStmtWith := cte.GetSelectStmt()
-				if selectStmtWith != nil {
-					res = append(res, selectStmtWith)
-				}
-			}
-		}
-	}
-	return res
+var supportedTableFunctions = map[string]string{
+	"read_json":    "json_reader",
+	"read_csv":     "csv_reader",
+	"read_parquet": "parquet_reader",
+	"read_html":    "html_reader",
+	"read_yaml":    "yaml_reader",
+	"read_toml":    "toml_reader",
+	"read_jsonl":   "jsonl_reader",
+	"read_ndjson":  "jsonl_reader",
+	"read_log":     "log_reader",
 }
 
 // Prefix the query like SELECT * FROM read_json with a CREATE VIRTUAL TABLE statement
@@ -704,35 +482,83 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	// Before running the query, we create a virtual table with the random name
 	// and once the query is executed, we drop the table
 	// That's a workaround around the limitation of SQLite
-	//
-	// # Implementation issues
-	//
-	// The vitess's parser is not able to parse queries
-	// with table functions like read_json() or read_csv()
-	//
-	// At first, I wanted to modify the parser to support
-	// these functions, but it was too complicated
-	// My knowledge of YACC is extremely limited
-	//
-	// As a temporary solution, I decided to parse these queries
-	// with pg_query (it adds 6MB to the binary size so it's not ideal)
-	// As the old saying goes, there is nothing more permanent than a temporary solution
-	// I hope this is not the case here
-	//
-	// There is quite a lot of spaghetti code in this middleware to explore the AST
-	// Couldn't find a better way to do it
 
 	// Parse the query
-	Result, err := pg_query.Parse(queryData.SQLQuery)
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: "8.0.30",
+	})
+
 	if err != nil {
 		return true
 	}
 
-	if Result == nil || len(Result.Stmts) == 0 || Result.Stmts[0].Stmt == nil {
+	stmt, err := parser.Parse(queryData.SQLQuery)
+	if err != nil {
+		// We don't return any error here because an incompatible query with MySQL
+		// might be compatible with SQLite
+		//
+		// If the query is not compatible with SQLite, the SQLite driver will return an error
+		// so that's not an issue.
 		return true
 	}
 
-	// Extract the select statements
+	// Walk the AST and replace the table functions
+	sqlparser.Rewrite(stmt, nil, func(cursor *sqlparser.Cursor) bool {
+		// Get the table function
+		tableFunction, ok := cursor.Node().(sqlparser.TableName)
+		if !ok {
+			return true
+		}
+
+		loweredName := strings.ToLower(tableFunction.Name.String())
+		// Check if the table function is a file module
+		if !strings.HasPrefix(loweredName, "read_") {
+			return true
+		}
+
+		// Replace the table function with a random one
+		tableName := generateRandomString(16)
+		preExecBuilder := strings.Builder{}
+		preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
+		preExecBuilder.WriteString(tableName)
+		preExecBuilder.WriteString(" USING ")
+		if reader, ok := supportedTableFunctions[loweredName]; ok {
+			preExecBuilder.WriteString(reader)
+		} else {
+			// If the user writes read_foo, and we don't have a reader for foo
+			// we skip the table function
+			return true
+		}
+		// Add the arguments if any
+		if len(tableFunction.Args) > 0 {
+			preExecBuilder.WriteString("(")
+			for i, arg := range tableFunction.Args {
+				if i > 0 {
+					preExecBuilder.WriteString(", ")
+				}
+				preExecBuilder.WriteString(sqlparser.String(arg))
+			}
+			preExecBuilder.WriteString(")")
+		}
+
+		preExecBuilder.WriteString(";")
+
+		// Add the pre-execution statement
+		queryData.PreExec = append(queryData.PreExec, preExecBuilder.String())
+
+		// Add a post-execution statement to drop the table
+		queryData.PostExec = append(queryData.PostExec, "DROP TABLE "+tableName+";")
+
+		// Replace the table function with the new table name
+		cursor.Replace(sqlparser.NewTableName(tableName))
+
+		return true
+	})
+
+	// Deparse the query
+	queryData.SQLQuery = sqlparser.String(stmt)
+
+	/* // Extract the select statements
 	selectStmts := extractSelectStmt(Result)
 	if len(selectStmts) == 0 {
 		return true
@@ -749,11 +575,6 @@ func middlewareFileQuery(queryData *QueryData) bool {
 		tableFunctions := extractTableFunctions(selectStmt.FromClause)
 		for _, tableFunction := range tableFunctions {
 			// Check if the table function is a file module
-			/* if tableFunction.name != "read_json" && tableFunction.name != "read_csv" && tableFunction.name != "read_parquet" &&
-				tableFunction.name != "read_html" && tableFunction.name != "read_yaml" && tableFunction.name != "read_toml" &&
-				tableFunction.name != "read_jsonl" && tableFunction.name != "read_ndjson" {
-				continue
-			} */
 			if !strings.HasPrefix(tableFunction.name, "read_") {
 				continue
 			}
@@ -823,7 +644,7 @@ func middlewareFileQuery(queryData *QueryData) bool {
 			return true
 		}
 		queryData.SQLQuery = newQuery
-	}
+	} */
 
 	return true
 }

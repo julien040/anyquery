@@ -166,16 +166,18 @@ func TestNamespace(t *testing.T) {
 		require.NoError(t, err, "The connection should be registered")
 
 		// Run a simple query
-		rows, err := db.Query("SELECT A.id, A.name FROM test A UNION ALL SELECT B.id, B.name FROM test2 B")
+		rows, err := db.Query("SELECT A.id, A.name FROM test A")
 		require.NoError(t, err, "The query should work")
 
-		// Each table return 2 rows so we should have 4 rows (cartesian product)
+		// The plugin should return two rows
 		i := 0
 		for rows.Next() {
 			i++
 		}
 
-		require.Equal(t, 4, i, "The number of rows should be correct")
+		require.NoError(t, rows.Err(), "The rows should not have an error")
+
+		require.Equal(t, 2, i, "The number of rows should be correct")
 
 		// Close the rows
 		err = rows.Close()

@@ -23,7 +23,7 @@ import (
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/controller/config/registry"
 	"github.com/julien040/anyquery/namespace"
-	pg_query "github.com/pganalyze/pg_query_go/v5"
+	"github.com/julien040/anyquery/other/sqlparser"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -478,6 +478,17 @@ func Run(cmd *cobra.Command, args []string) error {
 		mapProfilePlugin[plugin] = profileChosen
 	}
 
+	// Get all the aliased tables
+	aliases, err := queries.GetAliases(context.Background())
+	if err != nil {
+		return fmt.Errorf("could not get the plugin aliases: %w", err)
+	}
+	aliasesMap := make(map[string]string)
+	for _, alias := range aliases {
+		aliasesMap[alias.Tablename] = alias.Alias
+	}
+
+	// Create the shell
 	shell := shell{
 		DB: db,
 		Middlewares: []middleware{
@@ -541,84 +552,65 @@ func Run(cmd *cobra.Command, args []string) error {
 	// Parse it and replace the table names
 	// We have to replace the table names with the correct plugin and profile
 	// Tables follows the following format: profile_plugin_table. Profiles named default are not included in the table name
+	//
+	// This issue exists let say the query template uses github_stargazers_from_repository but the user has two profile: default and work
+	// While the template uses github_stargazers_from_repository, the user has to use work_github_stargazers_from_repository
+	// Therefore, we rewrite the table names to include the profile (work in this case) if wished by the user
 	queriesToRun := splitMultipleQuery(string(content))
-	for i, query := range queriesToRun {
 
-		parsedStmt, err := pg_query.Parse(query)
-		if err != nil {
-			// It may fail if the query is not a SQL query (e.g. a dot command)
-			continue
-		}
-		// Extract the table names
-		selectStmts := extractSelectStmt(parsedStmt)
-		for _, selectStmt := range selectStmts {
-			if selectStmt == nil {
-				continue
-			}
-
-			// Replace the table names
-			for _, from := range selectStmt.FromClause {
-				// Check if the table is function-like (e.g. github_stargazers_from_repository("owner/repo"))
-				funcTable := from.GetRangeFunction()
-				if funcTable == nil {
-					// Check if the table is a normal table
-					table := from.GetRangeVar()
-					if table == nil {
-						continue
-					}
-
-					// Table name must only be plugin_table
-					tableName := table.Relname
-					for plugin, profile := range mapProfilePlugin {
-						if strings.HasPrefix(tableName, plugin) && profile != "default" {
-							table.Relname = profile + "_" + tableName
-						}
-					}
-				} else {
-					for _, table := range funcTable.Functions {
-						nodeList, ok := table.Node.(*pg_query.Node_List)
-						if !ok {
-							continue
-						}
-						for _, item := range nodeList.List.Items {
-							funcCall := item.GetFuncCall()
-							if funcCall == nil {
-								continue
-							}
-							if len(funcCall.Funcname) < 1 {
-								continue
-							}
-
-							// Get the table name
-							tableName := funcCall.Funcname[0].String()
-							for plugin, profile := range mapProfilePlugin {
-								if strings.HasPrefix(tableName, plugin) && profile != "default" {
-									funcCall.Funcname[0] = pg_query.MakeStrNode(profile + "_" + tableName)
-								}
-							}
-						}
-
-					}
-				}
-
-			}
-		}
-		deparsed, err := pg_query.Deparse(parsedStmt)
-		if err != nil {
-			return fmt.Errorf("failed to deparse the query: %w", err)
-		}
-
-		// SQLite and PostgreSQL have a few mismatches
-		// For example, @bind_var is replaced by @ bind_var by pg_query
-		// We have to replace it back to @bind_var
-
-		// Replace the bind variables (e.g. @ bind_var -> @bind_var, @ foo -> @foo)
-		deparsed = regexp.MustCompile(`@[\s]+([a-zA-Z0-9_]+)`).ReplaceAllString(deparsed, "@$1")
-
-		queriesToRun[i] = deparsed + ";" // pg_query strips the semicolon
+	parser, err := sqlparser.New(sqlparser.Options{
+		MySQLServerVersion: "8.0.23",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create the SQL parser: %w", err)
 	}
 
-	// Merge the queries
+	for i, query := range queriesToRun {
+		// Replace the table names
+		stmt, err := parser.Parse(query)
+		if err != nil {
+			// A dot command or a comment
+			continue
+		}
+
+		// Replace the table names
+		sqlparser.Rewrite(stmt, nil, func(c *sqlparser.Cursor) bool {
+			table, ok := c.Node().(sqlparser.TableName)
+			if !ok {
+				return true
+			}
+
+			tableName := table.Name.String()
+			// Skip if the table name is empty
+			if tableName == "" {
+				return true
+			}
+			for plugin, profile := range mapProfilePlugin {
+				if strings.HasPrefix(tableName, plugin) && profile != "default" {
+					tableName = profile + "_" + tableName
+					// Check if the table is aliased
+					if alias, ok := aliasesMap[tableName]; ok {
+						tableName = alias
+					}
+					break
+				}
+			}
+
+			// Replace the table name
+			c.Replace(sqlparser.TableName{
+				Name:      sqlparser.NewIdentifierCS(tableName),
+				Qualifier: table.Qualifier,
+				Args:      table.Args,
+			})
+
+			return true
+		})
+
+		queriesToRun[i] = sqlparser.String(stmt)
+
+	}
+
+	// Run each query one by one
 	for _, query := range queriesToRun {
 		shell.Run(query, answers...)
 	}

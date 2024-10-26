@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/julien040/anyquery/other/sqlparser"
 	"vitess.io/vitess/go/sqltypes"
-	"vitess.io/vitess/go/vt/sqlparser"
 )
 
 // GetQueryType returns the type of the query
