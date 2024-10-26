@@ -1,0 +1,33 @@
+
+name = "@dgllghr/stanchion"
+displayName = "stanchion"
+version = "0.1.0"
+description = "Column-oriented tables in SQLite"
+author = "dgllghr"
+license = "LGPL-3.0"
+repository = "https://github.com/dgllghr/stanchion"
+homepage = "https://github.com/dgllghr/stanchion"
+type = "sharedObject"
+minimumAnyqueryVersion = "0.0.1"
+
+[[file]]
+platform = "linux/amd64"
+directory = "linux-amd64"
+executablePath = "libstanchion.so"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "darwin-amd64"
+executablePath = "libstanchion.dylib"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "darwin-arm64"
+executablePath = "libstanchion.dylib"
+
+[[file]]
+platform = "windows/amd64"
+directory = "windows-amd64"
+executablePath = "libstanchion.dll"
+
+
