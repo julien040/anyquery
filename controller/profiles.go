@@ -280,7 +280,12 @@ func createOrUpdateProfile(queries *model.Queries, registryName string, pluginNa
 		case "int":
 			// If required, will fail on empty string
 			if configKey.Required {
-				input.Validate(validateStringNotEmpty)
+				input.Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("the field is required")
+					}
+					return validateStringIsNumber(s)
+				})
 			} else {
 				input.Validate(func(s string) error {
 					if s == "" {
@@ -292,7 +297,12 @@ func createOrUpdateProfile(queries *model.Queries, registryName string, pluginNa
 		case "float":
 			// If required, will fail on empty string
 			if configKey.Required {
-				input.Validate(validateStringNotEmpty)
+				input.Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("the field is required")
+					}
+					return validateStringIsFloat(s)
+				})
 			} else {
 				input.Validate(func(s string) error {
 					if s == "" {
@@ -304,7 +314,12 @@ func createOrUpdateProfile(queries *model.Queries, registryName string, pluginNa
 		case "bool":
 			// If required, will fail on empty string
 			if configKey.Required {
-				input.Validate(validateStringNotEmpty)
+				input.Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("the field is required")
+					}
+					return validateStringIsBool(s)
+				})
 			} else {
 				input.Validate(func(s string) error {
 					if s == "" {
