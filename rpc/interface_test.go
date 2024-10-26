@@ -118,3 +118,68 @@ func TestPluginConfigHelpers(t *testing.T) {
 	require.Equal(t, []string([]string(nil)), zeroValueArray)
 
 }
+
+func TestQueryConstraintHash(t *testing.T) {
+	constraints1 := QueryConstraint{
+		Columns: []ColumnConstraint{
+			{
+				ColumnID: 0,
+				Operator: OperatorEqual,
+				Value:    "value",
+			},
+			{
+				ColumnID: 2,
+				Operator: OperatorEqual,
+				Value:    "2024-01-01T00:00:00Z",
+			},
+		},
+		Limit:  10,
+		Offset: 5,
+	}
+
+	constraints2 := QueryConstraint{
+		Columns: []ColumnConstraint{
+			{
+				ColumnID: 2,
+				Operator: OperatorEqual,
+				Value:    "2024-01-01T00:00:00Z",
+			},
+			{
+				ColumnID: 0,
+				Operator: OperatorEqual,
+				Value:    "value",
+			},
+		},
+		Limit:  10,
+		Offset: 5,
+	}
+
+	constraints3 := QueryConstraint{
+		Columns: []ColumnConstraint{
+			{
+				ColumnID: 0,
+				Operator: OperatorGreater,
+				Value:    "value",
+			},
+			{
+				ColumnID: 2,
+				Operator: OperatorEqual,
+				Value:    "2024-01-01T00:00:00Z",
+			},
+		},
+		Limit:  10,
+		Offset: 500,
+	}
+
+	hash1 := constraints1.Hash()
+	hash2 := constraints2.Hash()
+	hash3 := constraints3.Hash()
+
+	// Ensure the hash is the same for the same constraints
+	require.Equal(t, hash1, hash2)
+
+	// Ensure the hash is different for different constraints
+	require.NotEqual(t, hash1, hash3)
+	require.NotEqual(t, hash2, hash3)
+
+}

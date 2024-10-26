@@ -1,6 +1,10 @@
 package rpc
 
 import (
+	"crypto/sha256"
+	"encoding/json"
+	"fmt"
+	"slices"
 	"strconv"
 	"time"
 )
@@ -368,6 +372,55 @@ type QueryConstraint struct {
 
 	// The order by constraints (can be skipped and SQLite will handle it)
 	OrderBy []OrderConstraint
+}
+
+// Returns the sha256 hash of the query constraint for caching purposes
+//
+// Internally, it sorts the columns by column index, operator, and value,
+// sorts the order by constraints by column index and descending order,
+// marshals the query constraint to JSON, and hashes it with sha256
+func (qc QueryConstraint) Hash() string {
+	// Sort the columns by column index, operator, and value
+	// to ensure the hash is the same for the same constraints
+	clonedCol := slices.Clone(qc.Columns)
+	slices.SortFunc(clonedCol, func(a ColumnConstraint, b ColumnConstraint) int {
+		if a.ColumnID != b.ColumnID {
+			return a.ColumnID - b.ColumnID
+		}
+		if a.Operator != b.Operator {
+			return int(a.Operator) - int(b.Operator)
+		}
+		return 0
+	})
+
+	clonedOrder := slices.Clone(qc.OrderBy)
+	slices.SortFunc(clonedOrder, func(a OrderConstraint, b OrderConstraint) int {
+		if a.ColumnID != b.ColumnID {
+			return a.ColumnID - b.ColumnID
+		}
+		if a.Descending != b.Descending {
+			if a.Descending {
+				return -1
+			}
+			return 1
+		}
+		return 0
+	})
+
+	clone := QueryConstraint{
+		Columns: clonedCol,
+		Limit:   qc.Limit,
+		Offset:  qc.Offset,
+		OrderBy: clonedOrder,
+	}
+
+	marshalled, err := json.Marshal(clone)
+	if err != nil {
+		return ""
+	}
+
+	hashed := sha256.Sum256(marshalled)
+	return fmt.Sprintf("%x", hashed)
 }
 
 // Returns the column constraint for the given column at the index columnID
