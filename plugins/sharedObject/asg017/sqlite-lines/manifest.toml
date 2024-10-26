@@ -1,5 +1,5 @@
 
-name = "sqlite-lines-asg017"
+name = "@asg017/sqlite-lines"
 displayName = "sqlite-lines"
 version = "0.2.2"
 description = "A SQLite extension for reading large files line-by-line (NDJSON, logs, txt, etc.)"

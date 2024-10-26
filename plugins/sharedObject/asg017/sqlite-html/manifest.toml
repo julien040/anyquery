@@ -1,5 +1,5 @@
 
-name = "sqlite-html-asg017"
+name = "@asg017/sqlite-html"
 displayName = "sqlite-html"
 version = "0.1.3"
 description = "A SQLite extension for querying, manipulating, and creating HTML elements."

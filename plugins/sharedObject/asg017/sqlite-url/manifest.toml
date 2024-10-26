@@ -1,5 +1,5 @@
 
-name = "sqlite-url-asg017"
+name = "@asg017/sqlite-url"
 displayName = "sqlite-url"
 version = "0.1.1"
 description = "A SQLite extension for parsing, generating, and querying URLs and query strings"

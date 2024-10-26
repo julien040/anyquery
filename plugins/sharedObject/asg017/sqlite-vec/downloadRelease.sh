@@ -3,10 +3,10 @@
 # version: 0.3.4-alpha
 # date: 2024-08-02 10:38:59
 __release_files=(
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.0/sqlite-vec-0.1.0-loadable-linux-x86_64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.0/sqlite-vec-0.1.0-loadable-macos-aarch64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.0/sqlite-vec-0.1.0-loadable-macos-x86_64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.0/sqlite-vec-0.1.0-loadable-windows-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-linux-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-macos-aarch64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-macos-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-windows-x86_64.tar.gz"
 )
 __0_urls=("${__release_files[@]}")
 __repo_name="asg017/sqlite-vec"

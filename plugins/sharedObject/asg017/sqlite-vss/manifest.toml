@@ -1,5 +1,5 @@
 
-name = "sqlite-vss-asg017"
+name = "@asg017/sqlite-vss"
 displayName = "sqlite-vss"
 version = "0.1.2"
 description = "Efficient vector search, based on Faiss"

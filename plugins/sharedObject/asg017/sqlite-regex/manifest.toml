@@ -1,5 +1,5 @@
 
-name = "sqlite-regex-asg017"
+name = "@asg017/sqlite-regex"
 displayName = "sqlite-regex"
 version = "0.2.3"
 description = "A fast regular expression SQLite extension"

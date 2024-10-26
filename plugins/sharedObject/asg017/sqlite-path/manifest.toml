@@ -1,5 +1,5 @@
 
-name = "sqlite-path-asg017"
+name = "@asg017/sqlite-path"
 displayName = "sqlite-path"
 version = "0.2.1"
 description = "A SQLite extension for parsing, generating, and querying paths"

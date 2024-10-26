@@ -1,5 +1,5 @@
 
-name = "sqlite-http-asg017"
+name = "@asg017/sqlite-http"
 displayName = "sqlite-http"
 version = "0.1.1"
 description = "A SQLite extension for making HTTP requests purely in SQL"
