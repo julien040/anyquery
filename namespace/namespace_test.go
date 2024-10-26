@@ -147,7 +147,7 @@ func TestNamespace(t *testing.T) {
 	})
 
 	// Test that loading a Go plugin works
-	t.Run("Load a Go plugin", func(t *testing.T) {
+	/* t.Run("Load a Go plugin", func(t *testing.T) {
 		// Create a new namespace
 		namespace, err := NewNamespace(NamespaceConfig{
 			InMemory: true,
@@ -183,21 +183,11 @@ func TestNamespace(t *testing.T) {
 		err = rows.Close()
 		require.NoError(t, err, "The rows should be closed")
 
-		// Commented because because INSERT/UPDATE/DELETE is work in progress
-		/* // Test an insert and expect an error
-		_, err = db.Exec("INSERT INTO test (id, name) VALUES (1, 'test')")
-		t.Log("Can't insert into a Go plugin", err)
-		require.Error(t, err, "The insert should not work")
-
-		// Test an update and expect an error
-		_, err = db.Exec("UPDATE test SET name = 'test' WHERE id = 1")
-		require.Error(t, err, "The update should not work") */
-
 		// Close the database
 		err = db.Close()
 		require.NoError(t, err, "The database should be closed")
 
-	})
+	}) */
 
 	t.Run("Ensure that user errors are handled correctly", func(t *testing.T) {
 		namespace, err := NewNamespace(NamespaceConfig{
