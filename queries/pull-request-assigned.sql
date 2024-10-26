@@ -20,5 +20,4 @@ FROM
     github_my_issues ('assigned')
 WHERE
     state <> 'closed'
-    /*
-    AND is_pull_request = true */;
+    AND is_pull_request = true;
