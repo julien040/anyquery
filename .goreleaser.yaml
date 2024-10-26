@@ -167,7 +167,7 @@ snapcrafts:
       Query anything (HTTP APIs, local files, local apps) over SQL.
       Anyquery is a query engine that allows you to query anything over SQL. It's built on top of SQLite.
     grade: stable
-    confinement: strict
+    confinement: classic
     title: anyquery
     name: anyquery
     license: AGPL-3.0
