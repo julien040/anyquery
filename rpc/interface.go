@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"slices"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -67,8 +68,15 @@ type PluginConfig map[string]interface{}
 func (p PluginConfig) GetString(key string) string {
 	inter, ok := p[key]
 	if ok {
-		if str, ok := inter.(string); ok {
-			return str
+		switch v := inter.(type) {
+		case string:
+			return v
+		case int64:
+			return strconv.FormatInt(v, 10)
+		case float64:
+			return strconv.FormatFloat(v, 'f', -1, 64)
+		case bool:
+			return strconv.FormatBool(v)
 		}
 	}
 	return ""
@@ -80,8 +88,17 @@ func (p PluginConfig) GetString(key string) string {
 func (p PluginConfig) GetInt(key string) int64 {
 	inter, ok := p[key]
 	if ok {
-		if i, ok := inter.(int64); ok {
-			return i
+		switch v := inter.(type) {
+		case int64:
+			return v
+		case float64:
+			return int64(v)
+		case string:
+			val, err := strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				return 0
+			}
+			return val
 		}
 	}
 	return 0
@@ -93,8 +110,17 @@ func (p PluginConfig) GetInt(key string) int64 {
 func (p PluginConfig) GetFloat(key string) float64 {
 	inter, ok := p[key]
 	if ok {
-		if f, ok := inter.(float64); ok {
-			return f
+		switch v := inter.(type) {
+		case float64:
+			return v
+		case int64:
+			return float64(v)
+		case string:
+			val, err := strconv.ParseFloat(v, 64)
+			if err != nil {
+				return 0
+			}
+			return val
 		}
 	}
 	return 0
@@ -106,8 +132,20 @@ func (p PluginConfig) GetFloat(key string) float64 {
 func (p PluginConfig) GetBool(key string) bool {
 	inter, ok := p[key]
 	if ok {
-		if b, ok := inter.(bool); ok {
-			return b
+		switch v := inter.(type) {
+		case bool:
+			return v
+		case int64:
+			return v == 1
+		case float64:
+			return int64(v) == 1
+		case string:
+			val, err := strconv.ParseBool(v)
+			if err != nil {
+				lowered := strings.ToLower(v)
+				return lowered == "yes" || lowered == "y"
+			}
+			return val
 		}
 	}
 	return false
@@ -119,7 +157,27 @@ func (p PluginConfig) GetBool(key string) bool {
 func (p PluginConfig) GetStringArray(key string) []string {
 	inter, ok := p[key]
 	if ok {
-		if arr, ok := inter.([]string); ok {
+		/* if arr, ok := inter.([]string); ok {
+			return arr
+		} */
+		switch v := inter.(type) {
+		case []string:
+			return v
+		// To accomodate for some unmarshalling issues
+		case []interface{}:
+			arr := make([]string, 0, len(v))
+			for _, val := range v {
+				switch val := val.(type) {
+				case string:
+					arr = append(arr, val)
+				case int64:
+					arr = append(arr, strconv.FormatInt(val, 10))
+				case float64:
+					arr = append(arr, strconv.FormatFloat(val, 'f', -1, 64))
+				case bool:
+					arr = append(arr, strconv.FormatBool(val))
+				}
+			}
 			return arr
 		}
 	}
@@ -132,7 +190,30 @@ func (p PluginConfig) GetStringArray(key string) []string {
 func (p PluginConfig) GetIntArray(key string) []int64 {
 	inter, ok := p[key]
 	if ok {
-		if arr, ok := inter.([]int64); ok {
+		switch v := inter.(type) {
+		case []int64:
+			return v
+		case []interface{}:
+			arr := make([]int64, 0, len(v))
+			for _, val := range v {
+				switch val := val.(type) {
+				case int64:
+					arr = append(arr, val)
+				case float64:
+					arr = append(arr, int64(val))
+				case string:
+					num, err := strconv.ParseInt(val, 10, 64)
+					if err == nil {
+						arr = append(arr, num)
+					}
+				case bool:
+					if val {
+						arr = append(arr, 1)
+					} else {
+						arr = append(arr, 0)
+					}
+				}
+			}
 			return arr
 		}
 	}
@@ -145,7 +226,30 @@ func (p PluginConfig) GetIntArray(key string) []int64 {
 func (p PluginConfig) GetFloatArray(key string) []float64 {
 	inter, ok := p[key]
 	if ok {
-		if arr, ok := inter.([]float64); ok {
+		switch v := inter.(type) {
+		case []float64:
+			return v
+		case []interface{}:
+			arr := make([]float64, 0, len(v))
+			for _, val := range v {
+				switch val := val.(type) {
+				case float64:
+					arr = append(arr, val)
+				case int64:
+					arr = append(arr, float64(val))
+				case string:
+					num, err := strconv.ParseFloat(val, 64)
+					if err == nil {
+						arr = append(arr, num)
+					}
+				case bool:
+					if val {
+						arr = append(arr, 1)
+					} else {
+						arr = append(arr, 0)
+					}
+				}
+			}
 			return arr
 		}
 	}
@@ -158,7 +262,26 @@ func (p PluginConfig) GetFloatArray(key string) []float64 {
 func (p PluginConfig) GetBoolArray(key string) []bool {
 	inter, ok := p[key]
 	if ok {
-		if arr, ok := inter.([]bool); ok {
+		switch v := inter.(type) {
+		case []bool:
+			return v
+		case []interface{}:
+			arr := make([]bool, 0, len(v))
+			for _, val := range v {
+				switch val := val.(type) {
+				case bool:
+					arr = append(arr, val)
+				case int64:
+					arr = append(arr, val == 1)
+				case float64:
+					arr = append(arr, int64(val) == 1)
+				case string:
+					b, err := strconv.ParseBool(val)
+					if err == nil {
+						arr = append(arr, b)
+					}
+				}
+			}
 			return arr
 		}
 	}

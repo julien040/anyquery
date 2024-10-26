@@ -89,33 +89,77 @@ func TestPluginConfigHelpers(t *testing.T) {
 		"count":  int64(42),
 		"float":  42.42,
 		"array":  []string{"a", "b", "c"},
+		"mixedArray": []interface{}{
+			"string",
+			int64(42),
+			42.42,
+			true,
+		},
 	}
 
 	// Check if we can extract the value from the config
-	apiKey := config.GetString("apiKey")
-	require.Equal(t, "1234", apiKey)
+	t.Run("Extract value from config", func(t *testing.T) {
+		apiKey := config.GetString("apiKey")
+		require.Equal(t, "1234", apiKey)
 
-	count := config.GetInt("count")
-	require.Equal(t, int64(42), count)
+		count := config.GetInt("count")
+		require.Equal(t, int64(42), count)
 
-	float := config.GetFloat("float")
-	require.Equal(t, 42.42, float)
+		float := config.GetFloat("float")
+		require.Equal(t, 42.42, float)
 
-	array := config.GetStringArray("array")
-	require.Equal(t, []string{"a", "b", "c"}, array)
+		array := config.GetStringArray("array")
+		require.Equal(t, []string{"a", "b", "c"}, array)
+	})
 
 	// Ensure a missing key returns the zero value
-	zeroValueString := config.GetString("missing")
-	require.Equal(t, "", zeroValueString)
+	t.Run("Missing key", func(t *testing.T) {
+		zeroValueString := config.GetString("missing")
+		require.Equal(t, "", zeroValueString)
 
-	zeroValueInt := config.GetInt("missing")
-	require.Equal(t, int64(0), zeroValueInt)
+		zeroValueInt := config.GetInt("missing")
+		require.Equal(t, int64(0), zeroValueInt)
 
-	zeroValueFloat := config.GetFloat("missing")
-	require.Equal(t, 0.0, zeroValueFloat)
+		zeroValueFloat := config.GetFloat("missing")
+		require.Equal(t, 0.0, zeroValueFloat)
 
-	zeroValueArray := config.GetStringArray("missing")
-	require.Equal(t, []string([]string(nil)), zeroValueArray)
+		zeroValueArray := config.GetStringArray("missing")
+		require.Equal(t, []string([]string(nil)), zeroValueArray)
+	})
+
+	// Ensure it converts types correctly
+	t.Run("Convert types", func(t *testing.T) {
+		convertedString := config.GetString("count")
+		require.Equal(t, "42", convertedString)
+
+		convertedInt := config.GetInt("float")
+		require.Equal(t, int64(42), convertedInt)
+
+		convertedFloat := config.GetFloat("count")
+		require.Equal(t, 42.0, convertedFloat)
+
+		convertedBool := config.GetBool("count")
+		require.Equal(t, false, convertedBool)
+
+		convertedBool = config.GetBool("float")
+		require.Equal(t, false, convertedBool)
+
+	})
+
+	// Ensure it converts mixed arrays correctly
+	t.Run("Mixed array", func(t *testing.T) {
+		convertedArray := config.GetStringArray("mixedArray")
+		require.Equal(t, []string{"string", "42", "42.42", "true"}, convertedArray)
+
+		convertedArrayInt := config.GetIntArray("mixedArray")
+		require.Equal(t, []int64{42, 42, 1}, convertedArrayInt)
+
+		convertedArrayFloat := config.GetFloatArray("mixedArray")
+		require.Equal(t, []float64{42.0, 42.42, 1}, convertedArrayFloat)
+
+		convertedArrayBool := config.GetBoolArray("mixedArray")
+		require.Equal(t, []bool{false, false, true}, convertedArrayBool)
+	})
 
 }
 
