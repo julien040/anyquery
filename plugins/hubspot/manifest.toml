@@ -1,0 +1,81 @@
+
+name = "hubspot"
+version = "0.1.0"
+description = "Query and modify your HubSpot data"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/hubspot"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/hubspot"
+type = "anyquery"
+minimumAnyqueryVersion = "0.0.1"
+
+tables = [
+        "companies",
+        "contacts",
+        "deals",
+        "feedback_submissions",
+        "goal_targets",
+        "leads",
+        "tickets",
+        "carts",
+        "discounts",
+        "fees",
+        "invoices",
+        "line_items",
+        "orders",
+        "commerce_payments",
+        "products",
+        "quotes",
+        "subscriptions",
+        "taxes",
+        "calls",
+        "communications",
+        "emails",
+        "meetings",
+        "notes",
+        "postal_mail",
+        "tasks"
+    ]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A HubSpot API token for a private app. Learn more at https://anyquery.dev/integrations/hubspot"
+type = "string"
+required = true # If the user must provide a value
+
+[[userConfig]]
+name = "cache_ttl"
+description = "The time-to-live (TTL) for the cache in seconds. A higher value will reduce the number of API calls but may return stale data."
+type = "int"
+required = false # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "hubspot"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "hubspot"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "hubspot"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "hubspot"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "hubspot.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "hubspot.exe"
