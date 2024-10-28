@@ -1,62 +1,32 @@
-//go:build prql
-
 package prql
 
-// #cgo CFLAGS: -I.
-// #cgo darwin,arm64 LDFLAGS: -L${SRCDIR} -lprqlc-aarch64-apple-darwin
-// #cgo darwin,amd64 LDFLAGS: -L${SRCDIR} -lprqlc-x86_64-apple-darwin
-// #cgo linux,arm64 LDFLAGS: -L${SRCDIR} -lprqlc-aarch64-unknown-linux-musl
-// #cgo linux,amd64 LDFLAGS: -L${SRCDIR} -lprqlc-x86_64-unknown-linux-musl -lm
-// #cgo windows,amd64 LDFLAGS: -L${SRCDIR} -lprqlc-x86_64-pc-windows-gnu -lws2_32 -luserenv -lntdll
-/*#include <stdlib.h>
-#include "prqlc.h"
-
-Options global_options = {
-	false, // Remove the pretty print
-	"sql.sqlite", // The dialect to use
-	false // Remove the trailing comments
-};
-
-CompileResult to_sql(char *prql_query) {
-	return compile(prql_query, &global_options);
-}
-
-*/
-import "C"
-
 import (
-	"unsafe"
+	"fmt"
+	"os/exec"
+	"strings"
 )
 
+// Calls the prqlc CLI to compile the PRQL query to SQL
 func ToSQL(prqlQuery string) (string, []CompileMessage) {
-	res := C.to_sql(C.CString(prqlQuery))
-	a := res.messages
-	if res.messages_len > 0 {
-		messages := make([]CompileMessage, res.messages_len)
-		// Convert the messages
-		for i := 0; i < int(res.messages_len); i++ {
-			message := (*C.struct_Message)(unsafe.Pointer(uintptr(unsafe.Pointer(a)) + uintptr(i)*unsafe.Sizeof(*res.messages)))
-			compileMessage := CompileMessage{}
-			if message.code != nil && *message.code != nil {
-				compileMessage.ErrorCode = rune(**message.code)
-			}
-
-			if message.display != nil && *message.display != nil {
-				compileMessage.Display = C.GoString(*message.display)
-			}
-
-			if message.location != nil {
-				compileMessage.LocationError.StartLine = int(message.location.start_line)
-				compileMessage.LocationError.StartColumn = int(message.location.start_col)
-				compileMessage.LocationError.EndLine = int(message.location.end_line)
-				compileMessage.LocationError.EndColumn = int(message.location.end_col)
-			}
-
-			messages[i] = compileMessage
-
-		}
-
-		return "", messages
+	_, err := exec.LookPath("prqlc")
+	if err != nil {
+		return "", []CompileMessage{{
+			ErrorCode: 'E',
+			Display:   "prqlc not found in PATH.\nMake sure it is installed: https://prql-lang.org/book/project/integrations/prqlc-cli.html#installation",
+		}}
 	}
-	return C.GoString(res.output), nil
+
+	//  prqlc compile --target sql.sqlite"
+	cmd := exec.Command("prqlc")
+	cmd.Args = append(cmd.Args, "compile", "--target", "sql.sqlite")
+	cmd.Stdin = strings.NewReader(prqlQuery)
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return "", []CompileMessage{{
+			ErrorCode: 'E',
+			Display:   fmt.Sprintf("prqlc failed with error %s: %s", err, string(out)),
+		}}
+	}
+
+	return string(out), nil
 }

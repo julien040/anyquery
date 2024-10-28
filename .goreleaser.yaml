@@ -42,28 +42,25 @@ builds:
         goarch: arm64
       
   - id: linux
-    gobinary: ./orbstack_go.sh
     tags:
       - vtable
       - fts5
       - sqlite_json
       - sqlite_math_functions
-      - prql
     
     ldflags:
       - -s -w
       - -X "main.version={{.Version}}"
     env:
       - CGO_ENABLED=1
-      - "ORBENV=CGO_ENABLED:CC:CGO_CFLAGS:CGO_LDFLAGS:GOOS:GOARCH"
       - CGO_CFLAGS=-O2
       - >-
         {{- if eq .Os "linux" }}
-          {{- if eq .Arch "amd64" }}CC=musl-gcc{{- end }}
-          {{- if eq .Arch "arm64" }}CC=aarch64-linux-gnu-gcc{{- end }}
+          {{- if eq .Arch "amd64" }}CC=zig cc -target x86_64-linux-musl{{- end }}
+          {{- if eq .Arch "arm64" }}CC=zig cc -target aarch64-linux-musl{{- end }}
         {{- end }}
-      - >-
-        {{- if eq .Arch "amd64" }}CGO_LDFLAGS=-static{{- end }}
+      # - >-
+      #   {{- if eq .Arch "amd64" }}CGO_LDFLAGS=-static{{- end }}
 
     goos:
       - linux

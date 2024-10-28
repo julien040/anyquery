@@ -48,7 +48,7 @@ anyquery -d ":memory:"
       --no-input            Do not launch an interactive input
       --plain               Output format as plain text
       --pql                 Use the PQL language
-      --prql                Use the PRQL language
+      --prql                Use the PRQL language (requires prqlc in PATH)
   -q, --query string        Query to run
       --read-only           Start the server in read-only mode
       --readonly            Start the server in read-only mode

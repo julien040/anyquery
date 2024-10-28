@@ -48,6 +48,8 @@ To enable PRQL, run:
 anyquery --prql
 ```
 
+and install the `prqlc` CLI: [https://prql-lang.org/book/project/integrations/prqlc-cli.html#installation](https://prql-lang.org/book/project/integrations/prqlc-cli.html#installation)
+
 Or once the shell mode is open, run:
 
 ```sql

@@ -41,7 +41,9 @@ LIMIT 10;
 
 ## Enabling PRQL in Anyquery
 
-First, let's open Anyquery in PRQL mode. You can do this by passing the `--prql` flag when starting Anyquery:
+First, install the `prqlc` CLI tool by following the instructions on the [PRQL website](https://prql-lang.org/book/project/integrations/prqlc-cli.html#installation).
+
+Then, let's open Anyquery in PRQL mode. You can do this by passing the `--prql` flag when starting Anyquery:
 
 ```bash
 anyquery --prql

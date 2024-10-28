@@ -50,7 +50,7 @@ echo "SELECT * FROM mytable" | anyquery query -d mydatabase.db
       --log-level string    Log level (trace, debug, info, warn, error, off) (default "info")
       --plain               Output format as plain text
       --pql                 Use the PQL language
-      --prql                Use the PRQL language
+      --prql                Use the PRQL language (requires prqlc in PATH)
   -q, --query string        Query to run
       --read-only           Start the server in read-only mode
       --readonly            Start the server in read-only mode

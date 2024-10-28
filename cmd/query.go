@@ -48,6 +48,6 @@ func init() {
 
 	// Alternative language flags
 	queryCmd.Flags().String("language", "", "Alternative language to use")
-	queryCmd.Flags().Bool("prql", false, "Use the PRQL language")
+	queryCmd.Flags().Bool("prql", false, "Use the PRQL language (requires prqlc in PATH)")
 	queryCmd.Flags().Bool("pql", false, "Use the PQL language")
 }
