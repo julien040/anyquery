@@ -126,7 +126,14 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// Download the file if needed (or older than 1 day)
 	secondsInDay := int64(60 * 60 * 24)
-	if fileInfo, err := os.Stat(dest); err != nil || fileInfo.Size() == 0 || time.Now().Unix()-fileInfo.ModTime().Unix() > secondsInDay {
+	fileInfo, err := os.Stat(dest)
+	if err != nil || fileInfo.Size() == 0 || time.Now().Unix()-fileInfo.ModTime().Unix() > secondsInDay {
+		// We first remove the file because it's outdated
+		// and then we download it
+		//
+		// We have to do this because go-getter seems to not be able to overwrite the file
+		// if it's already present
+		os.Remove(dest) // Call it without checking the error
 		client := &getter.Client{
 			Src:  urlToFetch,
 			Dst:  dest,
