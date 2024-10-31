@@ -6,6 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/julien040/anyquery/cmd"
+	"github.com/mattn/go-sqlite3"
 )
 
 // Version of the program
@@ -23,7 +24,10 @@ func getVersionString() string {
 		version = buildDebug.Main.Version
 	}
 
-	return fmt.Sprintf("%s (built with %s for %s/%s)", version, goVersion, runtime.GOOS, runtime.GOARCH)
+	// Get the SQLite version
+	sqliteVersion, _, _ := sqlite3.Version()
+
+	return fmt.Sprintf("%s (built with %s for %s/%s) · SQLite %s", version, goVersion, runtime.GOOS, runtime.GOARCH, sqliteVersion)
 }
 
 func main() {
