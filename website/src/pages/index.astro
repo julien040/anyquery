@@ -156,27 +156,34 @@ const elements: TerminalProps[] = [
 ---
 
 <Main
-    title="Anyquery - Use SQL for everything"
+    title="Anyquery - Use SQL for anything"
     description="SQL queries for any data source (e.g. Google Sheets, logs, JSON, Trello, Github, Notion, etc.). Open source and free."
     ,
     footnote=`Trademarks are the property of their respective owners.
-All benchmarks are performed on a Macbook Air M1 16GB.`
+All benchmarks are performed on a MacBook Air M1 16GB.`
 >
     <!-- Header -->
-    <script type="application/ld+json">
-        {
-            "@context": "https://schema.org",
-            "@type": "WebSite",
-            "url": "https://anyquery.dev",
-            "name": "Anyquery",
-            "description": "Query anything with SQL, whether it's a file, an API, logs, or a local app"
-        }
-    </script>
+    <div itemscope itemtype="https://schema.org/WebSite">
+        <link itemprop="url" href="https://anyquery.dev" />
+        <meta itemprop="name" content="Anyquery" />
+        <meta
+            itemprop="description"
+            content="SQL queries for any data source (e.g. GSheets, logs, JSON, Salesforce, Notion, etc.). Open source and free."
+        />
+    </div>
     <div
         x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
     >
         <header
-            class="flex flex-col md:flex-row justify-center md:justify-between gap-4 md:gap-24 py-4 md:mt-12"
+            class="flex
+        flex-col
+        md:flex-row
+        justify-center
+        md:justify-between
+        gap-4
+        md:gap-24
+        py-4
+        md:mt-12"
         >
             <div id="left-header" class="md:basis-5/12">
                 <h1
