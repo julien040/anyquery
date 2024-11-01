@@ -112,17 +112,12 @@ SELECT
 		lower(TYPE)
 	END AS "Type",
 	CASE WHEN (a."notnull" = 1
-		OR a. "pk" = 1) THEN
+		OR a. "pk" >= 1) THEN
 		'NO'
 	ELSE
 		'YES'
 	END AS "Null",
-	CASE pk
-	WHEN 1 THEN
-		'PRI'
-	ELSE
-		''
-	END AS "Key",
+	iif(a."pk" >= 1, 'PRI', '') AS "Key",
 	NULL AS "Default",
 	'' AS Extra
 FROM
@@ -189,7 +184,7 @@ WITH x AS (
 SELECT
 	x.name as "Table",
 	0 AS Non_unique,
-	iif(pk = 1, 'Primary', '') AS Key_name,
+	iif(pk >= 1, 'Primary', '') AS Key_name,
 	0 AS Seq_in_index,
 	pt.name AS Column_name,
 	'' AS Collation,
@@ -204,7 +199,7 @@ SELECT
 	NULL AS Expression
 FROM
 	x, pragma_table_info (x.name) pt
-WHERE pk = 1 AND "Table" = ? AND (%s);
+WHERE pk >= 1 AND "Table" = ? AND (%s);
 `
 
 const showCreateTableQuery = `
