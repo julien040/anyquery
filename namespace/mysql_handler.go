@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"vitess.io/vitess/go/mysql"
 	"vitess.io/vitess/go/mysql/collations"
@@ -367,7 +368,7 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 
 			// Type switch between the supported types
 			parsed := *(val.(*interface{}))
-			switch parsed.(type) {
+			switch val := parsed.(type) {
 			case string:
 				rowToInsert[i] = sqltypes.NewVarChar(parsed.(string))
 			case int64:
@@ -376,6 +377,16 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 				rowToInsert[i] = sqltypes.NewVarBinary(string(parsed.([]byte)))
 			case float64:
 				rowToInsert[i] = sqltypes.NewFloat64(parsed.(float64))
+			// While these types aren't handled by SQLite, mattn/go-sqlite3 might still convert them
+			// to the correct type if it detects them using the column type
+			case bool:
+				if val {
+					rowToInsert[i] = sqltypes.NewInt64(1)
+				} else {
+					rowToInsert[i] = sqltypes.NewInt64(0)
+				}
+			case time.Time:
+				rowToInsert[i] = sqltypes.NewVarChar(val.Format(time.RFC3339))
 			case nil:
 				rowToInsert[i] = sqltypes.NULL
 			default:
@@ -434,12 +445,16 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 			switch strings.ToUpper(typeName) {
 			case "INTEGER", "INT", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED BIG INT", "INT2", "INT8":
 				fieldType = querypb.Type_INT64
-			case "TEXT", "VARCHAR", "CHAR", "CLOB", "NCHAR", "NVARCHAR", "VARCHAR(255)", "TINYTEXT", "MEDIUMTEXT", "LONGTEXT", "UNKNOWN":
+			case "TEXT", "VARCHAR", "CHAR", "CLOB", "NCHAR", "NVARCHAR", "VARCHAR(255)", "TINYTEXT", "MEDIUMTEXT", "LONGTEXT", "UNKNOWN", "JSON", "ENUM", "SET":
 				fieldType = querypb.Type_VARCHAR
 			case "REAL", "real", "FLOAT", "float", "DOUBLE PRECISION", "DOUBLE", "NUMERIC", "DECIMAL":
 				fieldType = querypb.Type_FLOAT64
 			case "BLOB", "BINARY", "VARBINARY", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB":
 				fieldType = querypb.Type_VARBINARY
+			case "DATETIME", "DATE", "TIME", "TIMESTAMP", "YEAR":
+				fieldType = querypb.Type_VARCHAR
+			case "BOOLEAN", "BOOL":
+				fieldType = querypb.Type_INT64
 			default:
 				fieldType = querypb.Type_NULL_TYPE
 

@@ -50,7 +50,7 @@ const showDatabasesQuery = "SELECT name as Database FROM pragma_database_list()"
 // showTablesQuery emulates the "SHOW TABLES" query
 const showTablesQuery = `
 SELECT
-	name AS "Tables_in_main"
+	iif(schema = 'main', name, schema || '.' || name) AS "Tables_in_main"
 FROM
 	pragma_table_list()
 WHERE
@@ -352,7 +352,7 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 			// By default, we show all the tables
 			like := findLike(showType)
 			// By default, we show the tables from the main database
-			dbName := "main"
+			dbName := "%"
 			if showType.DbName.String() != "" {
 				dbName = showType.DbName.String()
 			}
@@ -433,7 +433,6 @@ func RewriteShowStatement(parsedQuery *sqlparser.Show) (string, []interface{}) {
 				filter = strings.TrimPrefix(filter, " where ")
 			}
 			table := showType.Tbl.Name.String()
-			fmt.Println("Filter", filter)
 			return fmt.Sprintf(showIndexesQuery, filter), []interface{}{table}
 
 		// SHOW COLUMNS, SHOW FIELDS
