@@ -52,6 +52,12 @@ func downloadFile(src string, dst string, maxAge int64) error {
 	}
 
 	if needToDownload {
+		// We first remove the file because it's outdated
+		// and then we download it
+		//
+		// We have to do this because go-getter seems to not be able to overwrite the file
+		// if it's already present
+		os.Remove(dst)
 		err = client.Get()
 		if err != nil {
 			return fmt.Errorf("failed to download file: %s", err)

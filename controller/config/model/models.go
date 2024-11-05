@@ -13,6 +13,14 @@ type Alias struct {
 	Alias     string
 }
 
+type Connection struct {
+	Connectionname     string
+	Databasetype       string
+	Urn                string
+	Celscript          string
+	Additionalmetadata string
+}
+
 type PluginInstalled struct {
 	Name              string
 	Description       sql.NullString

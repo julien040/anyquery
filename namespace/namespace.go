@@ -3,11 +3,13 @@ package namespace
 import (
 	"context"
 	"database/sql"
+	"database/sql/driver"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"math/rand/v2"
 	stdpath "path"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -92,6 +94,13 @@ type Namespace struct {
 	pool *rpc.ConnectionPool
 
 	devMode bool
+
+	// Exec statements to run when the namespace is registered
+	// and the plugins are loaded
+	execStatements []string
+
+	// Arguments to pass to the exec statements
+	execArgs [][]driver.Value
 }
 
 type sharedObjectExtension struct {
@@ -326,6 +335,17 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			// Register the other functions
 			registerOtherFunctions(conn)
 
+			// Database related modules
+			conn.CreateModule("postgres_reader", &module.PostgresModule{})
+
+			// Run the exec statements
+			for i, statement := range n.execStatements {
+				_, err := conn.Exec(statement, n.execArgs[i])
+				if err != nil {
+					n.logger.Error("could not execute the exec statement", "statement", statement, "error", err)
+				}
+			}
+
 			return nil
 		},
 	})
@@ -520,6 +540,33 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 
 	}
 
+	// Get the external connections
+	connections, err := queries.GetConnections(ctx)
+	if err != nil {
+		logger.Error("could not get the connections from the database", "error", err)
+	}
+
+	// For each connection, we register the connection
+	for _, connection := range connections {
+		// Load the JSON metadata
+		var metadata map[string]interface{}
+		err := json.Unmarshal([]byte(connection.Additionalmetadata), &metadata)
+		if err != nil {
+			logger.Error("could not unmarshal the metadata of the connection", "connection", connection.Connectionname, "error", err)
+		}
+
+		// We register the connection
+		err = n.LoadDatabaseConnection(LoadDatabaseConnectionParams{
+			SchemaName:       connection.Connectionname,
+			ConnectionString: connection.Urn,
+			DatabaseType:     connection.Databasetype,
+			Filter:           connection.Celscript,
+		})
+		if err != nil {
+			logger.Error("could not load the connection", "connection", connection.Connectionname, "error", err)
+		}
+	}
+
 	return nil
 
 }
@@ -663,4 +710,62 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 	}
 
 	return userConfig, err
+}
+
+// The list of external connections supported by Anyquery
+var SupportedConnections = []string{"MySQL", "PostgreSQL", "SQLite"}
+
+// A struct to hold all the informations required to import tables from an external database
+type LoadDatabaseConnectionParams struct {
+	// The prefix to use for all the imported tables
+	//
+	// For example, if you import information_schema.tables from MySQL, and uses the SchemaName "mydb",
+	// the table will be imported as mydb.information_schema_tables
+	SchemaName string
+
+	// The type of the database. It must be one of the SupportedConnections
+	DatabaseType string
+
+	// The connection string to the database
+	//
+	// For example, for PostgreSQL, it's postgresql://user:password@localhost:5432/dbname
+	ConnectionString string
+
+	// A CEL expression to filter the tables to import
+	//
+	// The expression must return a boolean
+	// For example, to import only the tables named "table1" and "table2", you can use "table.name IN ['table1', 'table2']"
+	Filter string
+
+	// Additional options to pass to the connection
+	Metadata map[string]interface{}
+}
+
+// Import and query tables from an external database
+func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) error {
+	// Check if the database type is supported
+	if !slices.Contains(SupportedConnections, args.DatabaseType) {
+		return fmt.Errorf("unsupported connection type %s. Make sure it's one of %s. Also ensure Anyquery is up to date.", args.DatabaseType, strings.Join(SupportedConnections, ", "))
+	}
+
+	execStatements := []string{}
+	execArgs := [][]driver.Value{}
+	var err error
+	switch args.DatabaseType {
+	case "PostgreSQL":
+		execStatements, execArgs, err = RegisterExternalPostgreSQL(args, n.logger)
+	case "MySQL":
+		execStatements, execArgs, err = RegisterExternalMySQL(args, n.logger)
+	case "SQLite":
+		execStatements, execArgs, err = RegisterExternalSQLite(args, n.logger)
+	}
+	if err != nil {
+		return fmt.Errorf("could not fetch the tables from the external database %s(connection name: %s): %w", args.DatabaseType, args.SchemaName, err)
+	}
+
+	// We add the exec statements to the namespace
+	n.execStatements = append(n.execStatements, execStatements...)
+	n.execArgs = append(n.execArgs, execArgs...)
+
+	return nil
 }

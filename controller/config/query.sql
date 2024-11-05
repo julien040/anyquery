@@ -9,7 +9,7 @@ INSERT INTO
         registryJSON
     )
 VALUES
-    (?, ?, ?, unixepoch(), ?, ?);
+    (?, ?, ?, unixepoch (), ?, ?);
 
 -- name: AddPlugin :exec
 INSERT INTO
@@ -33,12 +33,7 @@ VALUES
 
 -- name: AddProfile :exec
 INSERT INTO
-    profile (
-        name,
-        pluginName,
-        registry,
-        config
-    )
+    profile (name, pluginName, registry, config)
 VALUES
     (?, ?, ?, ?);
 
@@ -147,28 +142,25 @@ FROM
 /*                                   Updates                                  */
 /* -------------------------------------------------------------------------- */
 -- name: UpdateRegistry :exec
-UPDATE
-    registry
+UPDATE registry
 SET
     url = ?,
     lastUpdated = ?,
-    lastFetched = unixepoch(),
+    lastFetched = unixepoch (),
     checksumRegistry = ?,
     registryJSON = ?
 WHERE
     name = ?;
 
 -- name: UpdateRegistryFetched :exec
-UPDATE
-    registry
+UPDATE registry
 SET
-    lastFetched = unixepoch()
+    lastFetched = unixepoch ()
 WHERE
     name = ?;
 
 -- name: UpdatePlugin :exec
-UPDATE
-    plugin_installed
+UPDATE plugin_installed
 SET
     description = ?,
     executablePath = ?,
@@ -184,8 +176,7 @@ WHERE
     AND registry = ?;
 
 -- name: UpdateProfileConfig :exec
-UPDATE
-    profile
+UPDATE profile
 SET
     config = ?
 WHERE
@@ -194,8 +185,7 @@ WHERE
     AND registry = ?;
 
 -- name: UpdateProfileName :exec
-UPDATE
-    profile
+UPDATE profile
 SET
     name = ?
 WHERE
@@ -207,28 +197,76 @@ WHERE
 /*                                   DELETE                                   */
 /* -------------------------------------------------------------------------- */
 -- name: DeleteRegistry :exec
-DELETE FROM
-    registry
+DELETE FROM registry
 WHERE
     name = ?;
 
 -- name: DeletePlugin :exec
-DELETE FROM
-    plugin_installed
+DELETE FROM plugin_installed
 WHERE
     name = ?
     AND registry = ?;
 
 -- name: DeleteProfile :exec
-DELETE FROM
-    profile
+DELETE FROM profile
 WHERE
     name = ?
     AND pluginName = ?
     AND registry = ?;
 
 -- name: DeleteAlias :exec
-DELETE FROM
-    alias
+DELETE FROM alias
 WHERE
     alias = ?;
+
+/* -------------------------------------------------------------------------- */
+/*                                 Connections                                */
+/* -------------------------------------------------------------------------- */
+-- name: GetConnections :many
+SELECT
+    *
+FROM
+    connections;
+
+-- name: GetConnection :one
+SELECT
+    *
+FROM
+    connections
+WHERE
+    connectionName = ?;
+
+-- name: AddConnection :exec
+INSERT INTO
+    connections (
+        databaseType,
+        connectionName,
+        urn,
+        celScript,
+        additionalMetadata
+    )
+VALUES
+    (?, ?, ?, ?, ?);
+
+-- name: UpdateConnection :exec
+UPDATE connections
+SET
+    databaseType = ?,
+    urn = ?,
+    celScript = ?,
+    additionalMetadata = ?
+WHERE
+    connectionName = ?;
+
+-- name: DeleteConnection :exec
+DELETE FROM connections
+WHERE
+    connectionName = ?;
+
+-- name: GetConnectionByURN :one
+SELECT
+    *
+FROM
+    connections
+WHERE
+    urn = ?;

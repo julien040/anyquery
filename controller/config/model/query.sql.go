@@ -27,6 +27,38 @@ func (q *Queries) AddAlias(ctx context.Context, arg AddAliasParams) error {
 	return err
 }
 
+const addConnection = `-- name: AddConnection :exec
+INSERT INTO
+    connections (
+        databaseType,
+        connectionName,
+        urn,
+        celScript,
+        additionalMetadata
+    )
+VALUES
+    (?, ?, ?, ?, ?)
+`
+
+type AddConnectionParams struct {
+	Databasetype       string
+	Connectionname     string
+	Urn                string
+	Celscript          string
+	Additionalmetadata string
+}
+
+func (q *Queries) AddConnection(ctx context.Context, arg AddConnectionParams) error {
+	_, err := q.db.ExecContext(ctx, addConnection,
+		arg.Databasetype,
+		arg.Connectionname,
+		arg.Urn,
+		arg.Celscript,
+		arg.Additionalmetadata,
+	)
+	return err
+}
+
 const addPlugin = `-- name: AddPlugin :exec
 INSERT INTO
     plugin_installed (
@@ -85,12 +117,7 @@ func (q *Queries) AddPlugin(ctx context.Context, arg AddPluginParams) error {
 
 const addProfile = `-- name: AddProfile :exec
 INSERT INTO
-    profile (
-        name,
-        pluginName,
-        registry,
-        config
-    )
+    profile (name, pluginName, registry, config)
 VALUES
     (?, ?, ?, ?)
 `
@@ -123,7 +150,7 @@ INSERT INTO
         registryJSON
     )
 VALUES
-    (?, ?, ?, unixepoch(), ?, ?)
+    (?, ?, ?, unixepoch (), ?, ?)
 `
 
 type AddRegistryParams struct {
@@ -146,8 +173,7 @@ func (q *Queries) AddRegistry(ctx context.Context, arg AddRegistryParams) error 
 }
 
 const deleteAlias = `-- name: DeleteAlias :exec
-DELETE FROM
-    alias
+DELETE FROM alias
 WHERE
     alias = ?
 `
@@ -157,9 +183,19 @@ func (q *Queries) DeleteAlias(ctx context.Context, alias string) error {
 	return err
 }
 
+const deleteConnection = `-- name: DeleteConnection :exec
+DELETE FROM connections
+WHERE
+    connectionName = ?
+`
+
+func (q *Queries) DeleteConnection(ctx context.Context, connectionname string) error {
+	_, err := q.db.ExecContext(ctx, deleteConnection, connectionname)
+	return err
+}
+
 const deletePlugin = `-- name: DeletePlugin :exec
-DELETE FROM
-    plugin_installed
+DELETE FROM plugin_installed
 WHERE
     name = ?
     AND registry = ?
@@ -176,8 +212,7 @@ func (q *Queries) DeletePlugin(ctx context.Context, arg DeletePluginParams) erro
 }
 
 const deleteProfile = `-- name: DeleteProfile :exec
-DELETE FROM
-    profile
+DELETE FROM profile
 WHERE
     name = ?
     AND pluginName = ?
@@ -196,8 +231,7 @@ func (q *Queries) DeleteProfile(ctx context.Context, arg DeleteProfileParams) er
 }
 
 const deleteRegistry = `-- name: DeleteRegistry :exec
-DELETE FROM
-    registry
+DELETE FROM registry
 WHERE
     name = ?
 `
@@ -261,6 +295,91 @@ func (q *Queries) GetAliases(ctx context.Context) ([]Alias, error) {
 	for rows.Next() {
 		var i Alias
 		if err := rows.Scan(&i.Tablename, &i.Alias); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getConnection = `-- name: GetConnection :one
+SELECT
+    connectionname, databasetype, urn, celscript, additionalmetadata
+FROM
+    connections
+WHERE
+    connectionName = ?
+`
+
+func (q *Queries) GetConnection(ctx context.Context, connectionname string) (Connection, error) {
+	row := q.db.QueryRowContext(ctx, getConnection, connectionname)
+	var i Connection
+	err := row.Scan(
+		&i.Connectionname,
+		&i.Databasetype,
+		&i.Urn,
+		&i.Celscript,
+		&i.Additionalmetadata,
+	)
+	return i, err
+}
+
+const getConnectionByURN = `-- name: GetConnectionByURN :one
+SELECT
+    connectionname, databasetype, urn, celscript, additionalmetadata
+FROM
+    connections
+WHERE
+    urn = ?
+`
+
+func (q *Queries) GetConnectionByURN(ctx context.Context, urn string) (Connection, error) {
+	row := q.db.QueryRowContext(ctx, getConnectionByURN, urn)
+	var i Connection
+	err := row.Scan(
+		&i.Connectionname,
+		&i.Databasetype,
+		&i.Urn,
+		&i.Celscript,
+		&i.Additionalmetadata,
+	)
+	return i, err
+}
+
+const getConnections = `-- name: GetConnections :many
+SELECT
+    connectionname, databasetype, urn, celscript, additionalmetadata
+FROM
+    connections
+`
+
+// --------------------------------------------------------------------------
+//
+//	Connections
+//
+// --------------------------------------------------------------------------
+func (q *Queries) GetConnections(ctx context.Context) ([]Connection, error) {
+	rows, err := q.db.QueryContext(ctx, getConnections)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Connection
+	for rows.Next() {
+		var i Connection
+		if err := rows.Scan(
+			&i.Connectionname,
+			&i.Databasetype,
+			&i.Urn,
+			&i.Celscript,
+			&i.Additionalmetadata,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -609,9 +728,38 @@ func (q *Queries) GetRegistry(ctx context.Context, name string) (Registry, error
 	return i, err
 }
 
+const updateConnection = `-- name: UpdateConnection :exec
+UPDATE connections
+SET
+    databaseType = ?,
+    urn = ?,
+    celScript = ?,
+    additionalMetadata = ?
+WHERE
+    connectionName = ?
+`
+
+type UpdateConnectionParams struct {
+	Databasetype       string
+	Urn                string
+	Celscript          string
+	Additionalmetadata string
+	Connectionname     string
+}
+
+func (q *Queries) UpdateConnection(ctx context.Context, arg UpdateConnectionParams) error {
+	_, err := q.db.ExecContext(ctx, updateConnection,
+		arg.Databasetype,
+		arg.Urn,
+		arg.Celscript,
+		arg.Additionalmetadata,
+		arg.Connectionname,
+	)
+	return err
+}
+
 const updatePlugin = `-- name: UpdatePlugin :exec
-UPDATE
-    plugin_installed
+UPDATE plugin_installed
 SET
     description = ?,
     executablePath = ?,
@@ -659,8 +807,7 @@ func (q *Queries) UpdatePlugin(ctx context.Context, arg UpdatePluginParams) erro
 }
 
 const updateProfileConfig = `-- name: UpdateProfileConfig :exec
-UPDATE
-    profile
+UPDATE profile
 SET
     config = ?
 WHERE
@@ -687,8 +834,7 @@ func (q *Queries) UpdateProfileConfig(ctx context.Context, arg UpdateProfileConf
 }
 
 const updateProfileName = `-- name: UpdateProfileName :exec
-UPDATE
-    profile
+UPDATE profile
 SET
     name = ?
 WHERE
@@ -715,12 +861,11 @@ func (q *Queries) UpdateProfileName(ctx context.Context, arg UpdateProfileNamePa
 }
 
 const updateRegistry = `-- name: UpdateRegistry :exec
-UPDATE
-    registry
+UPDATE registry
 SET
     url = ?,
     lastUpdated = ?,
-    lastFetched = unixepoch(),
+    lastFetched = unixepoch (),
     checksumRegistry = ?,
     registryJSON = ?
 WHERE
@@ -752,10 +897,9 @@ func (q *Queries) UpdateRegistry(ctx context.Context, arg UpdateRegistryParams) 
 }
 
 const updateRegistryFetched = `-- name: UpdateRegistryFetched :exec
-UPDATE
-    registry
+UPDATE registry
 SET
-    lastFetched = unixepoch()
+    lastFetched = unixepoch ()
 WHERE
     name = ?
 `

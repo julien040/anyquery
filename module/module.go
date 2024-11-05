@@ -336,6 +336,10 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 	return cursor, nil
 }
 
+func (t *SQLiteTable) PartialUpdate() bool {
+	return false
+}
+
 func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
 	if t.schema.PrimaryKey == -1 {
 		return 0, errors.New("the table does not support INSERT because it has no primary key")
