@@ -592,7 +592,7 @@ func (p *prettyTableEncoder) Close() error {
 		}
 	}
 
-	p.columnLength = p.columnLength - 4 // -4 to account for the padding
+	p.columnLength = p.columnLength - 3 // -3 to account for the padding
 
 	// Short columns will takes less space than the p.columnLength
 	// therefore leaving credits for the longer columns
@@ -634,7 +634,7 @@ func (p *prettyTableEncoder) Close() error {
 
 	// Replace the column with ...
 	if len(p.columnDropped) > 0 {
-		p.Columns = append(p.Columns, "... (terminal too small)")
+		p.Columns = append(p.Columns, "...")
 		for i := range p.internalBuffer {
 			p.internalBuffer[i] = append(p.internalBuffer[i], "...")
 		}
