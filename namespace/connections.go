@@ -142,7 +142,7 @@ func RegisterExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclo
 
 		pgTableName := strings.Builder{}
 		if table.Schema != "public" {
-			pgTableName.WriteString(params.SchemaName)
+			pgTableName.WriteString(table.Schema)
 			pgTableName.WriteString(".")
 		}
 		pgTableName.WriteString(table.TableName)

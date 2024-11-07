@@ -43,9 +43,11 @@ FROM
 			JOIN information_schema.TABLE_CONSTRAINTS T ON K. "constraint_name" = T. "constraint_name"
 		WHERE
 			K.table_name = $1
+			AND K.table_schema = $2
 			AND constraint_type = 'PRIMARY KEY') J ON C. "column_name" = J. "column_name"
 WHERE
-	table_name = $1;
+	table_name = $1
+	AND table_schema = $2;
 `
 
 type PostgresPlan []struct {
@@ -121,6 +123,7 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 	// Fetch the arguments
 	connectionString := ""
 	table := ""
+	schemaName := "public"
 	if len(args) >= 4 {
 		connectionString = strings.Trim(args[3], "' \"") // Remove the quotes
 	}
@@ -152,6 +155,17 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 		return nil, fmt.Errorf("missing table argument. Check the validity of the arguments")
 	}
 
+	// Parse the tableName and split it into schema and table if needed
+	schemaTable := strings.Split(table, ".")
+	if len(schemaTable) > 1 {
+		schemaName = schemaTable[0]
+		table = schemaTable[1]
+
+		// Remove any quotes, backticks or spaces around the schema and table names
+		schemaName = strings.Trim(schemaName, "\" '`")
+		table = strings.Trim(table, "\" '`")
+	}
+
 	// Open the database
 	conn, err := m.GetDBConnection(connectionString)
 	if err != nil {
@@ -162,10 +176,13 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 	defer conn.Release()
 
 	// Fetch the schema for the table
-	rows, err := conn.Query(context.Background(), fetchPGSchemaSQLQuery, table)
+	rows, err := conn.Query(context.Background(), fetchPGSchemaSQLQuery, table, schemaName)
 	if err != nil {
 		return nil, fmt.Errorf("error fetching the schema for the table: %v", err)
 	}
+
+	// Replace table name by its representation
+	table = fmt.Sprintf("\"%s\".\"%s\"", schemaName, table)
 
 	// Iterate over the rows and create the schema
 	internalSchema := []databaseColumn{}

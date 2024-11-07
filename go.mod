@@ -2,7 +2,7 @@ module github.com/julien040/anyquery
 
 go 1.23.2
 
-replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.18.0
+replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.18.1
 
 replace github.com/runreveal/pql => github.com/julien040/pql-anyquery v0.2.1
 
@@ -22,6 +22,7 @@ require (
 	github.com/gammazero/deque v0.2.1
 	github.com/go-sql-driver/mysql v1.8.1
 	github.com/goccy/go-json v0.10.3
+	github.com/google/cel-go v0.21.0
 	github.com/google/go-cmp v0.6.0
 	github.com/hashicorp/go-getter v1.7.5
 	github.com/hashicorp/go-hclog v1.6.3
@@ -88,7 +89,6 @@ require (
 	github.com/golang/glog v1.2.2 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/google/cel-go v0.21.0 // indirect
 	github.com/google/flatbuffers v1.12.1 // indirect
 	github.com/google/s2a-go v0.1.8 // indirect
 	github.com/google/uuid v1.6.0 // indirect
