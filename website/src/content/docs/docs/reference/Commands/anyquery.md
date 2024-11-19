@@ -58,6 +58,7 @@ anyquery -d ":memory:"
 
 * [anyquery alias](../anyquery_alias)	 - Manage the aliases
 * [anyquery completion](../anyquery_completion)	 - Generate the autocompletion script for the specified shell
+* [anyquery connection](../anyquery_connection)	 - Manage connections to other databases
 * [anyquery install](../anyquery_install)	 - Search and install a plugin
 * [anyquery plugins](../anyquery_plugins)	 - Print the plugins installed on the system
 * [anyquery profiles](../anyquery_profiles)	 - Print the profiles installed on the system

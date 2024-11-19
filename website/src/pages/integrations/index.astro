@@ -39,10 +39,49 @@ const libraryPlugins = allPlugins.plugins.filter((plugin) => {
 
 // Get all the integrations guides
 const integrations = await getCollection("integrations");
+
+// Get all the databases
+const databases = await getCollection("databases");
 ---
 
-<Main title="Integrations - AnyQuery">
-    <h1 class="text-3xl">Plugins</h1>
+<Main
+    title="Integrations - AnyQuery"
+    footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned."
+>
+    <h1 class="text-3xl">Databases</h1>
+    <p class="break-words text-sm text-white/60 mt-1">
+        Using Anyquery, you can connect to a variety of databases. Insert data,
+        join tables across databases, and more (starting from version 0.3.0 in
+        beta).
+    </p>
+    <div
+        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-3"
+    >
+        {
+            databases
+                .sort((a, b) => a.data.name.localeCompare(b.data.name))
+                .map((db) => (
+                    <a
+                        href={db.data.url}
+                        class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    >
+                        <img
+                            src={db.data.icon}
+                            alt={db.data.name}
+                            class="max-w-10 h-10 rounded-md"
+                        />
+                        <h2 class="text-lg mt-3">{db.data.name}</h2>
+                        <p class="break-words text-sm text-white/60">
+                            {db.data.description}
+                        </p>
+                    </a>
+                ))
+        }
+    </div>
+    <h1 class="text-3xl mt-8">Plugins</h1>
+    <p class="break-words text-sm text-white/60 mt-1">
+        Query data from various sources, including APIs and local applications.
+    </p>
     <div
         class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
     >
@@ -67,6 +106,10 @@ const integrations = await getCollection("integrations");
     </div>
 
     <h1 class="text-3xl mt-8">Libraries</h1>
+    <p class="break-words text-sm text-white/60 mt-1">
+        Because Anyquery is based on SQLite, download and use SQLite libraries
+        to extend the functionality of your queries.
+    </p>
     <div
         class="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-4"
     >
@@ -94,6 +137,9 @@ const integrations = await getCollection("integrations");
     </div>
 
     <h1 class="text-3xl mt-8">Guides</h1>
+    <p class="break-words text-sm text-white/60 mt-1">
+        Guides on reusing plugins for other integrations.
+    </p>
     <div
         class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
     >

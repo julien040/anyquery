@@ -1,0 +1,4 @@
+name: SingleStore
+url: /docs/database/singlestore
+icon: /icons/singlestore.svg
+description: Query data from a SingleStore database.

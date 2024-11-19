@@ -1,0 +1,4 @@
+name: TiDB
+url: /docs/database/tidb
+icon: /icons/tidb.svg
+description: Query data from a TiDB database.

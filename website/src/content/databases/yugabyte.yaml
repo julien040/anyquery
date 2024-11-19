@@ -1,0 +1,4 @@
+name: YugabyteDB
+url: /docs/database/yugabyte
+icon: /icons/yugabyte.svg
+description: Query data from YugabyteDB.

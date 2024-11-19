@@ -1,0 +1,4 @@
+name: AWS Aurora (PostgreSQL)
+url: /docs/database/aws-aurora-postgresql
+icon: /icons/aws-aurora.svg
+description: Connect using the PostgreSQL connector

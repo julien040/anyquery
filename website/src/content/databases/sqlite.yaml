@@ -1,0 +1,4 @@
+name: SQLite
+url: /docs/database/sqlite
+icon: /icons/sqlite.svg
+description: Query data from a SQLite database.

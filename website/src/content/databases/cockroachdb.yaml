@@ -1,0 +1,4 @@
+name: CockroachDB
+url: /docs/database/cockroachdb
+icon: /icons/cockroachdb.svg
+description: Query data from a CoackroachDB database.

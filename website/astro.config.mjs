@@ -66,7 +66,14 @@ export default defineConfig({
         link: "/docs/usage/troubleshooting"
       },
     ]
-    }, 
+    },
+    {
+      label: "Database",
+      autogenerate: {
+        directory: "docs/database"
+      },
+      collapsed: false
+    },
     
     {
       label: "Reference",

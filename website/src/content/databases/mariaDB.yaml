@@ -1,0 +1,4 @@
+name: MariaDB
+url: /docs/database/mariadb
+icon: /icons/mariadb.svg
+description: Query data from a MariaDB database.

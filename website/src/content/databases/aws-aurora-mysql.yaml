@@ -1,0 +1,4 @@
+name: AWS Aurora (MySQL)
+url: /docs/database/aws-aurora-mysql
+icon: /icons/aws-aurora.svg
+description: Connect using the MySQL connector

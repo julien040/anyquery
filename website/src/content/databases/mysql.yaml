@@ -1,0 +1,4 @@
+name: MySQL
+url: /docs/database/mysql
+icon: /icons/mysql.svg
+description: Query data from a MySQL database.

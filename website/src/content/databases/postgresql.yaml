@@ -1,0 +1,4 @@
+name: PostgreSQL
+url: /docs/database/postgresql
+icon: /icons/postgresql.svg
+description: Query data from a PostgreSQL database.
