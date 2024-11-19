@@ -9,6 +9,7 @@ import (
 	"math/rand/v2"
 	"net"
 	"net/netip"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -20,7 +21,7 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-var postgresSuffix = "/* Query sent by Anyquery */"
+var sqlQuerySuffix = "/* Query sent by Anyquery */"
 
 // Fetch the schema of the table
 // and which columns are primary keys
@@ -42,12 +43,14 @@ FROM
 			information_schema.key_column_usage K
 			JOIN information_schema.TABLE_CONSTRAINTS T ON K. "constraint_name" = T. "constraint_name"
 		WHERE
-			K.table_name = $1
-			AND K.table_schema = $2
+			lower(K.table_name) = lower($1) -- No case sensitive
+			AND lower(K.table_schema) = lower($2)
 			AND constraint_type = 'PRIMARY KEY') J ON C. "column_name" = J. "column_name"
 WHERE
-	table_name = $1
-	AND table_schema = $2;
+	lower(table_name) = lower($1)
+	AND lower(table_schema) = lower($2)
+ORDER BY
+	C.ordinal_position;
 `
 
 type PostgresPlan []struct {
@@ -214,11 +217,12 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 			defaultValue = 0.0
 		case "boolean":
 			columnType = "BOOLEAN"
-		case "date", "time", "timestamp", "timestamptz", "timetz", "interval":
+		case "date", "time", "timestamp", "timestamptz", "timetz", "interval", "timestamp with time zone", "timestamp without time zone",
+			"time with time zone", "time without time zone":
 			columnType = "DATETIME"
 			typeSupported = true
 			defaultValue = ""
-		case "text", "character", "character varying", "varchar", "char", "string":
+		case "text", "character", "character varying", "varchar", "char", "string", "array", "json", "jsonb":
 			columnType = "TEXT"
 			typeSupported = true
 			defaultValue = ""
@@ -331,7 +335,7 @@ func (t *PostgresTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.Inf
 	queryBuilder, limitCstIndex, offsetCstIndex, used := constructSQLQuery(cst, ob, t.schema, t.tableName)
 	queryBuilder.SetFlavor(sqlbuilder.PostgreSQL)
 	rawQuery, args := queryBuilder.Build()
-	rawQuery += postgresSuffix
+	rawQuery += sqlQuerySuffix
 
 	// Request a connection
 	if t.connection == nil {
@@ -345,22 +349,19 @@ func (t *PostgresTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.Inf
 
 	// Explain the query
 	explainQuery := "EXPLAIN (FORMAT JSON) " + rawQuery
-	rows, err := t.connection.Query(context.Background(), explainQuery, args...)
-	if err != nil {
-		return nil, fmt.Errorf("error explaining the query to compute the query plan: %v", err)
-	}
+	rows, _ := t.connection.Query(context.Background(), explainQuery, args...)
 
 	// Parse the result
 	var plan PostgresPlan
 	for rows.Next() {
 		var planRow string
-		err = rows.Scan(&planRow)
+		err := rows.Scan(&planRow) // We ignore the error because it might be a PostgreSQL wire compatible database
 		if err != nil {
-			return nil, fmt.Errorf("error scanning the plan from pg: %v", err)
+			continue
 		}
 		err = json.Unmarshal([]byte(planRow), &plan)
 		if err != nil {
-			return nil, fmt.Errorf("error unmarshalling the plan from pg: %v", err)
+			continue
 		}
 	}
 
@@ -391,12 +392,22 @@ func (t *PostgresTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.Inf
 		return nil, fmt.Errorf("error serializing the query: %v", err)
 	}
 
+	// Set alreadyOrdered flag if the requested ordered columns are all supported
+	alreadyOrdered := true
+	for _, o := range ob {
+		if o.Column < 0 || o.Column >= len(t.schema) {
+			alreadyOrdered = false
+			break
+		}
+		alreadyOrdered = alreadyOrdered && t.schema[o.Column].Supported
+	}
+
 	return &sqlite3.IndexResult{
 		Used:           used,
 		IdxStr:         string(serializedQuery),
 		EstimatedCost:  minimumCost,
-		EstimatedRows:  25,   // Default value for EstimatedRows
-		AlreadyOrdered: true, // To avoid SQLite reordering the results and requesting all rows
+		EstimatedRows:  25, // Default value for EstimatedRows
+		AlreadyOrdered: alreadyOrdered,
 	}, nil
 }
 
@@ -434,8 +445,81 @@ func (t *PostgresTable) Rollback() error {
 	return nil
 }
 
+func rewriteArgs(vals *[]interface{}, schema []databaseColumn) {
+	// Rewrite the arguments to match the schema
+	for i, v := range *vals {
+		if i >= len(schema) {
+			break
+		}
+		if v == nil {
+			continue
+		}
+		// Use a select in case other changes are needed
+		switch schema[i].Type {
+		case "BOOLEAN":
+			switch v := v.(type) {
+			case float64:
+				(*vals)[i] = v != 0
+			case int64:
+				(*vals)[i] = v != 0
+			case []byte:
+				// Convert it into an integer
+				// and ensure that it is not zero
+				val := int64(0)
+				for _, b := range v {
+					val = val*256 + int64(b)
+				}
+				(*vals)[i] = val != 0
+			case string:
+				// Parse the string as a boolean
+				val, _ := strconv.ParseBool(v)
+				(*vals)[i] = val
+			}
+		case "INTEGER":
+			switch v := v.(type) {
+			case float64:
+				(*vals)[i] = int64(v)
+			case int64:
+				(*vals)[i] = v
+			case []byte:
+				// Convert it into an integer
+				val := int64(0)
+				for _, b := range v {
+					val = val*256 + int64(b)
+				}
+				(*vals)[i] = val
+			case string:
+				// Parse the string as an integer
+				val, _ := strconv.ParseInt(v, 10, 64)
+				(*vals)[i] = val
+
+			}
+		case "REAL":
+			switch v := v.(type) {
+			case float64:
+				(*vals)[i] = v
+			case int64:
+				(*vals)[i] = float64(v)
+			case string:
+				// Parse the string as a float
+				val, _ := strconv.ParseFloat(v, 64)
+				(*vals)[i] = val
+			}
+		case "DATETIME":
+			switch v := v.(type) {
+			case int64:
+				(*vals)[i] = time.Unix(v, 0).Format(time.RFC3339)
+			case float64:
+				(*vals)[i] = time.Unix(int64(v), 0).Format(time.RFC3339)
+			}
+
+		}
+	}
+}
+
 // DML related functions
 func (t *PostgresTable) Insert(id any, vals []any) (int64, error) {
+	rewriteArgs(&vals, t.schema)
 	builder := sqlbuilder.NewInsertBuilder()
 	builder.InsertInto(t.tableName)
 	cols := []string{}
@@ -452,8 +536,9 @@ func (t *PostgresTable) Insert(id any, vals []any) (int64, error) {
 	builder.SetFlavor(sqlbuilder.PostgreSQL)
 
 	query, args := builder.Build()
-	query += postgresSuffix
+	query += sqlQuerySuffix
 
+	// Rewrite the arguments to match the schema
 	_, err := t.connection.Exec(context.Background(), query, args...)
 	if err != nil {
 		return 0, fmt.Errorf("error executing the insert query: %v", err)
@@ -481,7 +566,7 @@ func (t *PostgresTable) Update(id any, vals []any) error {
 	builder.SetFlavor(sqlbuilder.PostgreSQL)
 
 	query, args := builder.Build()
-	query += postgresSuffix
+	query += sqlQuerySuffix
 
 	_, err := t.connection.Exec(context.Background(), query, args...)
 	if err != nil {
@@ -501,7 +586,7 @@ func (t *PostgresTable) Delete(id any) error {
 	builder.SetFlavor(sqlbuilder.PostgreSQL)
 
 	query, args := builder.Build()
-	query += postgresSuffix
+	query += sqlQuerySuffix
 
 	_, err := t.connection.Exec(context.Background(), query, args...)
 	if err != nil {
@@ -675,9 +760,13 @@ func (t *PostgresCursor) Rowid() (int64, error) {
 
 func (t *PostgresCursor) Close() error {
 	// Release the connection
+	err := t.resetCursor()
+	if err != nil {
+		return fmt.Errorf("error resetting the cursor: %v", err)
+	}
 	if t.connection != nil {
 		t.connection.Release()
 		t.connection = nil
 	}
-	return t.resetCursor()
+	return nil
 }

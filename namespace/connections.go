@@ -2,10 +2,12 @@ package namespace
 
 import (
 	"context"
+	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"strings"
 
+	mysql "github.com/go-sql-driver/mysql"
 	"github.com/google/cel-go/cel"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jackc/pgx/v5"
@@ -129,7 +131,7 @@ func RegisterExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclo
 
 	// First, we attach a schema to the connection. This is just an in-memory database to have a schema name
 	statements = append(statements, "ATTACH DATABASE ? AS ?")
-	args = append(args, []driver.Value{"file:hello_you?mode=memory&cache=shared", params.SchemaName})
+	args = append(args, []driver.Value{fmt.Sprintf("file:%s?mode=memory&cache=shared", params.SchemaName), params.SchemaName})
 	for _, table := range filteredTables {
 		// Compute the table name
 		tableName := strings.Builder{}
@@ -140,6 +142,7 @@ func RegisterExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclo
 		}
 		tableName.WriteString(table.TableName)
 
+		// The table name remote side
 		pgTableName := strings.Builder{}
 		if table.Schema != "public" {
 			pgTableName.WriteString(table.Schema)
@@ -161,14 +164,85 @@ func RegisterExternalMySQL(params LoadDatabaseConnectionParams, logger hclog.Log
 	statements = []string{}
 	args = [][]driver.Value{}
 
+	db, err := sql.Open("mysql", params.ConnectionString)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not open the database: %w", err)
+	}
+
+	conf, err := mysql.ParseDSN(params.ConnectionString)
+	if err != nil || conf == nil {
+		return nil, nil, fmt.Errorf("could not parse the connection string: %w", err)
+	}
+
+	schema := conf.DBName
+
+	// Get the list of tables
+	query := "SELECT table_schema, table_name, table_type FROM information_schema.tables"
+	tables := []sqlTable{}
+
+	rows, err := db.Query(query)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get the list of tables: %w", err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		table := sqlTable{}
+		err = rows.Scan(&table.Schema, &table.TableName, &table.TableType)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not scan the row: %w", err)
+		}
+
+		// We add the table to the list
+		tables = append(tables, table)
+	}
+
+	if rows.Err() != nil {
+		return nil, nil, fmt.Errorf("could not get the list of tables: %w", rows.Err())
+	}
+
+	// Filter the tables
+	filteredTables, err := filterTables(tables, params.Filter, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not filter the tables: %w", err)
+	}
+
+	// Create the statements
+	// Similar to the PostgreSQL case, we attach a schema to the connection
+	statements = append(statements, "ATTACH DATABASE ? AS ?")
+	args = append(args, []driver.Value{fmt.Sprintf("file:%s?mode=memory&cache=shared", params.SchemaName), params.SchemaName})
+
+	for _, table := range filteredTables {
+		// Compute the table name
+		tableName := strings.Builder{}
+		tableName.WriteRune('`')
+		tableName.WriteString(params.SchemaName)
+		tableName.WriteString("`.`")
+		if table.Schema != schema {
+			tableName.WriteString(fmt.Sprintf("%s_", table.Schema))
+		}
+		tableName.WriteString(table.TableName)
+		tableName.WriteRune('`')
+
+		// The table name remote side
+		mysqlTableName := strings.Builder{}
+		mysqlTableName.WriteString(table.Schema)
+		mysqlTableName.WriteRune('.')
+		mysqlTableName.WriteString(table.TableName)
+
+		// Create the virtual table and its mapping
+		statements = append(statements, fmt.Sprintf("CREATE VIRTUAL TABLE IF NOT EXISTS %s USING mysql_reader('%s', '%s')", tableName.String(), params.ConnectionString, mysqlTableName.String()))
+		args = append(args, []driver.Value{})
+
+	}
+
 	return
 }
 
 // Fetch the list of tables from the database
 // and return a list of exec statement to run so that the tables are imported in Anyquery
 func RegisterExternalSQLite(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
-	statements = []string{}
-	args = [][]driver.Value{}
+	statements = []string{fmt.Sprintf("ATTACH DATABASE ? AS ?")}
+	args = [][]driver.Value{{params.ConnectionString, params.SchemaName}}
 
 	return
 }

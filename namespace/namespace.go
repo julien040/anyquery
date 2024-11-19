@@ -274,10 +274,11 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 	// Register the database/sql package
 	sql.Register(registerName, &sqlite3.SQLiteDriver{
 		ConnectHook: func(conn *sqlite3.SQLiteConn) error {
-			// Set the limit of attached databases to 32
-			// I don't know the performance impact of this
-			// The number might be increased in the future
-			conn.SetLimit(sqlite3.SQLITE_LIMIT_ATTACHED, 32)
+			// Set the limit of attached databases to 125
+			// (the maximum number of attached databases in SQLite)
+			//
+			// Therefore, we support up to 125 remote databases
+			conn.SetLimit(sqlite3.SQLITE_LIMIT_ATTACHED, 125)
 
 			// We load the shared objects
 			for _, sharedObject := range n.sharedObjectToLoad {
@@ -337,6 +338,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 
 			// Database related modules
 			conn.CreateModule("postgres_reader", &module.PostgresModule{})
+			conn.CreateModule("mysql_reader", &module.MySQLModule{})
 
 			// Run the exec statements
 			for i, statement := range n.execStatements {

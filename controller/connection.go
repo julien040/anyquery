@@ -122,7 +122,7 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 	} else {
 		fields = append(fields, huh.NewInput().
 			Title("Connection string (URL)").
-			Description("The connection string to the database. For example, for MySQL, it's mysql://user:password@localhost:3306/dbname").
+			Description("The connection string to the database. For example, for MySQL, it's 'username:password@tcp(host:1234)/database'").
 			Validate(validateConnectionURL).
 			Value(&connectionString))
 	}
@@ -133,7 +133,8 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 			Title("Filter (cel expression)").
 			Placeholder("true").
 			ShowLineNumbers(true).
-			Description("A CEL expression to filter the tables to import. For example, 'table.name IN ['table1', 'table2']'\nLeave \"true\" to import all tables.").
+			Description("A CEL expression to filter the tables to import. For example, table.name in ['table1', 'table2''\nLeave \"true\" to import all tables.\n"+
+				"Refer to https://anyquery.dev/docs/database/cel-script/ for more information").
 			Value(&filter))
 	}
 
@@ -142,7 +143,7 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 		if !isSTDinAtty() || !isSTDoutAtty() {
 			return fmt.Errorf("interactive mode is required to add a connection. Otherwise, provide the connection name, type, connection string, and filter as arguments")
 		}
-		grp := huh.NewGroup(fields...)
+		grp := huh.NewGroup(fields...).Title("Connection information").Description("Let's add a new database connection to Anyquery")
 		err := huh.NewForm(grp).Run()
 		if err != nil {
 			return fmt.Errorf("could not ask for the connection information: %w", err)

@@ -10,8 +10,10 @@ type databaseColumn struct {
 	Realname string
 	// The name of the column locally
 	SQLiteName string
-	// The type of the column
+	// The type of the column in SQLite
 	Type string
+	// The type of the column in the remote database
+	RemoteType string
 	// Whether the column is supported. If not, it's not queryable, insertable, or updatable
 	Supported bool
 	// DefaultValue value for the column
