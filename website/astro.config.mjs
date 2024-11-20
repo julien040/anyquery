@@ -78,7 +78,7 @@ export default defineConfig({
     {
       label: "Reference",
       items: [{
-        label: "Functions",
+        label: "SQL functions",
         link: "/docs/reference/functions"
       }, {
         label: "CLI commands",

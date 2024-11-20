@@ -1,5 +1,5 @@
 ---
-title: Functions
+title: SQL Functions
 description: Learn about the functions supported by AnyQuery
 ---
 
@@ -69,7 +69,6 @@ AnyQuery supports all the functions provided by SQLite as well as some additiona
 | upper(X)                     | [Doc](https://www.sqlite.org/lang_corefunc.html#upper)                     |
 | zeroblob(N)                  | [Doc](https://www.sqlite.org/lang_corefunc.html#zeroblob)                  |
 
-
 ### Math functions
 
 | Function name | Reference                                                |
@@ -105,7 +104,39 @@ AnyQuery supports all the functions provided by SQLite as well as some additiona
 | tanh(X)       | [Doc](https://www.sqlite.org/lang_mathfunc.html#tanh)    |
 | trunc(X)      | [Doc](https://www.sqlite.org/lang_mathfunc.html#trunc)   |
 
+### Date and time functions
+
+| Function name | Reference                                                  | What it does?                                             |
+| ------------- | ---------------------------------------------------------- | --------------------------------------------------------- |
+| date(X)       | [Doc](https://www.sqlite.org/lang_datefunc.html#date)      | Returns the current date as YYYY-MM-DD.                   |
+| time(X)       | [Doc](https://www.sqlite.org/lang_datefunc.html#time)      | Returns the current time as HH:MM:SS.                     |
+| datetime(X)   | [Doc](https://www.sqlite.org/lang_datefunc.html#datetime)  | Returns the current date and time as YYYY-MM-DD HH:MM:SS. |
+| julianday(X)  | [Doc](https://www.sqlite.org/lang_datefunc.html#julianday) | Returns the Julian day.                                   |
+| strftime(X,Y) | [Doc](https://www.sqlite.org/lang_datefunc.html#strftime)  | Returns the date formatted as Y.                          |
+| unixepoch(X)  | [Doc](https://www.sqlite.org/lang_datefunc.html#unixepoch) | Returns the Unix epoch as an integer.                     |
+
+### JSON functions
+
+| Function name                | Reference                                                    | What it does?                                                                                                       |
+| ---------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| json(X)                      | [Doc](https://www.sqlite.org/json1.html#json)                | Ensures that X is a valid JSON, and returns a minified version of it.                                               |
+| jsonb(X)                     | [Doc](https://www.sqlite.org/json1.html#json)                | Converts a JSON string to a JSONB object.                                                                           |
+| json_array(X1,X2,...,XN)     | [Doc](https://www.sqlite.org/json1.html#json_array)          | Creates a JSON array of the arguments.                                                                              |
+| json_array_length(X)         | [Doc](https://www.sqlite.org/json1.html#json_array)          | Returns the length of the JSON array X.                                                                             |
+| json_error_position()        | [Doc](https://www.sqlite.org/json1.html#json_error_position) | Returns 0 if valid JSON, otherwise the position of the error.                                                       |
+| json_extract(X,Y)            | [Doc](https://www.sqlite.org/json1.html#json_extract)        | Extracts the value of the path Y from the JSON X (e.g., `$.a[4].b`).                                                |
+| json_insert(X,Y,Z)           | [Doc](https://www.sqlite.org/json1.html#json_insert)         | Inserts the value Z at the path Y in the JSON X. Multiple Y,Z pairs are supported.                                  |
+| json_replace(X,Y,Z)          | [Doc](https://www.sqlite.org/json1.html#json_replace)        | Replaces the value at the path Y in the JSON X with Z. Multiple Y,Z pairs are supported.                            |
+| json_set(X,Y,Z)              | [Doc](https://www.sqlite.org/json1.html#json_set)            | Sets the value Z at the path Y in the JSON X, and creates it if it doesn't exist. Multiple Y,Z pairs are supported. |
+| json_object(X1,Y1,X2,Y2,...) | [Doc](https://www.sqlite.org/json1.html#json_object)         | Creates a JSON object from the key-value pairs(`X1:Y1, X2:Y2, ...`).                                                |
+| json_pretty(X)               | [Doc](https://www.sqlite.org/json1.html#json_pretty)         | Returns a pretty-printed version of the JSON X.                                                                     |
+| json_remove(X,Y)             | [Doc](https://www.sqlite.org/json1.html#json_remove)         | Removes the value at the path Y in the JSON X. Multiple Y pairs are supported.                                      |
+| json_type(X)                 | [Doc](https://www.sqlite.org/json1.html#json_type)           | Returns the type of the JSON (e.g. object, array, string, number, boolean, null).                                   |
+| json_quote(X)                | [Doc](https://www.sqlite.org/json1.html#json_quote)          | Returns the SQL value X quoted.                                                                                     |
+
 ## Additional functions
+
+These functions are not part of SQLite, but they are supported by Anyquery.
 
 ### String functions
 
@@ -172,9 +203,23 @@ AnyQuery supports all the functions provided by SQLite as well as some additiona
 | blake2b_512(X) | Returns the BLAKE2b-512 hash of the string X.                         |                                           |
 | random_float   | Returns a random float between 0 and 1.                               | random_real, random_double, randCanonical |
 | rand           | Returns a random integer up to 4 294 967 295 (2^32 - 1).              | random_int                                |
-| randn          | Returns a random integer between 0 and N.                             | random_intn                               |
+| randn          | Returns a random integer between 0 and N.     @                       | random_intn                               |
 | rand64         | Returns a random integer up to 18 446 744 073 709 551 615 (2^64 - 1). | random_int64                              |
 | randn64        | Returns a random integer between 0 and N.                             | random_int64n                             |
+
+### Date and time functions (Anyquery)
+
+| Function name        | Usage                                                                                                                                                                                                     | Alias |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| now()                | Returns the current date and time in the local timezone as YYYY-MM-DD HH:MM:SS.                                                                                                                           |       |
+| toYYYYMMDDHHMMSS(X)  | Converts the date X to a string in the format YYYY-MM-DD HH:MM:SS.                                                                                                                                        |       |
+| toYYYYMMDD(X)        | Converts the date X to a string in the format YYYY-MM-DD.                                                                                                                                                 |       |
+| toYYYYMM(X)          | Converts the date X to a string in the format YYYY-MM.                                                                                                                                                    |       |
+| toYYYY(X)            | Converts the date X to a string in the format YYYY.                                                                                                                                                       |       |
+| toHH(X)              | Converts the date X to a string in the format HH.                                                                                                                                                         |       |
+| toMM(X)              | Converts the date X to a string in the format MM.                                                                                                                                                         |       |
+| toSS(X)              | Converts the date X to a string in the format SS.                                                                                                                                                         |       |
+| toDateFormatted(X,Y) | Converts the date X to a string using the format Y. See [here](https://pkg.go.dev/github.com/GuilhermeCaruso/kair#hdr-Returns_a_string_custom_datetime_format-SKair_CustomFormat) for the format options. |       |
 
 ### Other functions
 
