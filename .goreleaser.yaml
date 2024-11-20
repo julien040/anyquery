@@ -168,7 +168,7 @@ snapcrafts:
     title: anyquery
     name: anyquery
     license: AGPL-3.0
-    publish: true
+    # publish: true
 
 brews:
   - name: anyquery
