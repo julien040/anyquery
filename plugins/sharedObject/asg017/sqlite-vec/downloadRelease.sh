@@ -3,16 +3,17 @@
 # version: 0.3.4-alpha
 # date: 2024-08-02 10:38:59
 __release_files=(
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-linux-x86_64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-macos-aarch64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-macos-x86_64.tar.gz"
-    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.3/sqlite-vec-0.1.3-loadable-windows-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.6/sqlite-vec-0.1.6-loadable-linux-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.6/sqlite-vec-0.1.6-loadable-macos-aarch64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.6/sqlite-vec-0.1.6-loadable-macos-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.6/sqlite-vec-0.1.6-loadable-windows-x86_64.tar.gz"
+    "https://github.com/asg017/sqlite-vec/releases/download/v0.1.6/sqlite-vec-0.1.6-loadable-linux-aarch64.tar.gz"
 )
 __0_urls=("${__release_files[@]}")
 __repo_name="asg017/sqlite-vec"
 __main_branch="main"
 __readme_file="README.md"
-__directories=("linux-amd64" "darwin-arm64" "darwin-amd64" "windows-amd64")
+__directories=("linux-amd64" "darwin-arm64" "darwin-amd64" "windows-amd64" "linux-arm64")
 
 # Script
 __4_directory_name=("${__directories[@]}")

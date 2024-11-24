@@ -1,7 +1,7 @@
 
 name = "@asg017/sqlite-vec"
 displayName = "sqlite-vec"
-version = "0.1.3"
+version = "0.1.6"
 description = "Work-in-progress vector search SQLite extension that runs anywhere."
 author = "asg017"
 license = "MIT"
@@ -13,6 +13,11 @@ minimumAnyqueryVersion = "0.0.1"
 [[file]]
 platform = "linux/amd64"
 directory = "linux-amd64"
+executablePath = "vec0.so"
+
+[[file]]
+platform = "linux/arm64"
+directory = "linux-arm64"
 executablePath = "vec0.so"
 
 [[file]]
