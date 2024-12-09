@@ -68,6 +68,8 @@ func unmarshal(v notionapi.Property) interface{} {
 		if value.Date.End != nil {
 			valueTime += time.Time(*value.Date.End).Format(time.RFC3339)
 		}
+
+		return valueTime
 	case *notionapi.CheckboxProperty:
 		if value.Checkbox {
 			return 1
@@ -160,7 +162,26 @@ func unmarshal(v notionapi.Property) interface{} {
 	case *notionapi.LastEditedTimeProperty:
 		return time.Time(value.LastEditedTime).Format(time.RFC3339)
 	case *notionapi.RollupProperty:
-		return nil
+		switch value.Rollup.Type {
+		case notionapi.RollupTypeNumber:
+			return value.Rollup.Number
+		case notionapi.RollupTypeDate:
+			var valueTime string
+			if value.Rollup.Date.Start != nil {
+				valueTime = time.Time(*value.Rollup.Date.Start).Format(time.RFC3339)
+			}
+			if value.Rollup.Date.End != nil && value.Rollup.Date.Start != nil {
+				valueTime += "/"
+			}
+			if value.Rollup.Date.End != nil {
+				valueTime += time.Time(*value.Rollup.Date.End).Format(time.RFC3339)
+			}
+			return valueTime
+		case notionapi.RollupTypeArray:
+			return nil
+		default:
+			return nil
+		}
 	case *notionapi.StatusProperty:
 		return value.Status.Name
 	case *notionapi.UniqueIDProperty:
@@ -175,8 +196,6 @@ func unmarshal(v notionapi.Property) interface{} {
 		return nil
 
 	}
-
-	return nil
 }
 
 // Convert a Go type to a Notion property.

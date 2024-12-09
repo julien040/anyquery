@@ -6,7 +6,7 @@ require (
 	github.com/adrg/xdg v0.4.0
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/jomei/notionapi v1.13.1
+	github.com/jomei/notionapi v1.13.2
 	github.com/julien040/anyquery v0.1.1
 )
 
