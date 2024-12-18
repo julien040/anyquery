@@ -156,6 +156,7 @@ func databaseTable(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 		HandlesInsert: true,
 		HandlesUpdate: true,
 		HandlesDelete: true,
+		PartialUpdate: true,
 		Columns:       rpcColumns,
 		HandleOffset:  false,
 		PrimaryKey:    pkIndex,

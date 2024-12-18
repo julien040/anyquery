@@ -308,7 +308,6 @@ func marshal(value interface{}, to notionapi.PropertyConfig) notionapi.Property 
 		}
 		// Split the date into start and end
 		splitted := strings.Split(v, "/")
-		log.Printf("splitted: %v", splitted)
 		var start, end *notionapi.Date
 		if len(splitted) > 0 {
 			startParse, err := parseTime(splitted[0])
@@ -318,7 +317,6 @@ func marshal(value interface{}, to notionapi.PropertyConfig) notionapi.Property 
 			val := notionapi.Date(startParse)
 			start = &val
 		}
-		log.Printf("start: %v", start)
 		if len(splitted) > 1 {
 			endParse, err := parseTime(splitted[1])
 			if err != nil {
@@ -327,7 +325,6 @@ func marshal(value interface{}, to notionapi.PropertyConfig) notionapi.Property 
 			val := notionapi.Date(endParse)
 			end = &val
 		}
-		log.Printf("end: %v", end)
 
 		return notionapi.DateProperty{
 			Date: &notionapi.DateObject{

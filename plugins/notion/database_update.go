@@ -2,20 +2,14 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/jomei/notionapi"
 )
 
 func (t *table) Update(rows [][]interface{}) error {
-	log.Printf("Updating %d rows", len(rows))
 	for _, row := range rows {
 		primaryKey, ok := row[0].(string)
-		log.Printf("Cols: %v", t.columns)
-		log.Printf("Updating page %s", primaryKey)
-		log.Printf("Row: %v", row)
 		if !ok {
 			return fmt.Errorf("invalid page id: %v", row[0])
 		}
@@ -48,19 +42,11 @@ func (t *table) Update(rows [][]interface{}) error {
 				continue
 			}
 
-			log.Printf("Updating %s: %v(%T)", colName, propValue, propValue)
-
 			pageUpdateRequest.Properties[colName] = propValue
 
 		}
 
-		marshaled, err := json.Marshal(pageUpdateRequest)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("Update request: %s", marshaled)
-		_, err = t.client.Page.Update(context.Background(), notionapi.PageID(primaryKey), pageUpdateRequest)
+		_, err := t.client.Page.Update(context.Background(), notionapi.PageID(primaryKey), pageUpdateRequest)
 		if err != nil {
 			return err
 		}
