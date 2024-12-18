@@ -5,6 +5,7 @@ import (
 	pathlib "path"
 
 	"github.com/adrg/xdg"
+	"github.com/julien040/anyquery/module"
 	"github.com/mattn/go-sqlite3"
 )
 
@@ -47,6 +48,49 @@ func clear_plugin_cache(plugin string) string {
 	err := os.RemoveAll(pathToRemove)
 	if err != nil {
 		return err.Error()
+	}
+
+	return ""
+}
+
+type bufferFlusher struct {
+	modules *map[string]*module.SQLiteModule
+}
+
+func (b *bufferFlusher) Clear(plugin string) string {
+	if plugin == "" {
+		return "The plugin name is empty"
+	}
+
+	if mod, ok := (*b.modules)[plugin]; !ok {
+		return "The plugin does not exist"
+	} else {
+		if mod.Table == nil {
+			return "The plugin is not loaded"
+		}
+
+		mod.Table.ClearBuffers()
+	}
+
+	return ""
+}
+
+func (b *bufferFlusher) Flush(plugin string) string {
+	if plugin == "" {
+		return "The plugin name is empty"
+	}
+
+	if mod, ok := (*b.modules)[plugin]; !ok {
+		return "The plugin does not exist"
+	} else {
+		if mod.Table == nil {
+			return "The plugin is not loaded"
+		}
+
+		err := mod.Table.FlushBuffers()
+		if err != nil {
+			return err.Error()
+		}
 	}
 
 	return ""

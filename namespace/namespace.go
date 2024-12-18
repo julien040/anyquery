@@ -101,6 +101,10 @@ type Namespace struct {
 
 	// Arguments to pass to the exec statements
 	execArgs [][]driver.Value
+
+	// A map of the plugin table, and their modules
+	// This is used to flush the insert/update/delete buffers
+	anyqueryPlugins map[string]*module.SQLiteModule
 }
 
 type sharedObjectExtension struct {
@@ -243,6 +247,10 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 			Logger:          n.logger,
 		}
 		n.LoadGoPlugin(plugin, table)
+		if n.anyqueryPlugins == nil {
+			n.anyqueryPlugins = make(map[string]*module.SQLiteModule)
+		}
+		n.anyqueryPlugins[table] = plugin
 	}
 	return nil
 }
@@ -309,6 +317,14 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				conn.RegisterFunc("load_dev_plugin", devFunction.LoadDevPlugin, false)
 				conn.RegisterFunc("reload_dev_plugin", devFunction.ReloadDevPlugin, false)
 			}
+
+			// Load the clear buffers function
+			bufferFlusher := &bufferFlusher{
+				modules: &n.anyqueryPlugins,
+			}
+
+			conn.RegisterFunc("clear_buffers", bufferFlusher.Clear, false)
+			conn.RegisterFunc("flush_buffers", bufferFlusher.Flush, false)
 
 			// Register JSON and CSV modules
 			conn.CreateModule("json_reader", &module.JSONModule{})
