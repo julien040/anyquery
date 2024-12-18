@@ -46,6 +46,13 @@ type Table interface {
 	// A table can have several concurrent readers for better performance
 	CreateReader() ReaderInterface
 
+	// Close is called when the connection is closed
+	//
+	// It is used to free resources and close connections
+	Close() error
+}
+
+type TableInsert interface {
 	// Insert is called when the main program wants to insert rows
 	//
 	// The rows are passed as a 2D slice of interface{} where each row is a slice
@@ -54,6 +61,10 @@ type Table interface {
 	// interface{} can be an int, string, int64, float64, []byte or nil
 	Insert(rows [][]interface{}) error
 
+	Table
+}
+
+type TableUpdate interface {
 	// Update is called when the main program wants to update rows
 	//
 	// The rows are passed as a 2D slice of interface{} where each row is a slice
@@ -66,15 +77,14 @@ type Table interface {
 	// interface{} can be an int, string, int64, float64, []byte or nil
 	Update(rows [][]interface{}) error
 
+	Table
+}
+
+type TableDelete interface {
 	// Delete is called when the main program wants to delete rows
 	//
 	// The primary keys are passed as an array of interface{}
 	Delete(primaryKeys []interface{}) error
-
-	// Close is called when the connection is closed
-	//
-	// It is used to free resources and close connections
-	Close() error
 }
 
 // ReaderInterface is an interface that must be implemented by the plugin
@@ -226,7 +236,7 @@ type internalInterface struct {
 	InternalExchangeInterface
 }
 
-func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, config PluginConfig) (DatabaseSchema, error) {
+func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, config PluginConfig) (schema DatabaseSchema, err error) {
 	/* // We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
 	if !ok {
@@ -237,6 +247,13 @@ func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, conf
 	schema, err := i.plugin.table[tableIndex].Initialize(config)
 	return schema, err */
 
+	// Catch the panic and return it as an error
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("plugin panicked while calling the table creator: %v", r)
+		}
+	}()
+
 	// We create a new table and store it in the map
 	// so that later, we can create new readers out of it
 
@@ -245,7 +262,7 @@ func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, conf
 		return DatabaseSchema{}, fmt.Errorf("plugin did not register the table")
 	}
 
-	table, schema, err := funcToCall(TableCreatorArgs{
+	table, schemaA, err := funcToCall(TableCreatorArgs{
 		UserConfig:   config,
 		TableIndex:   tableIndex,
 		ConnectionID: connectionIndex,
@@ -255,11 +272,11 @@ func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, conf
 	}
 	i.plugin.tableConnection[tableKey{connectionIndex: connectionIndex, tableIndex: tableIndex}] = table
 
-	return *schema, nil
+	return *schemaA, nil
 
 }
 
-func (i *internalInterface) Query(connectionIndex int, tableIndex int, cursorIndex int, constraint QueryConstraint) ([][]interface{}, bool, error) {
+func (i *internalInterface) Query(connectionIndex int, tableIndex int, cursorIndex int, constraint QueryConstraint) (rows [][]interface{}, noMoreRows bool, err error) {
 	/* // We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
 	if !ok {
@@ -277,6 +294,13 @@ func (i *internalInterface) Query(connectionIndex int, tableIndex int, cursorInd
 	// and return them to the main program
 	rows, noMoreRows, err := reader.Query(constraint)
 	return rows, noMoreRows, err */
+
+	// Catch the panic and return it as an error
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("plugin panicked while running Query: %v", r)
+		}
+	}()
 
 	// We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
@@ -301,16 +325,22 @@ func (i *internalInterface) Query(connectionIndex int, tableIndex int, cursorInd
 
 	// We call the Query method of the reader to fetch the rows
 	// and return them to the main program
-	rows, noMoreRows, err := reader.Query(constraint)
+	rows, noMoreRows, err = reader.Query(constraint)
 	return rows, noMoreRows, err
 }
 
-func (i *internalInterface) Insert(connectionIndex int, tableIndex int, rows [][]interface{}) error {
+func (i *internalInterface) Insert(connectionIndex int, tableIndex int, rows [][]interface{}) (err error) {
 	// We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
 	if !ok {
 		return fmt.Errorf("plugin did not register the table")
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("plugin panicked while running Insert: %v", r)
+		}
+	}()
 
 	// We check if the connection initialized the table
 	table, ok := i.plugin.tableConnection[tableKey{connectionIndex: connectionIndex, tableIndex: tableIndex}]
@@ -318,17 +348,27 @@ func (i *internalInterface) Insert(connectionIndex int, tableIndex int, rows [][
 		return fmt.Errorf("main program did not initialize the table before inserting into it")
 	}
 
-	// We call the Insert method of the table to insert the rows
-	return table.Insert(rows)
+	if tableInsert, ok := table.(TableInsert); !ok {
+		return fmt.Errorf("plugin does not support Insert")
+	} else {
+		// We call the Insert method of the table to insert the rows only if it is implemented
+		return tableInsert.Insert(rows)
+	}
 
 }
 
-func (i *internalInterface) Update(connectionIndex int, tableIndex int, rows [][]interface{}) error {
+func (i *internalInterface) Update(connectionIndex int, tableIndex int, rows [][]interface{}) (err error) {
 	// We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
 	if !ok {
 		return fmt.Errorf("plugin did not register the table")
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("plugin panicked while running Update: %v", r)
+		}
+	}()
 
 	// We check if the connection initialized the table
 	table, ok := i.plugin.tableConnection[tableKey{connectionIndex: connectionIndex, tableIndex: tableIndex}]
@@ -336,16 +376,26 @@ func (i *internalInterface) Update(connectionIndex int, tableIndex int, rows [][
 		return fmt.Errorf("main program did not initialize the table before updating it")
 	}
 
-	// We call the Update method of the table to update the rows
-	return table.Update(rows)
+	if tableUpdate, ok := table.(TableUpdate); !ok {
+		return fmt.Errorf("plugin does not support Update")
+	} else {
+		// We call the Update method of the table to update the rows only if it is implemented
+		return tableUpdate.Update(rows)
+	}
 }
 
-func (i *internalInterface) Delete(connectionIndex int, tableIndex int, primaryKeys []interface{}) error {
+func (i *internalInterface) Delete(connectionIndex int, tableIndex int, primaryKeys []interface{}) (err error) {
 	// We check if the table is registered
 	_, ok := i.plugin.table[tableIndex]
 	if !ok {
 		return fmt.Errorf("plugin did not register the table")
 	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("plugin panicked while running Delete: %v", r)
+		}
+	}()
 
 	// We check if the connection initialized the table
 	table, ok := i.plugin.tableConnection[tableKey{connectionIndex: connectionIndex, tableIndex: tableIndex}]
@@ -353,8 +403,12 @@ func (i *internalInterface) Delete(connectionIndex int, tableIndex int, primaryK
 		return fmt.Errorf("main program did not initialize the table before deleting from it")
 	}
 
-	// We call the Delete method of the table to delete the rows
-	return table.Delete(primaryKeys)
+	if tableDelete, ok := table.(TableDelete); !ok {
+		return fmt.Errorf("plugin does not support Delete")
+	} else {
+		// We call the Delete method of the table to delete the rows only if it is implemented
+		return tableDelete.Delete(primaryKeys)
+	}
 }
 
 func (i *internalInterface) Close(connectionIndex int) error {

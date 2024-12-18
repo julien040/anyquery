@@ -3,6 +3,7 @@ package module
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	rand "math/rand/v2"
 	"reflect"
@@ -40,7 +41,7 @@ type SQLiteModule struct {
 
 	// Internal
 	moduleInited bool
-	table        *SQLiteTable
+	Table        *SQLiteTable
 	schema       string
 }
 
@@ -61,6 +62,7 @@ type SQLiteTable struct {
 	maxBufferDelete         uint
 	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
 	logger                  hclog.Logger
+	partialUpdate           bool
 }
 
 // SQLiteCursor holds the information needed for the Column, Filter, EOF and Next methods
@@ -102,7 +104,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	if m.moduleInited {
 		m.Logger.Debug("Module already initialized")
 		c.DeclareVTab(m.schema)
-		return m.table, nil
+		return m.Table, nil
 	}
 	// Create a new plugin instance
 	// and store the client in the module
@@ -132,7 +134,7 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	}
 
 	// Create the schema in SQLite
-	stringSchema := createSQLiteSchema(dbSchema)
+	stringSchema, err := createSQLiteSchema(dbSchema)
 	err = c.DeclareVTab(stringSchema)
 	if err != nil {
 		return nil, errors.Join(errors.New("could not declare the virtual table in SQLite"), err, errors.New("Schema: "+stringSchema))
@@ -170,8 +172,9 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		dbSchema.BufferDelete,
 		colMapper,
 		m.Logger,
+		dbSchema.PartialUpdate,
 	}
-	m.table = table
+	m.Table = table
 	m.moduleInited = true
 
 	return table, nil
@@ -179,15 +182,21 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 
 // createSQLiteSchema creates the schema of the table in SQLite
 // using the sqlite3.SQLiteConn.DeclareVTab method
-func createSQLiteSchema(arg rpc.DatabaseSchema) string {
+func createSQLiteSchema(arg rpc.DatabaseSchema) (string, error) {
 	// Initialize a string builder to efficiently create the schema
 	var schema strings.Builder
 
 	// The table name is not important, we set it to x therefore
 	schema.WriteString("CREATE TABLE x(")
 
+	// To ensure two columns don't have the same name, we store the column names in a map
+	columns := make(map[string]struct{})
+
 	// We iterate over the columns and add them to the schema
 	for i, col := range arg.Columns {
+		if _, ok := columns[col.Name]; ok {
+			return "", errors.New("two columns have the same name in the schema: " + col.Name)
+		}
 		// To escape the column name, we wrap it in double quotes
 		// and replace any double quote in the column name with two double quotes
 		schema.WriteRune('"')
@@ -219,6 +228,9 @@ func createSQLiteSchema(arg rpc.DatabaseSchema) string {
 		if i != len(arg.Columns)-1 {
 			schema.WriteString(", ")
 		}
+
+		// We store the column name in the map
+		columns[col.Name] = struct{}{}
 	}
 	// We close the schema
 	schema.WriteRune(')')
@@ -233,7 +245,7 @@ func createSQLiteSchema(arg rpc.DatabaseSchema) string {
 	schema.WriteRune(';')
 
 	// We declare the virtual table in SQLite
-	return schema.String()
+	return schema.String(), nil
 }
 
 // Connect is called when the virtual table is connected
@@ -337,7 +349,33 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 }
 
 func (t *SQLiteTable) PartialUpdate() bool {
-	return false
+	return t.partialUpdate
+}
+
+// Remove all the rows from the insert, update and delete buffers
+//
+// Useful when a buffer is faulty and we want to retry the query
+func (t *SQLiteTable) ClearBuffers() {
+	t.insertBuffer.Clear()
+	t.updateBuffer.Clear()
+	t.deleteBuffer.Clear()
+}
+
+// FlushBuffers flushes the buffers of inserts, updates and deletes
+func (t *SQLiteTable) FlushBuffers() error {
+	err := t.flushInsert()
+	if err != nil {
+		return fmt.Errorf("could not flush the insert buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
+	}
+	err = t.flushUpdate()
+	if err != nil {
+		return fmt.Errorf("could not flush the update buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
+	}
+	err = t.flushDelete()
+	if err != nil {
+		return fmt.Errorf("could not flush the delete buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
+	}
+	return nil
 }
 
 func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
@@ -356,7 +394,7 @@ func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
 	if uint(t.insertBuffer.Len()) >= t.maxBufferInsert {
 		err := t.flushInsert()
 		if err != nil {
-			return 0, errors.Join(errors.New("could not flush the insert buffer"), err)
+			return 0, fmt.Errorf("could not flush the insert buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
 		}
 	}
 
@@ -382,7 +420,7 @@ func (t *SQLiteTable) Update(id any, vals []any) error {
 	if uint(t.updateBuffer.Len()) >= t.maxBufferUpdate {
 		err := t.flushUpdate()
 		if err != nil {
-			return errors.Join(errors.New("could not flush the update buffer"), err)
+			return fmt.Errorf("could not flush the update buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
 		}
 	}
 
@@ -403,7 +441,7 @@ func (t *SQLiteTable) Delete(id any) error {
 	if uint(t.deleteBuffer.Len()) >= t.maxBufferDelete {
 		err := t.flushDelete()
 		if err != nil {
-			return errors.Join(errors.New("could not flush the delete buffer"), err)
+			return fmt.Errorf("could not flush the delete buffer. Run SELECT flush_buffers(tableName) to retry the query. Or run SELECT clear_buffers(tableName) to clear the buffers (data loss). Err: %w", err)
 		}
 	}
 	return nil

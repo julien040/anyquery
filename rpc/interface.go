@@ -359,6 +359,22 @@ type DatabaseSchema struct {
 	// If set to 0, the main program will send the rows one by one
 	// It is used to reduce the number of API calls of plugins
 	BufferDelete uint
+
+	// Whether the plugin can handle partial updates
+	//
+	// If this field is set to true, when an UPDATE statement is issued,
+	// any non modified columns will be set to nil
+	//
+	// For example, if the row is
+	//	[1, "hello", 3.14]
+	// and the update statement is
+	//	[1, "world"]
+	// the plugin will receive
+	//	[1, "world", nil]
+	//
+	// If set to false, the plugin will receive
+	//	[1, "world", 3.14]
+	PartialUpdate bool
 }
 
 // ColumnType is an enum that represents the type of a column

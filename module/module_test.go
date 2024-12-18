@@ -98,7 +98,10 @@ func TestCreateSQLiteSchema(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.testName, func(t *testing.T) {
-			if got := createSQLiteSchema(tt.schema); got != tt.expected {
+			if got, err := createSQLiteSchema(tt.schema); got != tt.expected {
+				if err != nil {
+					t.Errorf("CreateSQLiteSchema() error = %v", err)
+				}
 				t.Errorf("CreateSQLiteSchema() = %v, want %v", got, tt.expected)
 			}
 		})
