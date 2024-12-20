@@ -251,6 +251,7 @@ func markBindVariable(yylex yyLexer, bvar string) {
 
 %token LEX_ERROR
 %left <str> UNION
+%left <str> INTERSECT
 %token <str> SELECT STREAM VSTREAM INSERT UPDATE DELETE FROM WHERE GROUP HAVING ORDER BY LIMIT OFFSET FOR
 %token <str> DISTINCT AS EXISTS ASC DESC INTO DUPLICATE DEFAULT SET LOCK UNLOCK KEYS DO CALL
 %left <str> ALL ANY SOME
@@ -486,7 +487,8 @@ func markBindVariable(yylex yyLexer, bvar string) {
 %type <intervalType> interval timestampadd_interval
 %type <str> cache_opt separator_opt flush_option for_channel_opt maxvalue
 %type <matchExprOption> match_option
-%type <boolean> distinct_opt union_op replace_opt local_opt
+%type <boolean> distinct_opt replace_opt local_opt
+%type <str> union_op
 %type <selectExprs> select_expression_list
 %type <selectExpr> select_expression
 %type <strs> select_options select_options_opt flush_option_list
@@ -843,19 +845,19 @@ query_expression_body:
   }
 | query_expression_body union_op query_primary
   {
-    $$ = &Union{Left: $1, Distinct: $2, Right: $3}
+    $$ = &Union{Left: $1, Type: $2, Right: $3}
   }
 | query_expression_parens union_op query_primary
   {
-    $$ = &Union{Left: $1, Distinct: $2, Right: $3}
+    $$ = &Union{Left: $1, Type: $2, Right: $3}
   }
 | query_expression_body union_op query_expression_parens
   {
-    $$ = &Union{Left: $1, Distinct: $2, Right: $3}
+    $$ = &Union{Left: $1, Type: $2, Right: $3}
   }
 | query_expression_parens union_op query_expression_parens
   {
-    $$ = &Union{Left: $1, Distinct: $2, Right: $3}
+    $$ = &Union{Left: $1, Type: $2, Right: $3}
   }
 
 select_statement:
@@ -4762,17 +4764,24 @@ comment_list:
 union_op:
   UNION
   {
-    $$ = true
+    $$ = "union"
   }
 | UNION ALL
   {
-    $$ = false
+    $$ = "union all"
   }
 | UNION DISTINCT
   {
-    $$ = true
+    $$ = "union distinct"
   }
-
+| EXCEPT
+  {
+    $$ = "except"
+  }
+| INTERSECT
+  {
+    $$ = "intersect"
+  }
 cache_opt:
 {
     $$ = ""

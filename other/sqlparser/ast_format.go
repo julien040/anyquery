@@ -109,10 +109,19 @@ func (node *Union) Format(buf *TrackedBuffer) {
 	}
 
 	buf.WriteByte(' ')
-	if node.Distinct {
-		buf.literal(UnionStr)
-	} else {
-		buf.literal(UnionAllStr)
+	switch node.Type {
+	case "union":
+		buf.literal("union")
+	case "union all":
+		buf.literal("union all")
+	case "union distinct":
+		buf.literal("union distinct")
+	case "except":
+		buf.literal("except")
+	case "intersect":
+		buf.literal("intersect")
+	default:
+		buf.literal("union")
 	}
 	buf.WriteByte(' ')
 

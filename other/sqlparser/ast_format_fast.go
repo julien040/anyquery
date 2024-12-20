@@ -121,10 +121,19 @@ func (node *Union) FormatFast(buf *TrackedBuffer) {
 	}
 
 	buf.WriteByte(' ')
-	if node.Distinct {
-		buf.WriteString(UnionStr)
-	} else {
-		buf.WriteString(UnionAllStr)
+	switch node.Type {
+	case "union":
+		buf.WriteString("union")
+	case "union all":
+		buf.WriteString("union all")
+	case "union distinct":
+		buf.WriteString("union distinct")
+	case "except":
+		buf.WriteString("except")
+	case "intersect":
+		buf.WriteString("intersect")
+	default:
+		buf.WriteString("union")
 	}
 	buf.WriteByte(' ')
 

@@ -48,6 +48,8 @@ const (
 	UnionStr         = "union"
 	UnionAllStr      = "union all"
 	UnionDistinctStr = "union distinct"
+	ExceptStr        = "except"
+	IntersectStr     = "intersect"
 
 	// DDL strings.
 	InsertStr  = "insert"

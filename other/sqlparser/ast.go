@@ -300,12 +300,13 @@ type (
 	// Lock is an enum for the type of lock in the statement
 	Lock int8
 
-	// Union represents a UNION statement.
+	// Union represents a UNION/INTERSECT/EXCEPT statement.
 	Union struct {
 		With     *With
 		Left     SelectStatement
 		Right    SelectStatement
 		Distinct bool
+		Type     string
 		OrderBy  OrderBy
 		Limit    *Limit
 		Lock     Lock
