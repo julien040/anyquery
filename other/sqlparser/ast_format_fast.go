@@ -3979,7 +3979,7 @@ func (node *Variable) FormatFast(buf *TrackedBuffer) {
 	case NextTxScope:
 		buf.WriteString("@@")
 	}
-	node.Name.FormatFast(buf)
+	buf.WriteString(node.Name.String())
 }
 
 // FormatFast formats the node.

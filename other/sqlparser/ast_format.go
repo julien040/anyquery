@@ -3037,7 +3037,10 @@ func (node *Variable) Format(buf *TrackedBuffer) {
 	case NextTxScope:
 		buf.literal("@@")
 	}
-	buf.astPrintf(node, "%v", node.Name)
+	// Here, we get the variable name directly, without using the IdentifierCI formatter.
+	// This is because the formatter might escape the variable name, which is not allowed for SQLite
+	// For example, @user becomes @`user`, which is not valid in SQLite
+	buf.literal(node.Name.String())
 }
 
 // Format formats the node.
