@@ -272,6 +272,19 @@ func (i *internalInterface) Initialize(connectionIndex int, tableIndex int, conf
 	}
 	i.plugin.tableConnection[tableKey{connectionIndex: connectionIndex, tableIndex: tableIndex}] = table
 
+	// Set to true each flag (insert, update, delete) if the table implements the corresponding interface
+	if _, ok := table.(TableInsert); ok {
+		schemaA.HandlesInsert = true
+	}
+
+	if _, ok := table.(TableUpdate); ok {
+		schemaA.HandlesUpdate = true
+	}
+
+	if _, ok := table.(TableDelete); ok {
+		schemaA.HandlesDelete = true
+	}
+
 	return *schemaA, nil
 
 }

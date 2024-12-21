@@ -39,28 +39,20 @@ import "github.com/julien040/anyquery/rpc"
 //
 // It should return a new table instance, the database schema and if there is an error
 func {{.TableName}}Creator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, error) {
-	// Example: get a token from the user configuration
+	// Get a token from the user configuration
 	// token := args.UserConfig.GetString("token")
 	// if token == "" {
 	// 	return nil, nil, fmt.Errorf("token must be set in the plugin configuration")
 	// }
 
-	// Example: open a cache connection
+	// Open a cache connection
 	/* cache, err := helper.NewCache(helper.NewCacheArgs{
 		Paths:         []string{"{{.TableName}}", "{{.TableName}}" + "_cache"},
 		EncryptionKey: []byte("my_secret_key"),
 	})*/
 
 	return &{{.TableName}}Table{}, &rpc.DatabaseSchema{
-		HandlesInsert: false,
-		HandlesUpdate: false,
-		HandlesDelete: false,
-		HandleOffset:  false,
 		Columns: []rpc.DatabaseSchemaColumn{
-			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
-			},
 			{
 				// This column is a parameter
 				// Therefore, it'll be hidden in SELECT * but will be used in WHERE clauses
@@ -70,6 +62,11 @@ func {{.TableName}}Creator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseS
 				IsParameter: true,
 				IsRequired:  false,
 			},
+			{
+				Name: "id",
+				Type: rpc.ColumnTypeString,
+			},
+			
 		},
 	}, nil
 }
@@ -106,6 +103,8 @@ func (t *{{.TableName}}Cursor) Query(constraints rpc.QueryConstraint) ([][]inter
 }
 
 // A slice of rows to insert
+// Uncomment the code to add support for inserting rows
+/*
 func (t *{{.TableName}}Table) Insert(rows [][]interface{}) error {
 	// Example: insert the rows in a database
 	// for _, row := range rows {
@@ -115,19 +114,25 @@ func (t *{{.TableName}}Table) Insert(rows [][]interface{}) error {
 	// 	}
 	return nil
 }
+*/
 
 // A slice of rows to update
 // The first element of each row is the primary key
 // while the rest are the values to update
 // The primary key is therefore present twice
+// Uncomment the code to add support for updating rows
+/*
 func (t *{{.TableName}}Table) Update(rows [][]interface{}) error {
 	return nil
-}
+}*/
 
 // A slice of primary keys to delete
+// Uncomment the code to add support for deleting rows
+/*
 func (t *{{.TableName}}Table) Delete(primaryKeys []interface{}) error {
 	return nil
 }
+*/
 
 // A destructor to clean up resources
 func (t *{{.TableName}}Table) Close() error {
@@ -143,6 +148,9 @@ all: $(files)
 
 prod: $(files)
 	go build -o {{.ModuleName}}.out -ldflags "-s -w" $(files)
+
+release: prod
+	goreleaser build -f .goreleaser.yaml --clean --snapshot
 
 clean:
 	rm -f {{.ModuleName}}.out
@@ -345,6 +353,14 @@ func DevInit(cmd *cobra.Command, args []string) error {
 
 	// Import the rpc package
 	goCmd = exec.Command("go", "get", "-u", "github.com/julien040/anyquery/rpc")
+	goCmd.Stdout = os.Stdout
+	goCmd.Stderr = os.Stderr
+	err = goCmd.Run()
+	if err != nil {
+		return fmt.Errorf("could not import rpc package: %w", err)
+	}
+
+	goCmd = exec.Command("go", "get", "-u", "github.com/julien040/anyquery/rpc/helper")
 	goCmd.Stdout = os.Stdout
 	goCmd.Stderr = os.Stderr
 	err = goCmd.Run()
