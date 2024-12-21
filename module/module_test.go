@@ -388,7 +388,7 @@ func TestXBestIndexConstraintsValidation(t *testing.T) {
 		}
 
 		ob := []sqlite3.InfoOrderBy{}
-		_, err := table.BestIndex(constraints, ob)
+		_, err := table.BestIndex(constraints, ob, sqlite3.IndexInformation{})
 		require.Error(t, err, "The query should fail because the required parameter is missing")
 	})
 
@@ -408,7 +408,7 @@ func TestXBestIndexConstraintsValidation(t *testing.T) {
 		}
 
 		ob := []sqlite3.InfoOrderBy{}
-		_, err := table.BestIndex(constraints, ob)
+		_, err := table.BestIndex(constraints, ob, sqlite3.IndexInformation{})
 		require.Error(t, err, "The query should fail because the required parameter is not usable")
 	})
 
@@ -427,7 +427,7 @@ func TestXBestIndexConstraintsValidation(t *testing.T) {
 		}
 
 		ob := []sqlite3.InfoOrderBy{}
-		_, err := table.BestIndex(constraints, ob)
+		_, err := table.BestIndex(constraints, ob, sqlite3.IndexInformation{})
 		require.NoError(t, err, "The query should work")
 	})
 
@@ -446,7 +446,7 @@ func TestXBestIndexConstraintsValidation(t *testing.T) {
 		}
 
 		ob := []sqlite3.InfoOrderBy{}
-		_, err := table.BestIndex(constraints, ob)
+		_, err := table.BestIndex(constraints, ob, sqlite3.IndexInformation{})
 		require.NoError(t, err, "The query should work")
 	})
 

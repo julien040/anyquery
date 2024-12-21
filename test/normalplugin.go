@@ -26,18 +26,6 @@ func (t *table1) CreateReader() rpc.ReaderInterface {
 	return &myReader{}
 }
 
-func (t *table1) Insert(row [][]interface{}) error {
-	return nil
-}
-
-func (t *table1) Update(row [][]interface{}) error {
-	return nil
-}
-
-func (t *table1) Delete(row []interface{}) error {
-	return nil
-}
-
 func (t *table1) Close() error {
 	return nil
 }

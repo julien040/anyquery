@@ -267,7 +267,7 @@ func (t *CsvTable) Destroy() error {
 	return nil
 }
 
-func (t *CsvTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+func (t *CsvTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	return &sqlite3.IndexResult{
 		Used: make([]bool, len(cst)),
 	}, nil

@@ -330,7 +330,7 @@ func (t *PostgresTable) Destroy() error {
 // This function is called with different constraints and order by clauses
 //
 // To find the method, we will ask the database to explain the query and return the best method
-func (t *PostgresTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+func (t *PostgresTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// Create the SQL query
 	queryBuilder, limitCstIndex, offsetCstIndex, used := constructSQLQuery(cst, ob, t.schema, t.tableName)
 	queryBuilder.SetFlavor(sqlbuilder.PostgreSQL)

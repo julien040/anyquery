@@ -137,7 +137,7 @@ func (t *ParquetTable) Destroy() error {
 	return nil
 }
 
-func (t *ParquetTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+func (t *ParquetTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	return &sqlite3.IndexResult{
 		IdxNum: 1,
 		Used:   make([]bool, len(cst)),

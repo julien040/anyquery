@@ -261,7 +261,7 @@ func (m *SQLiteModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 //
 // However, we don't use it that way but only to serialize the constraints
 // for the Filter method
-func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy) (*sqlite3.IndexResult, error) {
+func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// The first task of BestIndex is to check if the required parameters are present
 	// If not, we return sqlite3.ErrConstraint
 	present := make([]bool, len(t.schema.Columns))
