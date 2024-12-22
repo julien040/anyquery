@@ -22,14 +22,14 @@ On the first query, a popup will ask you if you want your terminal to have acces
 SELECT * FROM reminders_items;
 
 -- Add a reminder
-INSERT INTO reminders_items (title, body, due_date) VALUES ('Buy milk', 'From the grocery store', '2024-12-31 23:59');
+INSERT INTO reminders_items (name, body, due_date) VALUES ('Buy milk', 'From the grocery store', '2024-12-31 23:59');
 
 -- Update a reminder
-UPDATE reminders_items SET title = 'Buy milk and bread' WHERE title = 'Buy milk';
-UPDATE reminders_items SET completed = true WHERE title = 'Buy milk and bread';
+UPDATE reminders_items SET name = 'Buy milk and bread' WHERE name = 'Buy milk';
+UPDATE reminders_items SET completed = true WHERE name = 'Buy milk and bread';
 
 -- Delete a reminder
-DELETE FROM reminders_items WHERE title = 'Buy milk and bread';
+DELETE FROM reminders_items WHERE name = 'Buy milk and bread';
 ```
 
 ## Schema
