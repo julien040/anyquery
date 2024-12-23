@@ -136,24 +136,6 @@ func (t *searchTable) CreateReader() rpc.ReaderInterface {
 	return &searchCursor{}
 }
 
-// A slice of rows to insert
-func (t *searchTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *searchTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *searchTable) Delete(primaryKeys []interface{}) error {
-	return nil
-}
-
 // A destructor to clean up resources
 func (t *searchTable) Close() error {
 	return nil

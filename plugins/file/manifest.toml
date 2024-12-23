@@ -1,6 +1,6 @@
 
 name = "file"
-version = "0.1.0"
+version = "0.1.1"
 description = "List and search file in the system"
 author = "julien040"
 license = "UNLICENSED"
@@ -9,7 +9,7 @@ homepage = "https://github.com/julien040/anyquery/tree/main/plugins/file"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["file", "search"]
+tables = ["list", "search"]
 
 [[file]]
 platform = "linux/amd64"

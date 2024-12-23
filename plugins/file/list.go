@@ -145,24 +145,6 @@ func (t *listTable) CreateReader() rpc.ReaderInterface {
 	return &listCursor{}
 }
 
-// A slice of rows to insert
-func (t *listTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *listTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *listTable) Delete(primaryKeys []interface{}) error {
-	return nil
-}
-
 // A destructor to clean up resources
 func (t *listTable) Close() error {
 	return nil
