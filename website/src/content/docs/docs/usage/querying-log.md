@@ -41,7 +41,7 @@ But what is a Grok pattern? A Grok pattern is a regular expression with named ca
 
 You can use the following Grok pattern to parse it:
 
-```grok
+```plain
 \[%{POSINT:pid}\] %{MONTHDAY} %{MONTH} %{TIME} %{GREEDYDATA:message}
 ```
 
@@ -71,7 +71,7 @@ SELECT pid || ' is a number' FROM read_log('path/to/logfile.log', '\[%{POSINT:pi
 
 Not let's say we want the whole timestamp in a single column. We can use the following Grok pattern:
 
-```grok ins="(?<timestamp>%"
+```plain ins="(?<timestamp>%"
 \[%{POSINT:pid}\] (?<timestamp>%{MONTHDAY} %{MONTH} %{TIME}) %{GREEDYDATA:message}
 ```
 
@@ -96,7 +96,7 @@ To debug Grok patterns, you can use the [Grok debugger](http://grokconstructor.a
 
 The following example shows how to use custom Grok patterns to parse a Redis log file.
 
-```grok title="patterns.grok"
+```plain title="patterns.grok"
 REDISTIMESTAMP %{MONTHDAY} %{MONTH} %{TIME}
 REDISLOG \[%{POSINT:pid}\] %{REDISTIMESTAMP:timestamp} \* 
 REDISMONLOG %{NUMBER:timestamp} \[%{INT:database} %{IP:client}:%{NUMBER:port}\] "%{WORD:command}"\s?%{GREEDYDATA:params}

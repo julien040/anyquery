@@ -52,14 +52,14 @@ Once PQL is enabled, you can start querying your SQLite database using PQL synta
 
 ### Example 1: Selecting All Rows from a Table
 
-```pql
+```plain
 example_table
 | project *
 ```
 
 ### Example 2: Filtering Rows
 
-```pql
+```plain
 example_table
 | where age > 25
 | project name, age
@@ -67,7 +67,7 @@ example_table
 
 ### Example 3: Sorting Rows
 
-```pql
+```plain
 example_table
 | sort by age desc
 | project name, age
@@ -75,7 +75,7 @@ example_table
 
 ### Example 4: Limiting Rows
 
-```pql
+```plain
 example_table
 | take 10
 | project name, age
@@ -83,7 +83,7 @@ example_table
 
 ### Example 5: Aggregating Data
 
-```pql
+```plain
 example_table
 | summarize avg_age=avg(age) by department
 ```
@@ -92,7 +92,7 @@ example_table
 
 Note: PQL does not directly support joins like SQL. To achieve this, you can use subqueries or CTEs.
 
-```pql
+```plain
 with subquery1 as (
     select * from employees
 ),

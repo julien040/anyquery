@@ -21,7 +21,7 @@ PRQL is a language designed to make SQL queries more readable and maintainable. 
 
 Here is a basic example:
 
-```prql
+```plain
 from employees
 filter salary > 50000
 select { employee_id, name, salary }
@@ -63,7 +63,7 @@ Now that we're in PRQL mode, let's look at some basic operations.
 
 Suppose you have a SQLite database named `company.db` with a table named `employees`. You can run the following PRQL query to select and filter data:
 
-```prql
+```plain
 from employees
 filter salary > 50000
 select { employee_id, name, salary }
@@ -73,7 +73,7 @@ select { employee_id, name, salary }
 
 You can also sort and limit the data:
 
-```prql
+```plain
 from employees
 filter salary > 50000
 select { employee_id, name, salary }
@@ -85,7 +85,7 @@ take 10
 
 If you have another table named `departments`, you can join it with the `employees` table:
 
-```prql
+```plain
 from employees
 join departments [ department_id ]
 select { employees.employee_id, employees.name, departments.department_name }
@@ -95,7 +95,7 @@ select { employees.employee_id, employees.name, departments.department_name }
 
 Let’s say we want to query the top 5 highest-paid employees along with their department names. Here is how you can do it using PRQL:
 
-```prql
+```plain
 from employees
 join departments [ department_id ]
 filter employees.salary > 50000
