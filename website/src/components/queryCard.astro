@@ -1,0 +1,49 @@
+---
+import type {
+    query as queryType,
+    plugin,
+} from "../functions/fetchRegistryPlugins";
+
+const { query, pluginsMapper } = Astro.props;
+
+type Props = {
+    query: queryType;
+    pluginsMapper: Record<string, plugin>;
+};
+---
+
+<a
+    class="queries-item flex flex-col p-7 rounded-xl bg-black/80 border border-[#262626] tracking-tight shadow-outline-primary"
+    href={`/query/${query.id}`}
+>
+    <div class="flex justify-between">
+        <h3 class="text-lg leading-6">
+            {query.title}
+        </h3>
+    </div>
+    <p class="text-xs text-white/50 mt-1">
+        {query.description}
+    </p>
+    {/* Spacer */}
+    <div class="flex-grow"></div>
+    {
+        query.required_plugins?.length > 0 && (
+            <div class=" text-white/80 font-medium tracking-tight flex items-center overflow-x-auto text-xs mt-2">
+                {query.required_plugins.length > 1 ? "Plugins: " : "Plugin: "}
+                {query.required_plugins.map((plugin) => {
+                    // Retrieve the plugin object from the pluginsMapper
+                    const pluginObject = pluginsMapper[plugin];
+                    if (!pluginObject) {
+                        return;
+                    }
+                    return (
+                        <div class="flex ml-2 px-2 py-1 bg-white/10 rounded-md text-xs text-white/70">
+                            <img src={pluginObject.icon} class="h-4 w-4 mr-1" />
+                            {pluginObject.display_name}
+                        </div>
+                    );
+                })}
+            </div>
+        )
+    }
+</a>

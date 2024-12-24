@@ -1,37 +1,27 @@
 ---
+import QueryCard from "../../components/queryCard.astro";
+import { fetchRegistryPlugins } from "../../functions/fetchRegistryPlugins";
+import type { plugin } from "../../functions/fetchRegistryPlugins";
 import Main from "../../layouts/main.astro";
 
 // Request the list of queries from the API
-const fetchQueries = await fetch("https://registry.anyquery.dev/v0/query/", {
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+const { remoteQueries, plugins } = await fetchRegistryPlugins();
 
-type apiResponse = {
-    queries: [
-        {
-            id: string;
-            title: string;
-            description: string;
-            required_plugins: string[];
-            arguments: [
-                {
-                    title: string;
-                    display_title: string;
-                    type: string;
-                    description: string;
-                },
-            ];
-            // An URL to the source code of the query
-            source_code: string;
-            tags: string[];
-            author: string;
-        },
-    ];
-};
+const pluginsMapper: Record<string, plugin> = {};
+for (const plugin of plugins.plugins) {
+    pluginsMapper[plugin.name] = plugin;
+}
 
-const allQueries: apiResponse = await fetchQueries.json();
+const pluginsWithQueries = new Set<string>();
+for (const query of remoteQueries.queries) {
+    if (query.required_plugins) {
+        for (const plugin of query.required_plugins) {
+            pluginsWithQueries.add(plugin);
+        }
+    }
+}
+
+const allQueries = remoteQueries;
 ---
 
 <Main
@@ -46,6 +36,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
         Anyquery. <br />
         Answer questions on your data easily using Anyquery and its hub of queries.
     </p>
+
     <input
         id="search"
         aria-label="Search queries"
@@ -76,8 +67,12 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
                         continue;
                     }
                     const title = titleElement.innerText.toLowerCase();
-                    const description = descriptionElement.innerText.toLowerCase();
-                    if (title.includes(search) || description.includes(search)) {
+                    const description =
+                        descriptionElement.innerText.toLowerCase();
+                    if (
+                        title.includes(search) ||
+                        description.includes(search)
+                    ) {
                         query.style.display = "flex";
                     } else {
                         query.style.display = "none";
@@ -86,107 +81,42 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
             });
         }
     </script>
-    <div id="queries" class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-2">
+    <h2 class="text-md mt-4 font-semibold text-white/90 mb-1 tracking-tight">
+        Filter by plugin
+    </h2>
+    <div class="flex flex-wrap gap-2">
+        {
+            pluginsWithQueries
+                .entries()
+                .toArray()
+                .sort((a, b) => a[0].localeCompare(b[0]))
+                .map(([pluginName, _]) => {
+                    const plugin = pluginsMapper[pluginName];
+                    if (!plugin) {
+                        return;
+                    }
+                    return (
+                        <a
+                            class="flex items-center text-xs bg-white/10 px-4 py-2 rounded-md"
+                            href={`/queries/plugin/${plugin.name}`}
+                        >
+                            <img
+                                class="h-4 w-4 mr-2"
+                                src={plugin.icon}
+                                alt=""
+                            />
+                            {plugin.display_name}
+                        </a>
+                    );
+                })
+        }
+    </div>
+    <div id="queries" class="grid md:grid-cols-2 grid-cols-1 gap-2 mt-4">
         {
             allQueries.queries
                 .sort((a, b) => a.title.localeCompare(b.title))
                 .map((query) => (
-                    <div class="queries-item flex flex-col p-6 rounded-xl bg-black/80 border border-[#262626] tracking-tight shadow-outline-primary">
-                        <div class="flex justify-between">
-                            <h3 class="text-xl leading-6">
-                                {query.title}{" "}
-                                <a class="text-xs text-white/50 font-normal hover:underline transition-all"
-                                href={`https://github.com/${query.author}`}
-                                >
-                                    by {query.author}
-                                </a>
-                            </h3>
-                            <a class="p-1 bg-neutral-800 rounded-md text-white/70 hover:text-white/90 transition-all h-fit w-fit"
-                            href={query.source_code} target="_blank" rel="noopener noreferrer">
-                                <svg
-                                class="h-4 w-4"
-                                viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g id="Group">
-                                <path id="Vector" d="M7.31072 1.33107C7.40563 1.35762 7.49437 1.40262 7.57187 1.46349C7.64938 1.52435 7.71413 1.5999 7.76242 1.68581C7.81071 1.77171 7.8416 1.86629 7.85332 1.96414C7.86504 2.06199 7.85736 2.16119 7.83072 2.25607L5.61522 10.1496C5.56152 10.3411 5.43392 10.5035 5.26049 10.601C5.08707 10.6984 4.88203 10.723 4.69047 10.6693C4.49892 10.6156 4.33655 10.488 4.23908 10.3146C4.1416 10.1412 4.11702 9.93612 4.17072 9.74457L6.38622 1.85007C6.41283 1.75521 6.45786 1.66652 6.51875 1.58907C6.57964 1.51162 6.6552 1.44693 6.7411 1.39869C6.827 1.35044 6.92156 1.3196 7.01938 1.30791C7.11721 1.29622 7.21638 1.30392 7.31122 1.33057L7.31072 1.33107ZM3.78072 3.34857C3.92117 3.48919 4.00006 3.67982 4.00006 3.87857C4.00006 4.07732 3.92117 4.26794 3.78072 4.40857L2.19072 6.00007L3.78172 7.59107C3.92235 7.73177 4.00133 7.92257 4.00129 8.12149C4.00124 8.32042 3.92217 8.51119 3.78147 8.65182C3.64078 8.79245 3.44998 8.87143 3.25105 8.87138C3.05212 8.87133 2.86135 8.79226 2.72072 8.65157L0.599223 6.53007C0.458772 6.38944 0.379883 6.19882 0.379883 6.00007C0.379883 5.80132 0.458772 5.61069 0.599223 5.47007L2.72022 3.34857C2.78987 3.27887 2.87257 3.22359 2.9636 3.18587C3.05463 3.14814 3.15219 3.12873 3.25072 3.12873C3.34926 3.12873 3.44682 3.14814 3.53785 3.18587C3.62887 3.22359 3.71107 3.27887 3.78072 3.34857ZM8.22072 4.40857C8.14704 4.33991 8.08793 4.25711 8.04694 4.16511C8.00595 4.07311 7.98391 3.97379 7.98213 3.87309C7.98036 3.77239 7.99888 3.67236 8.0366 3.57897C8.07432 3.48558 8.13047 3.40075 8.20169 3.32953C8.2729 3.25831 8.35774 3.20217 8.45113 3.16445C8.54451 3.12673 8.64454 3.1082 8.74525 3.10998C8.84595 3.11175 8.94526 3.1338 9.03726 3.17479C9.12926 3.21578 9.21206 3.27488 9.28072 3.34857L11.4022 5.46957C11.5428 5.61021 11.6218 5.80095 11.6218 5.99982C11.6218 6.19869 11.5428 6.38942 11.4022 6.53007L9.28122 8.65157C9.21159 8.72123 9.12892 8.7765 9.03792 8.81422C8.94693 8.85193 8.8494 8.87136 8.7509 8.87138C8.6524 8.8714 8.55486 8.85203 8.46385 8.81435C8.37284 8.77668 8.29014 8.72145 8.22047 8.65182C8.15081 8.58218 8.09554 8.49951 8.05782 8.40852C8.02011 8.31753 8.00068 8.21999 8.00066 8.12149C8.00064 8.02299 8.02001 7.92546 8.05769 7.83444C8.09536 7.74343 8.15059 7.66073 8.22022 7.59107L9.81122 6.00007L8.22072 4.40857Z" fill="currentColor"/>
-                                </g>
-                                </svg>
-                            </a>
-
-                        </div>
-                        <p class="text-sm text-white/50 mt-1">
-                            {query.description}
-                        </p>
-                        <div class="flex items-center justify-between font-mono text-sm text-white/70 px-4 py-2 bg-neutral-600/30 border border-[#262626] rounded-md mt-3 mb-6">
-
-                            <svg
-                                class="h-6 w-6 mr-3"
-                                viewBox="0 0 13 14"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <g id="bi:terminal-fill">
-                                    <path
-                                        id="Vector"
-                                        d="M0 2.9375C0 2.50652 0.171205 2.0932 0.475952 1.78845C0.780698 1.4837 1.19402 1.3125 1.625 1.3125H11.375C11.806 1.3125 12.2193 1.4837 12.524 1.78845C12.8288 2.0932 13 2.50652 13 2.9375V11.0625C13 11.4935 12.8288 11.9068 12.524 12.2115C12.2193 12.5163 11.806 12.6875 11.375 12.6875H1.625C1.19402 12.6875 0.780698 12.5163 0.475952 12.2115C0.171205 11.9068 0 11.4935 0 11.0625V2.9375ZM7.71875 7.40625H5.28125C5.17351 7.40625 5.07017 7.44905 4.99399 7.52524C4.9178 7.60142 4.875 7.70476 4.875 7.8125C4.875 7.92024 4.9178 8.02358 4.99399 8.09976C5.07017 8.17595 5.17351 8.21875 5.28125 8.21875H7.71875C7.82649 8.21875 7.92983 8.17595 8.00601 8.09976C8.0822 8.02358 8.125 7.92024 8.125 7.8125C8.125 7.70476 8.0822 7.60142 8.00601 7.52524C7.92983 7.44905 7.82649 7.40625 7.71875 7.40625ZM2.55612 7.11862C2.51835 7.1564 2.48839 7.20124 2.46795 7.25059C2.44751 7.29994 2.43699 7.35283 2.43699 7.40625C2.43699 7.45967 2.44751 7.51256 2.46795 7.56191C2.48839 7.61126 2.51835 7.6561 2.55612 7.69388C2.63241 7.77016 2.73587 7.81301 2.84375 7.81301C2.89717 7.81301 2.95006 7.80249 2.99941 7.78205C3.04876 7.76161 3.0936 7.73165 3.13138 7.69388L4.75638 6.06888C4.79421 6.03114 4.82422 5.98631 4.8447 5.93695C4.86518 5.8876 4.87573 5.83469 4.87573 5.78125C4.87573 5.72781 4.86518 5.6749 4.8447 5.62555C4.82422 5.57619 4.79421 5.53136 4.75638 5.49362L3.13138 3.86862C3.0936 3.83085 3.04876 3.80089 2.99941 3.78045C2.95006 3.76001 2.89717 3.74949 2.84375 3.74949C2.79033 3.74949 2.73744 3.76001 2.68809 3.78045C2.63874 3.80089 2.5939 3.83085 2.55612 3.86862C2.51835 3.9064 2.48839 3.95124 2.46795 4.00059C2.44751 4.04994 2.43699 4.10283 2.43699 4.15625C2.43699 4.20967 2.44751 4.26256 2.46795 4.31191C2.48839 4.36126 2.51835 4.4061 2.55612 4.44388L3.89431 5.78125L2.55612 7.11862Z"
-                                        fill="#CECECE"
-                                    />
-                                </g>
-                            </svg>
-
-                            <p class="font-mono tracking-tight text-xs w-full">{`anyquery run ${query.id}`}</p>
-                            <svg
-                                class="h-6 w-6 ml-auto hover:text-white/100 cursor-pointer text-white/70 transition-all"
-                                viewBox="0 0 14 14"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                onclick={`navigator.clipboard.writeText("anyquery run ${query.id}")`}
-                            >
-                                <g id="bxs:copy">
-                                    <path
-                                        id="Vector"
-                                        d="M8.16699 4.66663H2.33366C1.69024 4.66663 1.16699 5.18988 1.16699 5.83329V11.6666C1.16699 12.31 1.69024 12.8333 2.33366 12.8333H8.16699C8.81041 12.8333 9.33366 12.31 9.33366 11.6666V5.83329C9.33366 5.18988 8.81041 4.66663 8.16699 4.66663Z"
-                                        fill="currentColor"
-                                    />
-                                    <path
-                                        id="Vector_2"
-                                        d="M11.667 1.16663H5.83366C5.52424 1.16663 5.22749 1.28954 5.0087 1.50833C4.78991 1.72713 4.66699 2.02387 4.66699 2.33329V3.49996H9.33366C9.64308 3.49996 9.93982 3.62288 10.1586 3.84167C10.3774 4.06046 10.5003 4.35721 10.5003 4.66663V9.33329H11.667C11.9764 9.33329 12.2732 9.21038 12.492 8.99158C12.7107 8.77279 12.8337 8.47605 12.8337 8.16663V2.33329C12.8337 2.02387 12.7107 1.72713 12.492 1.50833C12.2732 1.28954 11.9764 1.16663 11.667 1.16663Z"
-                                        fill="currentColor"
-                                    />
-                                </g>
-                            </svg>
-                        </div>
-                        {/* Spacer */}
-                        <div class="h-full">
-                        </div>
-                            {query.required_plugins?.length > 0 && (
-                                <div class="text-[0.8rem] text-white/80 font-medium tracking-tight flex items-center">
-                                    Plugins:{" "}
-                                    {query.required_plugins.map((plugin) => (
-                                        <span class="bg-[#262626] px-3 py-1 rounded-lg ml-3">
-                                            {plugin}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        <div class="text-[0.8rem] text-white/50 flex flex-wrap gap-1 pt-1">
-                            <div>
-                                {query.arguments?.length > 1 ? (
-                                    <p>
-                                        Requires {query.arguments?.length}{" "}
-                                        arguments
-                                    </p>
-                                ) : (
-                                    <p>
-                                        Requires {query.arguments?.length ?? 0}{" "}
-                                        argument
-                                    </p>
-                                )}
-                            </div>
-                            {query.tags?.length > 0 &&
-                            (<p>{"·"}</p>
-                            <p>Tags: {query.tags?.join(", ") ?? ""}</p>)}
-                        </div>
-                    </div>
+                    <QueryCard query={query} pluginsMapper={pluginsMapper} />
                 ))
         }
     </div>

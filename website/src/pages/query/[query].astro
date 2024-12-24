@@ -1,0 +1,196 @@
+---
+import Main from "../../layouts/main.astro";
+import { fetchRegistryPlugins } from "../../functions/fetchRegistryPlugins";
+import type { plugin } from "../../functions/fetchRegistryPlugins";
+
+import { slugify } from "../../functions/slugify";
+
+export async function getStaticPaths() {
+    const tips = [
+        'You can export the result of the answer to different formats (JSON, CSV, Markdown, etc.). Just pass the --format flag to the command. See all the formats available <a href="/docs/usage/exporting-results#supported-formats" class="text-blue-500">here</a>.',
+        "The anyquery run command automatically installs the required plugins for the query to run. You can also install the plugins manually using the anyquery install command.",
+        "You can also run local queries using the anyquery run command. Just pass the path to the query file as an argument (e.g. anyquery run path/to/query.sql).",
+        "To run a hub query on a different account, you can create a new profile using the anyquery profile create command. For example, let's say you have two GitHub accounts, run anyquery profile create github to authenticate with the second account. Next time you run a query, Anyquery will prompt you to select the profile to use.",
+    ];
+
+    const entries: any[] = [];
+    // Get all the remote plugins
+    const { remoteQueries, plugins } = await fetchRegistryPlugins();
+
+    const mapperPlugin = {};
+    for (const plugin of plugins.plugins) {
+        mapperPlugin[plugin.name] = plugin;
+    }
+
+    for (const query of remoteQueries.queries) {
+        const random = Math.floor(Math.random() * tips.length);
+        const localTip = tips[random];
+
+        entries.push({
+            params: { query: slugify(query.id) },
+            props: { query: query, pluginsMapper: mapperPlugin, tip: localTip },
+        });
+    }
+
+    return entries;
+}
+
+type Props = {
+    query: {
+        id: string;
+        title: string;
+        description: string;
+        required_plugins: string[];
+        arguments: {
+            title: string;
+            display_title: string;
+            description: string;
+            type: string;
+            regex: string;
+        }[];
+        query: string;
+        source_code: string;
+        author: string;
+        tags: string[];
+    };
+    pluginsMapper: Record<string, plugin>;
+    tip: string;
+};
+
+const { query, pluginsMapper, tip } = Astro.props;
+---
+
+<Main title={`Anyquery - ${query.title}`} noIndex={false}>
+    <main
+        class="max-w-xl mx-auto p-8 md:p-10 rounded-lg bg-black/60 mt-4 shadow-glow"
+    >
+        <div class="flex gap-2 mb-2">
+            {
+                query.required_plugins?.map((plugin) => {
+                    // Retrieve the plugin object from the pluginsMapper
+                    const pluginObject = pluginsMapper[plugin];
+                    if (!pluginObject) {
+                        return;
+                    }
+                    return (
+                        <a
+                            href={`/queries/plugin/${slugify(plugin)}`}
+                            class="flex items-center gap-2 rounded-md text-sm text-white/70"
+                        >
+                            <img src={pluginObject.icon} class="h-7 w-7 mr-1" />
+                        </a>
+                    );
+                })
+            }
+        </div>
+
+        <h1 class="text-xl">{query.title}</h1>
+        <p class="text-sm text-white/70">{query.description}</p>
+
+        <h2 class="text-lg mt-5">Run this query</h2>
+        <p class="text-xs text-white/50">
+            To run this query, you can use the following command:
+        </p>
+        <div
+            class="flex items-center justify-between font-mono text-sm text-white/70 px-4 py-2 bg-neutral-600/30 border border-[#262626] rounded-md mt-3 mb-6"
+        >
+            <!-- Ensure can break in the middle -->
+            <p class="font-mono tracking-tight text-xs w-full break-all">
+                {`anyquery run ${query.id}`}
+            </p>
+            <svg
+                class="h-6 w-6 ml-auto hover:text-white/100 cursor-pointer text-white/70 transition-all"
+                viewBox="0 0 14 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                onclick={`navigator.clipboard.writeText("anyquery run ${query.id}")`}
+            >
+                <g id="bxs:copy">
+                    <path
+                        id="Vector"
+                        d="M8.16699 4.66663H2.33366C1.69024 4.66663 1.16699 5.18988 1.16699 5.83329V11.6666C1.16699 12.31 1.69024 12.8333 2.33366 12.8333H8.16699C8.81041 12.8333 9.33366 12.31 9.33366 11.6666V5.83329C9.33366 5.18988 8.81041 4.66663 8.16699 4.66663Z"
+                        fill="currentColor"></path>
+                    <path
+                        id="Vector_2"
+                        d="M11.667 1.16663H5.83366C5.52424 1.16663 5.22749 1.28954 5.0087 1.50833C4.78991 1.72713 4.66699 2.02387 4.66699 2.33329V3.49996H9.33366C9.64308 3.49996 9.93982 3.62288 10.1586 3.84167C10.3774 4.06046 10.5003 4.35721 10.5003 4.66663V9.33329H11.667C11.9764 9.33329 12.2732 9.21038 12.492 8.99158C12.7107 8.77279 12.8337 8.47605 12.8337 8.16663V2.33329C12.8337 2.02387 12.7107 1.72713 12.492 1.50833C12.2732 1.28954 11.9764 1.16663 11.667 1.16663Z"
+                        fill="currentColor"></path>
+                </g>
+            </svg>
+        </div>
+
+        <h2 class="text-lg mt-8">Arguments</h2>
+        <div class="flex flex-col mt-1">
+            <div class="flex flex-col gap-2">
+                {
+                    query?.arguments?.map((argument) => (
+                        <div class="flex flex-col">
+                            <h3 class="text-sm tracking-tight text-white/90">
+                                {argument.display_title}
+                            </h3>
+                            <p class="text-xs text-white/50 mt-1">
+                                {argument.description}
+                            </p>
+                        </div>
+                    ))
+                }
+                {
+                    (!query?.arguments || query?.arguments?.length === 0) && (
+                        <p class="text-xs text-white/50">
+                            This query does not require any arguments.
+                        </p>
+                    )
+                }
+            </div>
+        </div>
+        <h2 class="text-lg mt-8">Additional informations</h2>
+        <a
+            href={query.source_code}
+            class="text-xs text-white/70 w-full p-3 bg-black border border-gray-600/50 rounded-md mt-2 flex gap-2 items-center"
+        >
+            <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+                ><g
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    color="currentColor"
+                    ><path
+                        d="m16 10l1.227 1.057c.515.445.773.667.773.943s-.258.498-.773.943L16 14m-8-4l-1.227 1.057C6.258 11.502 6 11.724 6 12s.258.498.773.943L8 14m5-5l-2 6"
+                    ></path><path
+                        d="M2.5 12c0-4.478 0-6.718 1.391-8.109S7.521 2.5 12 2.5c4.478 0 6.718 0 8.109 1.391S21.5 7.521 21.5 12c0 4.478 0 6.718-1.391 8.109S16.479 21.5 12 21.5c-4.478 0-6.718 0-8.109-1.391S2.5 16.479 2.5 12"
+                    ></path></g
+                ></svg
+            >
+            Source code
+        </a>
+        <a
+            href={`https://github.com/${query.author}`}
+            class="text-xs text-white/70 w-full p-3 bg-black border border-gray-600/50 rounded-md mt-2 flex gap-2 items-center"
+        >
+            <svg
+                width="24"
+                height="24"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+                class="text-white"
+                ><path
+                    fill="currentColor"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="4"
+                    d="M24 20a7 7 0 1 0 0-14a7 7 0 0 0 0 14M6 40.8V42h36v-1.2c0-4.48 0-6.72-.872-8.432a8 8 0 0 0-3.496-3.496C35.92 28 33.68 28 29.2 28H18.8c-4.48 0-6.72 0-8.432.872a8 8 0 0 0-3.496 3.496C6 34.08 6 36.32 6 40.8"
+                ></path></svg
+            >
+            Author
+        </a>
+
+        <h2 class="text-lg mt-8">Tip</h2>
+        <p class="text-xs text-white/50 mt-1" set:html={tip} />
+    </main>
+</Main>

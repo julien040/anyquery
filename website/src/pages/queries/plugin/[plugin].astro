@@ -1,0 +1,131 @@
+---
+import Main from "../../../layouts/main.astro";
+import { fetchRegistryPlugins } from "../../../functions/fetchRegistryPlugins";
+import type { query, plugin } from "../../../functions/fetchRegistryPlugins";
+
+import { slugify } from "../../../functions/slugify";
+import QueryCard from "../../../components/queryCard.astro";
+export async function getStaticPaths() {
+    let entries: any[] = [];
+    // Get all the remote plugins
+    const { remoteQueries, plugins } = await fetchRegistryPlugins();
+
+    const mapperPluginQueries = {};
+    const mapperPlugin = {};
+
+    for (const query of remoteQueries.queries) {
+        if (!query.required_plugins) {
+            query.required_plugins = [];
+        }
+        for (const plugin of query.required_plugins) {
+            if (plugin in mapperPluginQueries) {
+                mapperPluginQueries[plugin].push(query);
+            } else {
+                mapperPluginQueries[plugin] = [query];
+            }
+        }
+    }
+
+    for (const plugin of plugins.plugins) {
+        mapperPlugin[plugin.name] = plugin;
+    }
+
+    for (const plugin in mapperPluginQueries) {
+        entries.push({
+            params: { plugin: slugify(plugin) },
+            props: {
+                queries: mapperPluginQueries[plugin],
+                plugin: mapperPlugin[plugin],
+            },
+        });
+    }
+
+    return entries;
+}
+
+const { remoteQueries, plugins } = await fetchRegistryPlugins();
+
+const mapperPlugin = {};
+for (const plugin of plugins.plugins) {
+    mapperPlugin[plugin.name] = plugin;
+}
+
+type Props = {
+    queries: query[];
+    plugin: plugin;
+};
+
+const { queries, plugin } = Astro.props;
+---
+
+<Main title="Anyquery - Search the web for answers" noIndex={false}>
+    <div class="flex items-center gap-3">
+        <img src={plugin.icon} class="w-10 h-10 rounded-lg" />
+        <div>
+            <a
+                class="text-2xl text-white hover:underline font-bold tracking-tight"
+                href={`/integrations/${plugin.name}`}
+            >
+                {plugin.display_name}
+            </a>
+            <p class="text-sm text-white/60">
+                {plugin.description} - Here are predefined queries for the {
+                    plugin.display_name
+                } plugin.
+            </p>
+        </div>
+    </div>
+
+    <input
+        id="search"
+        aria-label="Search queries"
+        type="text"
+        placeholder="🔍 Search queries"
+        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-lg text-sm text-white/70"
+    />
+    <script>
+        const searchElement = document.getElementById("search");
+        if (searchElement) {
+            searchElement.addEventListener("input", (e: Event) => {
+                if (!(e.target instanceof HTMLInputElement)) {
+                    return;
+                }
+                const search = e.target.value.toLowerCase();
+                const queries = document.getElementById("queries")?.children;
+                if (!queries) {
+                    return;
+                }
+                for (let i = 0; i < queries.length; i++) {
+                    const query = queries[i];
+                    if (!(query instanceof HTMLElement)) {
+                        continue;
+                    }
+                    const titleElement = query.querySelector("h3");
+                    const descriptionElement = query.querySelector("p");
+                    if (!titleElement || !descriptionElement) {
+                        continue;
+                    }
+                    const title = titleElement.innerText.toLowerCase();
+                    const description =
+                        descriptionElement.innerText.toLowerCase();
+                    if (
+                        title.includes(search) ||
+                        description.includes(search)
+                    ) {
+                        query.style.display = "flex";
+                    } else {
+                        query.style.display = "none";
+                    }
+                }
+            });
+        }
+    </script>
+
+    <div id="queries" class="grid grid-cols-1 md:grid-cols-2 gap-2 mt-4">
+        {
+            queries.map((query) => (
+                <QueryCard query={query} pluginsMapper={mapperPlugin} />
+            ))
+        }
+    </div>
+</Main>
