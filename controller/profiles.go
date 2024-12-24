@@ -686,6 +686,19 @@ func ProfileNew(cmd *cobra.Command, args []string) error {
 		// If there are only two arguments, we assume the default registry
 		pluginName = args[0]
 		profileName = args[1]
+	} else if len(args) == 1 {
+		// If there is only one argument, we assume the default registry
+		pluginName = args[0]
+
+		// Ask for the profile name
+		profileInput := huh.NewInput().Title("Profile name").Value(&profileName).
+			Description("The table will be prefixed with the plugin name. For example, if the plugin is 'myplugin' and the profile is 'profile1', the table will be 'profile1_myplugin_table'")
+		err = profileInput.Run()
+		if err == huh.ErrUserAborted {
+			return nil
+		} else if err != nil {
+			return fmt.Errorf("could not run the form: %w", err)
+		}
 	} else {
 		// We will prompt the user to select the registry, a plugin and then a profile
 		// Because form values are based on precedent values, we can't use a form

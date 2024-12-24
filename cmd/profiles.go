@@ -29,11 +29,12 @@ Note: This command requires the tty to be interactive.`,
 }
 
 var profilesNewCmd = &cobra.Command{
-	Use:   "new [registry] [plugin] [profile]",
+	Use:   "new (registry plugin profile) | (plugin profile) | (plugin)",
 	Short: "Create a new profile",
 	Long: `Create a new profile.
 
 If only two arguments are provided, we consider that the registry is the default one.
+If only one argument is provided, the CLI will prompt you for the profile name, and will fallback to the default registry.
 If no argument is provided, the command will prompt you the registry, the plugin and the profile to create.
 Note: This command requires the tty to be interactive.`,
 	RunE:    controller.ProfileNew,
