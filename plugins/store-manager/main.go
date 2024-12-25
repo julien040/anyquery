@@ -99,7 +99,7 @@ func main() {
 		password = string(rawPass)
 	}
 
-	urlAuth, err := url.Parse(registryURL + "/api/admins/auth-with-password?fields=*")
+	urlAuth, err := url.Parse(registryURL + "/api/collections/_superusers/auth-with-password?fields=*")
 	if err != nil {
 		panic(err)
 	}
@@ -139,6 +139,11 @@ func main() {
 		panic(err)
 	}
 	toml.Unmarshal(rawContent, &plugin)
+
+	// To ensure the package name is the same as the one in the configuration file
+	if plugin.Name != packageName {
+		panic(fmt.Errorf("package name in the configuration file is %s, expected %s", plugin.Name, packageName))
+	}
 
 	// Set the current directory relative to the configuration file
 	// This is required to load the files
