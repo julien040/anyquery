@@ -352,6 +352,12 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			// Register the other functions
 			registerOtherFunctions(conn)
 
+			// Register the JSON functions
+			registerJSONFunctions(conn)
+
+			// Register the collations
+			registerCollations(conn)
+
 			// Database related modules
 			conn.CreateModule("postgres_reader", &module.PostgresModule{})
 			conn.CreateModule("mysql_reader", &module.MySQLModule{})

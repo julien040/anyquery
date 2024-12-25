@@ -1,10 +1,13 @@
 package namespace
 
 import (
+	"fmt"
 	"os"
 	pathlib "path"
+	"strconv"
 
 	"github.com/adrg/xdg"
+	u "github.com/bcicen/go-units"
 	"github.com/julien040/anyquery/module"
 	"github.com/mattn/go-sqlite3"
 )
@@ -19,6 +22,8 @@ func registerOtherFunctions(conn *sqlite3.SQLiteConn) {
 	}{
 		{"clear_file_cache", clear_file_cache, true},
 		{"clear_plugin_cache", clear_plugin_cache, true},
+		{"convert_unit", convert_unit, true},
+		{"format_unit", format_unit, true},
 	}
 	for _, f := range otherFunctions {
 		conn.RegisterFunc(f.name, f.function, f.pure)
@@ -94,4 +99,95 @@ func (b *bufferFlusher) Flush(plugin string) string {
 	}
 
 	return ""
+}
+
+// Conversion functions
+
+func convert_unit(unknownValue any, incomingUnit string, targetUnit string) (float64, error) {
+	var value float64
+	switch parsed := unknownValue.(type) {
+	case int64:
+		value = float64(parsed)
+	case float64:
+		value = parsed
+	case string:
+		// Try to parse the value
+		var err error
+		value, err = strconv.ParseFloat(parsed, 64)
+		if err != nil {
+			return 0, fmt.Errorf("The value is not a number: %s", parsed)
+		}
+	default:
+		return 0, fmt.Errorf("The value is not a number: %v (%T)", unknownValue, unknownValue)
+	}
+
+	// Try to parse the incoming unit
+	incoming, err := u.Find(incomingUnit)
+	if err != nil {
+		return 0, err
+	}
+
+	// Try to parse the target unit
+	target, err := u.Find(targetUnit)
+	if err != nil {
+		return 0, err
+	}
+
+	// Convert the value
+	uValue := u.NewValue(value, incoming)
+	converted, err := uValue.Convert(target)
+	if err != nil {
+		return 0, err
+	}
+
+	return converted.Float(), nil
+}
+
+func format_unit(unknownValue any, unit string, opts ...any) (string, error) {
+
+	var value float64
+	switch parsed := unknownValue.(type) {
+	case int64:
+		value = float64(parsed)
+	case float64:
+		value = parsed
+	case string:
+		// Try to parse the value
+		var err error
+		value, err = strconv.ParseFloat(parsed, 64)
+		if err != nil {
+			return "", fmt.Errorf("The value is not a number: %s", parsed)
+		}
+	default:
+		return "", fmt.Errorf("The value is not a number: %v (%T)", unknownValue, unknownValue)
+	}
+
+	// Try to parse the unit
+	parsedUnit, err := u.Find(unit)
+	if err != nil {
+		return "", err
+	}
+
+	formatOpts := u.FmtOptions{
+		Label:     true,  // append unit name/symbol
+		Short:     false, // use unit symbol
+		Precision: 5,
+	}
+
+	if len(opts) > 0 {
+		if val, ok := opts[0].(int64); ok && val != 0 {
+			formatOpts.Short = true
+		}
+	}
+
+	if len(opts) > 1 {
+		if val, ok := opts[1].(int64); ok {
+			formatOpts.Precision = int(val)
+		}
+	}
+
+	// Convert the value
+	uValue := u.NewValue(value, parsedUnit)
+	return uValue.Fmt(formatOpts), nil
+
 }

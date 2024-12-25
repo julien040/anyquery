@@ -223,7 +223,13 @@ These functions are not part of SQLite, but they are supported by Anyquery.
 
 ### Other functions
 
-| Function name         | Usage                                             | Alias |
-| --------------------- | ------------------------------------------------- | ----- |
-| clear_file_cache      | Clears the file cache for read_* table functions. |       |
-| clear_plugin_cache(X) | Clears the plugin cache for the plugin X.         |       |
+| Function name                                    | Usage                                                                                                                                                                                            | Alias         |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------- |
+| clear_file_cache                                 | Clears the file cache for read_* table functions.                                                                                                                                                |               |
+| clear_plugin_cache(X)                            | Clears the plugin cache for the plugin X.                                                                                                                                                        |               |
+| clear_buffers(X)                                 | Clears the INSERT/UPDATE/DELETE buffers of the X table (useful when an insert/update/delete fails).                                                                                              |               |
+| flush_buffers(X)                                 | Flushes the INSERT/UPDATE/DELETE buffers of the X table. To avoid too much API requests, Anyquery bulks up the requests. This might results in a delay. To force the flush, use this function.   |               |
+| convert_unit(value, from_unit, to_unit)          | Converts the value from the unit from_unit to the unit to_unit in float (available from 0.3.2)                                                                                                   |               |
+| format_unit(value, unit [, short] [, precision]) | Formats the value in the unit unit with the precision precision (available from 0.3.2)                                                                                                           |               |
+| json_has(X,Y)                                    | Returns 1 if the JSON has Y, otherwise 0. In case of an array, it returns 1 if the array contains 1. In case on an object, it returns 1 if the object has the key Y. In all other cases, X == Y. | json_contains |
+| json_unquote(X)                                  | Unquotes the JSON string X.                                                                                                                                                                      |               |
