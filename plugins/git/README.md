@@ -39,6 +39,7 @@ Returns the list of commits in the repository.
 | 5            | committer_email | TEXT |
 | 6            | committer_date  | TEXT |
 | 7            | message         | TEXT |
+| 8            | parents         | TEXT |
 
 ### `git_commits_diff`
 
@@ -69,6 +70,7 @@ SELECT sum(addition) as "addition", author_name FROM git_commits_diff('/path/to/
 | 8            | file_name       | TEXT    |
 | 9            | addition        | INTEGER |
 | 10           | deletion        | INTEGER |
+| 11           | parents         | TEXT    |
 
 ### `git_branches`
 

@@ -7,6 +7,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/julien040/anyquery/rpc"
+	"github.com/julien040/anyquery/rpc/helper"
 )
 
 // A constructor to create a new table instance
@@ -53,6 +54,10 @@ func commitsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 			},
 			{
 				Name: "message",
+				Type: rpc.ColumnTypeString,
+			},
+			{
+				Name: "parents",
 				Type: rpc.ColumnTypeString,
 			},
 		},
@@ -126,6 +131,11 @@ func (t *commitsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 		}
 		t.alreadyVisited[commit.Hash.String()] = true
 
+		var parents []string
+		for _, parent := range commit.ParentHashes {
+			parents = append(parents, parent.String())
+		}
+
 		rows = append(rows, []interface{}{
 			commit.Hash.String(),
 			commit.Author.Name,
@@ -135,6 +145,7 @@ func (t *commitsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 			commit.Committer.Email,
 			commit.Committer.When.Format(time.RFC3339),
 			commit.Message,
+			helper.Serialize(parents),
 		})
 
 	}

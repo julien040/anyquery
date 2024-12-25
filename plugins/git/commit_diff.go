@@ -7,6 +7,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/julien040/anyquery/rpc"
+	"github.com/julien040/anyquery/rpc/helper"
 )
 
 // A constructor to create a new table instance
@@ -66,6 +67,10 @@ func commit_diffCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSche
 			{
 				Name: "deletion",
 				Type: rpc.ColumnTypeInt,
+			},
+			{
+				Name: "parents",
+				Type: rpc.ColumnTypeString,
 			},
 		},
 	}, nil
@@ -142,6 +147,11 @@ func (t *commit_diffCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 			stats = nil
 		}
 
+		var parents []string
+		for _, parent := range commit.ParentHashes {
+			parents = append(parents, parent.String())
+		}
+
 		t.alreadyVisited[commit.Hash.String()] = true
 
 		for _, stat := range stats {
@@ -157,6 +167,7 @@ func (t *commit_diffCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 				stat.Name,
 				stat.Addition,
 				stat.Deletion,
+				helper.Serialize(parents),
 			})
 		}
 
