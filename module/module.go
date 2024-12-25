@@ -555,7 +555,7 @@ func (v *SQLiteModule) DestroyModule() {
 func (c *SQLiteCursor) Column(context *sqlite3.SQLiteContext, col int) error {
 	// First, we need to check if the column is a parameter
 	// If so, we return the value of the linked constraint
-	// becase it must be the same value for all the rows
+	// because it must be the same value for all the rows
 	if c.schema.Columns[col].IsParameter {
 		// We find the constraint that is linked to the column
 		// and return its value
