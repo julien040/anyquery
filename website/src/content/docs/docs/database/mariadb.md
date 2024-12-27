@@ -21,7 +21,7 @@ Then, create a new connection using the following command:
 anyquery connection add
 ```
 
-Refer to the [MySQL guide](../mysql) for more information about the different parameters.
+Refer to the [MySQL guide](/docs/database/mysql) for more information about the different parameters.
 
 ## Additional information
 
