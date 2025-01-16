@@ -288,9 +288,24 @@ func (p PluginConfig) GetBoolArray(key string) []bool {
 	return nil
 }
 
-// PluginManifest is a struct that holds the metadata of the plugin
+// Holds the metadata of a table
 //
-// It is often represented as a JSON file in the plugin directory
+// It is used to provide information about the table to end-users
+type TableMetadata struct {
+	// The description of the table
+	//
+	// Useful for LLMs to figure out what the table is about, and which tables are related for joins
+	Description string `json:"description"`
+	// A few SQL queries that show how to use the table
+	// (such as the parameters, the join with other tables, etc.)
+	//
+	// Prefix each examples with a -- comment that explains what the query does
+	//
+	//	[]string{"-- Get all the users\nSELECT * FROM users"}
+	Examples []string `json:"examples"`
+}
+
+// PluginManifest is a struct that holds the metadata of the plugin
 type PluginManifest struct {
 	Name        string
 	Version     string
@@ -298,6 +313,8 @@ type PluginManifest struct {
 	Description string
 	// A list of tables that the plugin will provide
 	Tables []string
+
+	TablesMetadata map[string]TableMetadata `json:"tables_metadata"`
 
 	UserConfig []PluginConfigField
 }
@@ -375,6 +392,12 @@ type DatabaseSchema struct {
 	// If set to false, the plugin will receive
 	//	[1, "world", 3.14]
 	PartialUpdate bool
+
+	// A description of the table
+	// (Not used by early versions of anyquery)
+	//
+	// Useful for LLMs to figure out what the table is about
+	Description string
 }
 
 // ColumnType is an enum that represents the type of a column
@@ -389,8 +412,16 @@ const (
 	ColumnTypeString
 	// ColumnTypeBlob represents a BLOB column
 	ColumnTypeBlob
-	// ColumnTypeBool represents is an alias for ColumnTypeInt
-	ColumnTypeBool = ColumnTypeInt
+	// ColumnTypeBool represents an INTEGER column, and must be either 0 or 1
+	ColumnTypeBool
+	// ColumnTypeDateTime represents a TEXT column that must be in the RFC3339 format
+	ColumnTypeDateTime
+	// ColumnTypeDate represents a TEXT column that must be in YYYY-MM-DD format
+	ColumnTypeDate
+	// ColumnTypeTime represents a TEXT column that must be in the HH:MM:SS format
+	ColumnTypeTime
+	// ColumnTypeJSON represents a TEXT column that must be a valid JSON string
+	ColumnTypeJSON
 )
 
 type DatabaseSchemaColumn struct {
@@ -419,7 +450,7 @@ type DatabaseSchemaColumn struct {
 	IsRequired bool
 
 	// A description of the column
-	// Not used by early versions of anyquery
+	// (Not used by early versions of anyquery)
 	Description string
 }
 
