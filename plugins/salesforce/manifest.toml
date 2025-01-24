@@ -1,6 +1,6 @@
 
 name = "salesforce"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query and INSERT/UPDATE/DELETE data from Salesforce"
 author = "julien040"
 license = "UNLICENSED"

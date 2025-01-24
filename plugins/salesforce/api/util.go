@@ -135,8 +135,9 @@ func InspectSchema(client *resty.Client, sObject string, domain string) (ColMapp
 				Index:                j,
 			}
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: field.Name,
-				Type: rpc.ColumnTypeFloat,
+				Name:        field.Name,
+				Type:        rpc.ColumnTypeFloat,
+				Description: fmt.Sprintf("Label %s (%s)", field.Label, field.Type),
 			})
 		case "boolean":
 			cols[field.Name] = Column{
@@ -148,8 +149,9 @@ func InspectSchema(client *resty.Client, sObject string, domain string) (ColMapp
 				Index:                j,
 			}
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: field.Name,
-				Type: rpc.ColumnTypeBool,
+				Name:        field.Name,
+				Type:        rpc.ColumnTypeBool,
+				Description: fmt.Sprintf("Label %s (%s)", field.Label, field.Type),
 			})
 		default:
 			cols[field.Name] = Column{
@@ -161,8 +163,9 @@ func InspectSchema(client *resty.Client, sObject string, domain string) (ColMapp
 				Index:                j,
 			}
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: field.Name,
-				Type: rpc.ColumnTypeString,
+				Name:        field.Name,
+				Type:        rpc.ColumnTypeString,
+				Description: fmt.Sprintf("Label %s (%s)", field.Label, field.Type),
 			})
 		}
 		j++

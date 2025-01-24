@@ -9,6 +9,7 @@ type DescribeField struct {
 	Updateable bool   `json:"updateable"`
 	Type       string `json:"type"`
 	Name       string `json:"name"`
+	Label      string `json:"label"`
 }
 
 type Rows struct {
