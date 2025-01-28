@@ -89,12 +89,12 @@ const databases = await getCollection("databases");
             remotePlugins.map((plugin) => (
                 <a
                     href={`/integrations/${slugify(plugin.name)}`}
-                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    class="block flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
                 >
                     <img
                         src={plugin.icon}
                         alt={plugin.display_name}
-                        class="w-10 h-10"
+                        class="max-h-10"
                     />
                     <h2 class="text-lg mt-3">{plugin.display_name}</h2>
                     <p class="break-words text-sm text-white/60">
