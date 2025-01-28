@@ -34,74 +34,92 @@ func my_issuesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 					Name:        "filter",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The filter to apply to the issues. Can be one of: assigned, created, mentioned, subscribed, all. If this parameter is not provided, all issues are returned.",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the issue",
 				},
 				{
-					Name: "number",
-					Type: rpc.ColumnTypeInt,
+					Name:        "number",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number ID of the issue. Will be found in https://github.com/owner/repo/issues/number",
 				},
 				{
-					Name: "by",
-					Type: rpc.ColumnTypeString,
+					Name:        "by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who created the issue",
 				},
 				{
-					Name: "user_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the user who created the issue",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the issue",
 				},
 				{
-					Name: "state",
-					Type: rpc.ColumnTypeInt,
+					Name:        "state",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The state of the issue (open, closed)",
 				},
 				{
-					Name: "locked",
-					Type: rpc.ColumnTypeBool,
+					Name:        "locked",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the issue is locked",
 				},
 				{
-					Name: "author_association",
-					Type: rpc.ColumnTypeString,
+					Name:        "author_association",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author association of the user who created the issue. Can be one of: OWNER, COLLABORATOR, CONTRIBUTOR, MEMBER",
 				},
 				{
-					Name: "assignees",
-					Type: rpc.ColumnTypeString,
+					Name:        "assignees",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of the assignees of the issue",
 				},
 				{
-					Name: "labels",
-					Type: rpc.ColumnTypeString,
+					Name:        "labels",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of the labels of the issue",
 				},
 				{
-					Name: "comments",
-					Type: rpc.ColumnTypeInt,
+					Name:        "comments",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of comments on the issue",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date and time the issue was created (RFC3339 format)",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date and time the issue was last updated (RFC3339 format)",
 				},
 				{
-					Name: "closed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date and time the issue was closed (RFC3339 format). Can be null if the issue is open",
 				},
 				{
-					Name: "closed_by",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who closed the issue. Can be null if the issue is open",
 				},
 				{
-					Name: "is_pull_request",
-					Type: rpc.ColumnTypeString,
+					Name:        "is_pull_request",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the issue is a pull request",
 				},
 				{
-					Name: "repository",
-					Type: rpc.ColumnTypeString,
+					Name:        "repository",
+					Type:        rpc.ColumnTypeString,
+					Description: "The repository in the format owner/name",
 				},
 			},
 		}, nil
@@ -214,24 +232,6 @@ func (t *my_issuesTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *my_issuesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *my_issuesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *my_issuesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

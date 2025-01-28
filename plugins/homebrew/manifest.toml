@@ -1,16 +1,33 @@
 
 name = "brew"
 displayName = "Homebrew"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query Homebrew formulae and casks"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/homebrew"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/homebrew"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["formulae", "casks"]
+
+[[table]]
+name = "formulae"
+description = "List all formulae in the core tap"
+examples = [
+    "-- List all formulae\nSELECT * FROM brew_formulae;",
+    "-- List all formulae with a specific name\nSELECT * FROM brew_formulae WHERE name='formula_name';",
+    "-- List all formulae with a specific version\nSELECT * FROM brew_formulae WHERE version='1.0.0';",
+]
+
+[[table]]
+name = "casks"
+description = "List all casks in the cask tap"
+examples = [
+    "-- List all casks\nSELECT * FROM brew_casks;",
+    "-- List all casks with a specific name\nSELECT * FROM brew_casks WHERE name='cask_name';",
+    "-- List all casks with a specific version\nSELECT * FROM brew_casks WHERE version='1.0.0';",
+]
 
 
 [[file]]

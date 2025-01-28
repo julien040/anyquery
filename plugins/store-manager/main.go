@@ -37,6 +37,20 @@ type File struct {
 	ExecutablePath string `toml:"executablePath" json:"executablePath"`
 }
 
+type TableMetadata struct {
+	Description string
+	Examples    []string
+}
+
+// Represents a table of the plugin in the TOML file
+//
+// The store-manager will convert this to the right format supported by the server
+type TomlTables struct {
+	Name        string   `toml:"name" json:"name"`
+	Description string   `toml:"description" json:"description"`
+	Examples    []string `toml:"examples" json:"examples"`
+}
+
 // Plugin represents a plugin configuration
 // If a field is not set, it will be ignored
 type Plugin struct {
@@ -52,7 +66,10 @@ type Plugin struct {
 	MinimumAnyqueryVersion string `toml:"minimumAnyqueryVersion" json:"minimumAnyqueryVersion,omitempty"`
 	IconURL                string `toml:"iconURL" json:"icon,omitempty"`
 
-	Tables []string `toml:"tables" json:"tables,omitempty"`
+	Tables         []string                 `json:"tables,omitempty" toml:"tables"`
+	TablesMetadata map[string]TableMetadata `json:"tablesMetadata,omitempty" toml:"-"`
+
+	TomlTables []TomlTables `toml:"table" json:"-"` // Parsed in TOML, omitted in JSON
 
 	UserConfig []UserConfig `toml:"userConfig" json:"userConfig,omitempty"`
 
@@ -145,14 +162,105 @@ func main() {
 		panic(fmt.Errorf("package name in the configuration file is %s, expected %s", plugin.Name, packageName))
 	}
 
+	// Convert the tables to the right format if the tableList is not empty
+	if len(plugin.TomlTables) > 0 {
+		plugin.Tables = make([]string, len(plugin.TomlTables))
+		plugin.TablesMetadata = make(map[string]TableMetadata, len(plugin.TomlTables))
+		for i, table := range plugin.TomlTables {
+			plugin.Tables[i] = table.Name
+			plugin.TablesMetadata[table.Name] = TableMetadata{
+				Description: table.Description,
+				Examples:    table.Examples,
+			}
+		}
+	}
+
 	// Set the current directory relative to the configuration file
 	// This is required to load the files
-
 	err = os.Chdir(filepath.Dir(configurationFile))
 	if err != nil {
 		panic(fmt.Errorf("error changing directory: %w", err))
 	}
 	ids := []string{}
+
+	// Check that the version is not already uploaded
+	getRecordUrl, err := url.Parse(registryURL + "/api/collections/plugin/records")
+	if err != nil {
+		panic(err)
+	}
+
+	queryParams := url.Values{}
+	queryParams.Add("filter", fmt.Sprintf("(name='%s')", plugin.Name))
+	queryParams.Add("perPage", "10")
+	queryParams.Add("expand", "versions")
+
+	req, err = http.NewRequest("GET", getRecordUrl.String()+"?"+queryParams.Encode(), nil)
+	if err != nil {
+		panic(err)
+	}
+
+	req.Header["Authorization"] = []string{"Bearer " + token}
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	parsedRes := &PluginsAPIPocketbase{}
+	err = json.NewDecoder(resp.Body).Decode(parsedRes)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(parsedRes.Items) == 0 {
+		fmt.Println("Plugin not found in the registry. Please create it first")
+		return
+	}
+
+	if len(parsedRes.Items) > 1 {
+		fmt.Println("Multiple plugins with the same name found. Please delete the duplicates")
+		return
+	}
+
+	// Check if the version is already uploaded
+	for _, version := range parsedRes.Items[0].Expand.Versions {
+		if version.Version == plugin.Version {
+			fmt.Printf("Version %s already uploaded\n", plugin.Version)
+			return
+		}
+	}
+
+	supportedTypes := map[string]bool{
+		"string":   true,
+		"int":      true,
+		"bool":     true,
+		"float":    true,
+		"[]string": true,
+		"[]int":    true,
+		"[]bool":   true,
+		"[]float":  true,
+	}
+
+	// Ensure userConfig has all the required fields
+	for i, userConfig := range plugin.UserConfig {
+		if userConfig.Name == "" {
+			panic(fmt.Errorf("userConfig[%d].Name is required", i))
+		}
+
+		if userConfig.Description == "" {
+			panic(fmt.Errorf("userConfig[%d].Description is required", i))
+		}
+
+		if userConfig.Type == "" {
+			panic(fmt.Errorf("userConfig[%d].Type is required", i))
+		}
+
+		if !supportedTypes[userConfig.Type] {
+			panic(fmt.Errorf("userConfig[%d].Type is not supported", i))
+		}
+
+	}
 
 	fmt.Println("Uploading files")
 
@@ -173,7 +281,7 @@ func main() {
 
 	fmt.Printf("Uploaded version %s (%s)\n", plugin.Version, versionId)
 
-	queryParams := url.Values{}
+	queryParams = url.Values{}
 	queryParams.Add("filter", fmt.Sprintf("(name='%s')", plugin.Name))
 	queryParams.Add("perPage", "1")
 	queryParams.Add("expand", "versions")
@@ -186,7 +294,7 @@ func main() {
 	req.Header["Authorization"] = []string{"Bearer " + token}
 	req.Header.Set("Accept", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err = http.DefaultClient.Do(req)
 	if err != nil {
 		panic(err)
 	}
@@ -308,7 +416,7 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 	}
 
 	if len(versionID.String()) != 15 {
-		panic("Version ID is not 15 characters long " + versionID.String() + " " + string(len(versionID.String())))
+		panic(fmt.Errorf("Version ID is not 15 characters long %s %d", versionID.String(), len(versionID.String())))
 	}
 
 	// We do that because the API reject any nil value
@@ -322,6 +430,8 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 		plugin.UserConfig = make([]UserConfig, 0)
 	}
 
+	fmt.Println("Uploading version", versionID.String())
+
 	rawBody := map[string]interface{}{
 		"id":              versionID.String(),
 		"version":         plugin.Version,
@@ -329,6 +439,7 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 		"files":           ids,
 		"user_config":     plugin.UserConfig,
 		"tables":          plugin.Tables,
+		"tablesMetadata":  plugin.TablesMetadata,
 	}
 
 	marshalled, err := json.Marshal(rawBody)
@@ -358,7 +469,7 @@ func uploadVersion(plugin Plugin, ids []string, token string) (string, error) {
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		fmt.Println(response)
+		fmt.Printf("Error uploading version: %+v\n", response)
 		return "", fmt.Errorf("status code: %d", resp.StatusCode)
 	}
 

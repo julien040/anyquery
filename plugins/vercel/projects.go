@@ -35,38 +35,47 @@ func projectsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 					Name:        "team_id",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The ID of the team. Follow https://vercel.com/docs/accounts/create-a-team#find-your-team-id to find the team ID",
 				},
 				{
-					Name: "account_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "account_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the account which owns the project",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the project was created",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the project was last updated",
 				},
 				{
-					Name: "framework",
-					Type: rpc.ColumnTypeString,
+					Name:        "framework",
+					Type:        rpc.ColumnTypeString,
+					Description: "One of: blitzjs | nextjs | gatsby | remix | astro | hexo | eleventy | docusaurus-2 | docusaurus | preact | solidstart-1 | solidstart | dojo | ember | vue | scully | ionic-angular | angular | polymer | svelte | sveltekit | sveltekit-1 | ionic-react | create-react-app | gridsome | umijs | sapper | saber | stencil | nuxtjs | redwoodjs | hugo | jekyll | brunch | middleman | zola | hydrogen | vite | vitepress | vuepress | parcel | fasthtml | sanity-v3 | sanity | storybook",
 				},
 				{
-					Name: "project_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "project_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the project",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the project",
 				},
 				{
-					Name: "node_version",
-					Type: rpc.ColumnTypeString,
+					Name:        "node_version",
+					Type:        rpc.ColumnTypeString,
+					Description: "The version of Node.js used in the project. One of: 22.x | 20.x | 18.x | 16.x | 14.x | 12.x | 10.x | 8.10.x",
 				},
 				{
-					Name: "serverless_region",
-					Type: rpc.ColumnTypeString,
+					Name:        "serverless_region",
+					Type:        rpc.ColumnTypeString,
+					Description: "The AWS region where the serverless functions are deployed",
 				},
 			},
 		}, nil
@@ -181,24 +190,6 @@ func (t *projectsTable) CreateReader() rpc.ReaderInterface {
 		token: t.token,
 		next:  0,
 	}
-}
-
-// A slice of rows to insert
-func (t *projectsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *projectsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *projectsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

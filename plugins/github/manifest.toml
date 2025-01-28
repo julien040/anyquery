@@ -1,35 +1,180 @@
 
 name = "github"
-version = "0.1.3"
+version = "0.1.5"
 description = "Query GitHub data"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/github"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/github"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = [
-    "my_repositories",
-    "repositories_from_user",
-    "commits_from_repository",
-    "issues_from_repository",
-    "pull_requests_from_repository",
-    "releases_from_repository",
-    "branches_from_repository",
-    "contributors_from_repository",
-    "tags_from_repository",
-    "followers_from_user",
-    "my_followers",
-    "following_from_user",
-    "my_following",
-    "stars_from_user",
-    "my_stars",
-    "gists_from_user",
-    "my_gists",
-    "comments_from_issue",
-    "my_issues",
-    "stargazers_from_repository",
+[[table]]
+name = "my_repositories"
+description = "List all repositories from the authenticated user"
+examples = [
+    "-- List all repositories from the authenticated user\nSELECT * FROM my_repositories;",
+]
+
+[[table]]
+name = "repositories_from_user"
+description = "List all repositories from a user that you have access to"
+examples = [
+    "-- List all repositories from a user that you have access to\nSELECT * FROM repositories_from_user('julien040');",
+]
+
+[[table]]
+name = "commits_from_repository"
+description = "List all commits from a repository"
+examples = [
+    "-- List all commits from a repository\nSELECT * FROM commits_from_repository('julien040/anyquery');",
+]
+
+[[table]]
+name = "issues_from_repository"
+description = "List all issues from a repository"
+examples = [
+    "-- List all issues from a repository\nSELECT * FROM issues_from_repository('julien040/anyquery');",
+]
+
+[[table]]
+name = "pull_requests_from_repository"
+description = "List all pull requests from a repository"
+examples = [
+    "-- List all pull requests from a repository\nSELECT * FROM pull_requests_from_repository('julien040/anyquery');",
+]
+
+[[table]]
+name = "releases_from_repository"
+description = "List all releases from a repository"
+examples = [
+    "-- List all releases from a repository\nSELECT * FROM releases_from_repository('julien040/anyquery');",
+    """-- How many downloads for each release
+WITH
+    releases_assets AS (
+        SELECT
+            r.name as release_id,
+            js.value ->> 'download_count' as downloads
+        FROM
+            github_releases_from_repository ('julien040/anyquery') r,
+            json_each (assets) js
+    )
+SELECT
+    release_id as release,
+    sum(downloads) as downloads
+FROM
+    releases_assets
+GROUP BY
+    release_id
+ORDER BY
+    release_id ASC;
+""",
+]
+
+[[table]]
+name = "branches_from_repository"
+description = "List all branches from a repository"
+examples = [
+    "-- List all branches from a repository\nSELECT * FROM branches_from_repository('julien040/anyquery');",
+]
+
+[[table]]
+name = "contributors_from_repository"
+description = "List all contributors from a repository"
+examples = [
+    "-- List all contributors from a repository\nSELECT * FROM contributors_from_repository('julien040/anyquery');",
+    "-- Biggest contributor\nSELECT login, sum(contributions) as contributions FROM contributors_from_repository('julien040/anyquery') GROUP BY login ORDER BY contributions DESC LIMIT 1;",
+]
+
+[[table]]
+name = "tags_from_repository"
+description = "List all tags from a repository"
+examples = [
+    "-- List all tags from a repository\nSELECT * FROM tags_from_repository('julien040/anyquery');",
+]
+
+[[table]]
+name = "followers_from_user"
+description = "List all followers from a user"
+examples = [
+    "-- List all followers from a user\nSELECT * FROM followers_from_user('julien040');",
+]
+
+[[table]]
+name = "my_followers"
+description = "List all followers from the authenticated user"
+examples = [
+    "-- List all followers from the authenticated user\nSELECT * FROM my_followers;",
+]
+
+[[table]]
+name = "following_from_user"
+description = "List all users that a user is following"
+examples = [
+    "-- List all users that a user is following\nSELECT * FROM following_from_user('julien040/anyquery');",
+]
+
+[[table]]
+name = "my_following"
+description = "List all users that the authenticated user is following"
+examples = [
+    "-- List all users that the authenticated user is following\nSELECT * FROM my_following;",
+]
+
+[[table]]
+name = "stars_from_user"
+description = "List all repositories starred by a user"
+examples = [
+    "-- List all repositories starred by a user\nSELECT * FROM stars_from_user('julien040');",
+    "-- List all repositories starred by a user with a specific language\nSELECT * FROM stars_from_user('julien040') WHERE lower(language)='go';",
+]
+
+[[table]]
+name = "my_stars"
+description = "List all repositories starred by the authenticated user"
+examples = [
+    "-- List all repositories starred by the authenticated user\nSELECT * FROM my_stars;",
+    "-- List all repositories starred by the authenticated user with a specific language\nSELECT * FROM my_stars WHERE lower(language)='go';",
+]
+
+[[table]]
+name = "gists_from_user"
+description = "List all gists from a user"
+examples = [
+    "-- List all gists from a user\nSELECT * FROM gists_from_user('julien040');",
+]
+
+[[table]]
+name = "my_gists"
+description = "List all gists from the authenticated user"
+examples = [
+    "-- List all gists from the authenticated user\nSELECT * FROM my_gists;",
+]
+
+[[table]]
+name = "comments_from_issue"
+description = "List all comments from an issue"
+examples = [
+    "-- List all comments from an issue\nSELECT * FROM comments_from_issue('julien040/anyquery', 1);",
+]
+
+[[table]]
+name = "my_issues"
+description = "List all issues from the authenticated user"
+examples = [
+    "-- List all issues from the authenticated user\nSELECT * FROM my_issues;",
+    "-- List all assigned issues from the authenticated user\nSELECT * FROM my_issues('assigned');",
+    "-- List all issues from the authenticated user with a specific label\nSELECT * FROM my_issues WHERE labels LIKE '%enhancement%';",
+    "-- List all created issues from the authenticated user\nSELECT * FROM my_issues('created');",
+    "-- List all mentioned issues from the authenticated user\nSELECT * FROM my_issues('mentioned');",
+    "-- List all subscribed issues from the authenticated user\nSELECT * FROM my_issues('subscribed');",
+]
+
+[[table]]
+name = "stargazers_from_repository"
+description = "List all stargazers from a repository"
+examples = [
+    "-- List all stargazers from a repository\nSELECT * FROM stargazers_from_repository('julien040/anyquery');",
 ]
 
 # The user configuration schema

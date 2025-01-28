@@ -1,15 +1,29 @@
 
 name = "pypi"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query information about Python packages from PyPI"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/pypi"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/pypi"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["versions", "package"]
+[[table]]
+name = "versions"
+description = "List all versions of a package"
+examples = [
+    "-- List all versions of a package\nSELECT * FROM pypi_versions('flask');",
+    "-- List all versions after 1.0.0\nSELECT * FROM pypi_versions('flask') WHERE version > '1.0.0' COLLATE semver;",
+]
+
+[[table]]
+name = "package"
+description = "Get information about a package"
+examples = [
+    "-- Get information about a package\nSELECT * FROM pypi_package('flask');",
+    "-- Get the source code URL of a package\nSELECT source_code_url FROM pypi_package('flask');",
+]
 
 [[file]]
 platform = "linux/amd64"

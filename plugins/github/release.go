@@ -38,42 +38,49 @@ func releaseCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
 					Name: "id",
 					Type: rpc.ColumnTypeInt,
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the release",
 				},
 				{
-					Name: "tag",
-					Type: rpc.ColumnTypeString,
+					Name:        "tag",
+					Type:        rpc.ColumnTypeString,
+					Description: "The tag linked to the release",
 				},
 				{
-					Name: "body",
-					Type: rpc.ColumnTypeString,
+					Name:        "body",
+					Type:        rpc.ColumnTypeString,
+					Description: "The markdown body of the release",
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "published_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
-					Name: "by",
-					Type: rpc.ColumnTypeString,
+					Name:        "by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who created the release",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to the release",
 				},
 				{
-					Name: "assets",
-					Type: rpc.ColumnTypeString,
+					Name:        "assets",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of assets objects (name, url, browser_download_url, content_type, size, download_count)",
 				},
 			},
 		}, nil
@@ -160,24 +167,6 @@ func (t *releaseTable) CreateReader() rpc.ReaderInterface {
 	return &releaseCursor{
 		t.client, t.db, 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *releaseTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *releaseTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *releaseTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

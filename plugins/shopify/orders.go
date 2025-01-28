@@ -97,8 +97,9 @@ func (r *rateLimit) ordersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Da
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the order",
 				},
 				{
 					Name: "name",
@@ -122,15 +123,15 @@ func (r *rateLimit) ordersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Da
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "processed_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "unpaid",
@@ -315,24 +316,6 @@ func (t *ordersCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 
 	return rows, t.nextCursor == "" || len(apiResponse.Data.Orders.Nodes) < 250, nil
 
-}
-
-// A slice of rows to insert
-func (t *ordersTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *ordersTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *ordersTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

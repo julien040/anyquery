@@ -1,15 +1,24 @@
 
 name = "typeform"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query Typeform responses"
 author = "Julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/typeform"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/typeform"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
 tables = ["responses"]
+
+[[table]]
+name = "responses"
+description = "List all responses of a form (dynamic schema)"
+examples = [
+    "-- List all responses\nSELECT * FROM typeform_responses;",
+    "-- Get the number of responses\nSELECT COUNT(*) FROM typeform_responses;",
+    "-- Get the count of submissions per day\nSELECT count(*) as 'Count of submissions', date(submitted_at) as Date FROM typeform_responses GROUP BY date(submitted_at);",
+]
 
 # The user configuration schema
 [[userConfig]]

@@ -38,62 +38,74 @@ func pullRequestsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSch
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the pull request",
 				},
 				{
-					Name: "number",
-					Type: rpc.ColumnTypeInt,
+					Name:        "number",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number ID of the pull request. In https://github.com/owner/name/pull/16, the number ID is 16",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the pull request",
 				},
 				{
-					Name: "body",
-					Type: rpc.ColumnTypeString,
+					Name:        "body",
+					Type:        rpc.ColumnTypeString,
+					Description: "The markdown body of the pull request",
 				},
 				{
-					Name: "state",
-					Type: rpc.ColumnTypeString,
+					Name:        "state",
+					Type:        rpc.ColumnTypeString,
+					Description: "The state of the pull request (open, closed, merged)",
 				},
 				{
-					Name: "by",
-					Type: rpc.ColumnTypeString,
+					Name:        "by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who opened the pull request",
 				},
 				{
-					Name: "assignees",
-					Type: rpc.ColumnTypeString,
+					Name:        "assignees",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of assignees",
 				},
 				{
-					Name: "labels",
-					Type: rpc.ColumnTypeString,
+					Name:        "labels",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of labels",
 				},
 				{
 					Name: "closed_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
-					Name: "merged_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "merged_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date and time the pull request was merged (RFC3339 format). Can be null if the pull request is open or closed",
 				},
 				{
-					Name: "merged_by",
-					Type: rpc.ColumnTypeString,
+					Name:        "merged_by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who merged the pull request. Can be null if the pull request is open or closed",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the pull request on GitHub",
 				},
 			},
 		}, nil
@@ -198,24 +210,6 @@ func (t *pullRequestsTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *pullRequestsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *pullRequestsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *pullRequestsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

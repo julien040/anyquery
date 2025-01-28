@@ -70,8 +70,9 @@ func (r *rateLimit) productsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the product",
 				},
 				{
 					Name: "title",
@@ -87,11 +88,11 @@ func (r *rateLimit) productsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "status",
@@ -250,24 +251,6 @@ func (t *productsTable) CreateReader() rpc.ReaderInterface {
 		storeName:  t.storeName,
 		nextCursor: "",
 	}
-}
-
-// A slice of rows to insert
-func (t *productsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *productsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *productsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

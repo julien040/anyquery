@@ -71,60 +71,74 @@ func itemsBodyCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "uid",
-					Type: rpc.ColumnTypeInt,
+					Name:        "uid",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The unique identifier of the email",
 				},
 				{
-					Name: "subject",
-					Type: rpc.ColumnTypeString,
+					Name:        "subject",
+					Type:        rpc.ColumnTypeString,
+					Description: "The subject of the email",
 				},
 				{
-					Name: "sent_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "sent_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the email was sent (RFC3339)",
 				},
 				{
-					Name: "received_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "received_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the email was received (RFC3339)",
 				},
 				{
-					Name: "_from",
-					Type: rpc.ColumnTypeString,
+					Name:        "_from",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of JSON objects with the email and name of the sender. ([{\"email\": \"john@example.com\", \"name\": \"John Doe\"}])",
 				},
 				{
-					Name: "to",
-					Type: rpc.ColumnTypeString,
+					Name:        "to",
+					Type:        rpc.ColumnTypeString,
+					Description: "An array of JSON objects with the email and name of the sender. ([{\"email\": \"john@example.com\", \"name\": \"John Doe\"}])",
 				},
 				{
-					Name: "reply_to",
-					Type: rpc.ColumnTypeString,
+					Name:        "reply_to",
+					Type:        rpc.ColumnTypeString,
+					Description: "An array of JSON objects with the email and name of the sender. ([{\"email\": \"john@example.com\", \"name\": \"John Doe\"}])",
 				},
 				{
-					Name: "cc",
-					Type: rpc.ColumnTypeString,
+					Name:        "cc",
+					Type:        rpc.ColumnTypeString,
+					Description: "An array of JSON objects with the email and name of the sender. ([{\"email\": \"john@example.com\", \"name\": \"John Doe\"}])",
 				},
 				{
-					Name: "bcc",
-					Type: rpc.ColumnTypeString,
+					Name:        "bcc",
+					Type:        rpc.ColumnTypeString,
+					Description: "An array of JSON objects with the email and name of the sender. ([{\"email\": \"john@example.com\", \"name\": \"John Doe\"}])",
 				},
 				{
-					Name: "message_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "message_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the email",
 				},
 				{
-					Name: "flags",
-					Type: rpc.ColumnTypeString,
+					Name:        "flags",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of flags of the email. Flags are: Seen, Answered, Flagged, Deleted, Draft, Recent",
 				},
 				{
-					Name: "size",
-					Type: rpc.ColumnTypeInt,
+					Name:        "size",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The size of the email in bytes",
 				},
 				{
-					Name: "folder",
-					Type: rpc.ColumnTypeString,
+					Name:        "folder",
+					Type:        rpc.ColumnTypeString,
+					Description: "The folder of the email",
 				},
 				{
-					Name: "body",
-					Type: rpc.ColumnTypeString,
+					Name:        "body",
+					Type:        rpc.ColumnTypeString,
+					Description: "The HTML body of the email",
 				},
 			},
 		}, nil
@@ -428,24 +442,6 @@ func (t *itemsBodyTable) CreateReader() rpc.ReaderInterface {
 		username:        t.username,
 		password:        t.password,
 	}
-}
-
-// A slice of rows to insert
-func (t *itemsBodyTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *itemsBodyTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *itemsBodyTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

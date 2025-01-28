@@ -81,80 +81,99 @@ func itemsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			HandlesDelete: true,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the saved article",
 				},
 				{
-					Name: "given_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "given_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL given by the user",
 				},
 				{
-					Name: "given_title",
-					Type: rpc.ColumnTypeString,
+					Name:        "given_title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title given by the user",
 				},
 				{
-					Name: "resolved_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "resolved_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL resolved by Pocket. Can be different from the given URL. Prefer this one",
 				},
 				{
-					Name: "resolved_title",
-					Type: rpc.ColumnTypeString,
+					Name:        "resolved_title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title resolved by Pocket. Can be different from the given title. Prefer this one",
 				},
 				{
-					Name: "excerpt",
-					Type: rpc.ColumnTypeString,
+					Name:        "excerpt",
+					Type:        rpc.ColumnTypeString,
+					Description: "A small summary of the article",
 				},
 				{
-					Name: "lang",
-					Type: rpc.ColumnTypeString,
+					Name:        "lang",
+					Type:        rpc.ColumnTypeString,
+					Description: "The language of the article",
 				},
 				{
-					Name: "favorite",
-					Type: rpc.ColumnTypeInt,
+					Name:        "favorite",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the article is favorited",
 				},
 				{
-					Name: "status",
-					Type: rpc.ColumnTypeInt,
+					Name:        "status",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The status of the article. 1 if archived, 2 if deleted, 0 otherwise",
 				},
 				{
-					Name: "time_added",
-					Type: rpc.ColumnTypeInt,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the article was added to Pocket",
 				},
 				{
-					Name: "time_updated",
-					Type: rpc.ColumnTypeInt,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the article was last updated",
 				},
 				{
-					Name: "time_favorited",
-					Type: rpc.ColumnTypeInt,
+					Name:        "favorited_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the article was favorited",
 				},
 				{
-					Name: "time_read",
-					Type: rpc.ColumnTypeInt,
+					Name:        "read_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the article was read",
 				},
 				{
-					Name: "is_article",
-					Type: rpc.ColumnTypeInt,
+					Name:        "is_article",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the item is an article",
 				},
 				{
-					Name: "has_image",
-					Type: rpc.ColumnTypeInt,
+					Name:        "has_image",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the item has an image",
 				},
 				{
-					Name: "has_video",
-					Type: rpc.ColumnTypeInt,
+					Name:        "has_video",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the item has a video",
 				},
 				{
-					Name: "word_count",
-					Type: rpc.ColumnTypeInt,
+					Name:        "word_count",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of words in the article",
 				},
 				{
-					Name: "time_to_read",
-					Type: rpc.ColumnTypeInt,
+					Name:        "time_to_read",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The time to read the article in minutes",
 				},
 				{
-					Name: "listen_duration_estimate",
-					Type: rpc.ColumnTypeInt,
+					Name:        "listen_duration_estimate",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The estimated time to listen to the article in seconds",
 				},
 			},
 		}, nil
@@ -389,14 +408,6 @@ func (t *itemsTable) Insert(rows [][]interface{}) error {
 		clearCache(t.db)
 	}
 
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *itemsTable) Update(rows [][]interface{}) error {
 	return nil
 }
 

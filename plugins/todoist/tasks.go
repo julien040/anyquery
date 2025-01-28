@@ -38,72 +38,89 @@ func tasksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			HandlesDelete: true,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the task",
 				},
 				{
-					Name: "assigner_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "assigner_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who assigned the task",
 				},
 				{
-					Name: "assignee_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "assignee_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who is assigned the task",
 				},
 				{
-					Name: "project_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "project_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the project the task is in",
 				},
 				{
-					Name: "section_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "section_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the section the task is in",
 				},
 				{
-					Name: "parent_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "parent_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the parent task",
 				},
 				{
-					Name: "order",
-					Type: rpc.ColumnTypeInt,
+					Name:        "order",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The position of the task in the subtasks list",
 				},
 				{
-					Name: "content",
-					Type: rpc.ColumnTypeString,
+					Name:        "content",
+					Type:        rpc.ColumnTypeString,
+					Description: "The markdown content of the task",
 				},
 				{
-					Name: "description",
-					Type: rpc.ColumnTypeString,
+					Name:        "description",
+					Type:        rpc.ColumnTypeString,
+					Description: "A small description of the task",
 				},
 				{
-					Name: "is_completed",
-					Type: rpc.ColumnTypeBool,
+					Name:        "is_completed",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the task is completed",
 				},
 				{
-					Name: "labels",
-					Type: rpc.ColumnTypeString,
+					Name:        "labels",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of labels",
 				},
 				{
-					Name: "priority",
-					Type: rpc.ColumnTypeInt,
+					Name:        "priority",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The priority of the task",
 				},
 				{
-					Name: "comment_count",
-					Type: rpc.ColumnTypeInt,
+					Name:        "comment_count",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of comments on the task",
 				},
 				{
-					Name: "creator_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "creator_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who created the task",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the task was created",
 				},
 				{
-					Name: "due",
-					Type: rpc.ColumnTypeString,
+					Name:        "due_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the task is due",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the task in the browser",
 				},
 			},
 		}, nil
@@ -252,14 +269,6 @@ func (t *tasksTable) Insert(rows [][]interface{}) error {
 			return fmt.Errorf("failed to create task(code %d): %s", resp.StatusCode(), resp.String())
 		}
 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *tasksTable) Update(rows [][]interface{}) error {
 	return nil
 }
 

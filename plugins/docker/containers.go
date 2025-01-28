@@ -20,62 +20,77 @@ func containersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchem
 				Name:        "host",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The Docker host to connect to. Can be a hostname or an IP address. Defaults to `unix:///var/run/docker.sock` if not set",
 			},
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the container",
 			},
 			{
-				Name: "names",
-				Type: rpc.ColumnTypeString,
+				Name:        "names",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of names assigned to the container",
 			},
 			{
-				Name: "image",
-				Type: rpc.ColumnTypeString,
+				Name:        "image",
+				Type:        rpc.ColumnTypeString,
+				Description: "The image used to create the container",
 			},
 			{
-				Name: "image_id",
-				Type: rpc.ColumnTypeString,
+				Name:        "image_id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the image used to create the container",
 			},
 			{
-				Name: "command",
-				Type: rpc.ColumnTypeString,
+				Name:        "command",
+				Type:        rpc.ColumnTypeString,
+				Description: "The command that is running in the container",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The time the container was created (RFC3339)",
 			},
 			{
-				Name: "ports",
-				Type: rpc.ColumnTypeString,
+				Name:        "ports",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "The ports exposed by the container",
 			},
 			{
-				Name: "labels",
-				Type: rpc.ColumnTypeString,
+				Name:        "labels",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON object of labels assigned to the container",
 			},
 			{
-				Name: "size_rw",
-				Type: rpc.ColumnTypeInt,
+				Name:        "size_rw",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The size of the RW layer of the container",
 			},
 			{
-				Name: "size_root_fs",
-				Type: rpc.ColumnTypeInt,
+				Name:        "size_root_fs",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The size of the root filesystem of the container",
 			},
 			{
-				Name: "state",
-				Type: rpc.ColumnTypeString,
+				Name:        "state",
+				Type:        rpc.ColumnTypeString,
+				Description: "The state of the container. Can be `created`, `restarting`, `running`, `removing`, `paused`, `exited`, `dead`",
 			},
 			{
-				Name: "status",
-				Type: rpc.ColumnTypeString,
+				Name:        "status",
+				Type:        rpc.ColumnTypeString,
+				Description: "The status of the container",
 			},
 			{
-				Name: "networks",
-				Type: rpc.ColumnTypeString,
+				Name:        "networks",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON object of networks assigned to the container",
 			},
 			{
-				Name: "mounts",
-				Type: rpc.ColumnTypeString,
+				Name:        "mounts",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of mounts assigned to the container",
 			},
 		},
 	}, nil
@@ -133,24 +148,6 @@ func (t *containersCursor) Query(constraints rpc.QueryConstraint) ([][]interface
 // Create a new cursor that will be used to read rows
 func (t *containersTable) CreateReader() rpc.ReaderInterface {
 	return &containersCursor{}
-}
-
-// A slice of rows to insert
-func (t *containersTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *containersTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *containersTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

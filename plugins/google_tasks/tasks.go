@@ -88,63 +88,78 @@ func tasksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the list (retrieved using the lists table)",
 				},
 				{
 					Name:        "show_deleted",
 					Type:        rpc.ColumnTypeInt,
 					IsParameter: true,
+					Description: "Whether to show deleted tasks or not. Default is 0",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the task",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the task",
 				},
 				{
-					Name: "status",
-					Type: rpc.ColumnTypeString,
+					Name:        "status",
+					Type:        rpc.ColumnTypeString,
+					Description: "The status of the task. Can be 'needsAction' or 'completed'",
 				},
 				{
-					Name: "completed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "completed_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The completion date of the task. If the task is not completed, it will be null",
 				},
 				{
-					Name: "due_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "due_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The due date of the task",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the task was last updated",
 				},
 				{
-					Name: "links",
-					Type: rpc.ColumnTypeString,
+					Name:        "links",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of links associated with the task",
 				},
 				{
-					Name: "notes",
-					Type: rpc.ColumnTypeString,
+					Name:        "notes",
+					Type:        rpc.ColumnTypeString,
+					Description: "The notes of the task",
 				},
 				{
-					Name: "parent_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "parent_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the parent task",
 				},
 				{
-					Name: "position",
-					Type: rpc.ColumnTypeString,
+					Name:        "position",
+					Type:        rpc.ColumnTypeString,
+					Description: "The position of the task in the list",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to view the task",
 				},
 				{
-					Name: "hidden",
-					Type: rpc.ColumnTypeBool,
+					Name:        "hidden",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the task is hidden",
 				},
 				{
-					Name: "deleted",
-					Type: rpc.ColumnTypeBool,
+					Name:        "deleted",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the task is deleted",
 				},
 			},
 		}, nil
@@ -358,11 +373,6 @@ func (t *tasksTable) Update(rows [][]interface{}) error {
 	}
 
 	return nil
-}
-
-// A slice of primary keys to delete
-func (t *tasksTable) Delete(primaryKeys []interface{}) error {
-	return fmt.Errorf("deleting tasks is not supported")
 }
 
 // A destructor to clean up resources

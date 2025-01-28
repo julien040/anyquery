@@ -40,42 +40,52 @@ func (m *discordMod) rolesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Da
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the guild. In https://discord.com/channels/12345678/98765432, the guild ID is 12345678",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the role",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the role",
 				},
 				{
-					Name: "managed",
-					Type: rpc.ColumnTypeBool,
+					Name:        "managed",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the role is managed by an integration",
 				},
 				{
-					Name: "mentionable",
-					Type: rpc.ColumnTypeBool,
+					Name:        "mentionable",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the role can be mentioned",
 				},
 				{
-					Name: "hoist",
-					Type: rpc.ColumnTypeBool,
+					Name:        "hoist",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the role is hoisted",
 				},
 				{
-					Name: "color",
-					Type: rpc.ColumnTypeString,
+					Name:        "color",
+					Type:        rpc.ColumnTypeString,
+					Description: "The HEX color of the role",
 				},
 				{
-					Name: "position",
-					Type: rpc.ColumnTypeInt,
+					Name:        "position",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The position of the role. The higher the position, the higher the role is in the hierarchy",
 				},
 				{
-					Name: "permissions",
-					Type: rpc.ColumnTypeInt,
+					Name:        "permissions",
+					Type:        rpc.ColumnTypeInt,
+					Description: "A bitfield of the permissions of the role",
 				},
 				{
-					Name: "emoji",
-					Type: rpc.ColumnTypeString,
+					Name:        "emoji",
+					Type:        rpc.ColumnTypeString,
+					Description: "The emoji of the role",
 				},
 			},
 		}, nil
@@ -153,30 +163,6 @@ func (t *rolesCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 	}
 
 	return rows, true, nil
-}
-
-// A slice of rows to insert
-func (t *rolesTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return fmt.Errorf("insert are not yet supported")
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *rolesTable) Update(rows [][]interface{}) error {
-	return fmt.Errorf("update are not yet supported")
-}
-
-// A slice of primary keys to delete
-func (t *rolesTable) Delete(primaryKeys []interface{}) error {
-	return fmt.Errorf("delete are not yet supported")
 }
 
 // A destructor to clean up resources

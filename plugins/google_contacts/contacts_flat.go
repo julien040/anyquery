@@ -76,64 +76,77 @@ func google_contactsFlatCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Data
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the contact",
 				},
 				{
-					Name: "addresses",
-					Type: rpc.ColumnTypeString,
+					Name:        "addresses",
+					Type:        rpc.ColumnTypeString,
+					Description: "The whole address of the contact",
 				},
 				{
-					Name: "age_range",
-					Type: rpc.ColumnTypeString,
+					Name:        "age_range",
+					Type:        rpc.ColumnTypeString,
+					Description: "The age range of the contact. One of 'AGE_RANGE_UNSPECIFIED', 'LESS_THAN_EIGHTEEN', 'EIGHTEEN_TO_TWENTY', 'TWENTY_ONE_OR_OLDER'",
 				},
 				{
-					Name: "biographies",
-					Type: rpc.ColumnTypeString,
+					Name:        "biographies",
+					Type:        rpc.ColumnTypeString,
+					Description: "A description written by you for the contact",
 				},
 				{
-					Name: "birthdays",
-					Type: rpc.ColumnTypeString,
+					Name:        "birthdays",
+					Type:        rpc.ColumnTypeDate,
+					Description: "The birthday of the contact in YYYY-MM-DD format",
 				},
 				{
-					Name: "calendar_urls",
-					Type: rpc.ColumnTypeString,
+					Name:        "calendar_urls",
+					Type:        rpc.ColumnTypeString,
+					Description: "An URL to the iCal file for the contact's calendar",
 				},
 				{
-					Name: "client_data",
-					Type: rpc.ColumnTypeString,
+					Name:        "client_data",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A map of custom data for the contact",
 				},
 				{
-					Name: "cover_photos",
-					Type: rpc.ColumnTypeString,
+					Name:        "cover_photos",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the cover photo of the contact",
 				},
 				{
-					Name: "email_addresses",
-					Type: rpc.ColumnTypeString,
+					Name:        "email_addresses",
+					Type:        rpc.ColumnTypeString,
+					Description: "The email address of the contact",
 				},
 				{
-					Name: "events",
-					Type: rpc.ColumnTypeString,
+					Name:        "events",
+					Type:        rpc.ColumnTypeString,
+					Description: "A map of events for the contact. EventName => YYYY-MM-DD",
 				},
 				{
-					Name: "gender",
-					Type: rpc.ColumnTypeString,
+					Name:        "gender",
+					Type:        rpc.ColumnTypeString,
+					Description: "The gender of the contact",
 				},
 				{
 					Name: "im_clients",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "interests",
-					Type: rpc.ColumnTypeString,
+					Name:        "interests",
+					Type:        rpc.ColumnTypeString,
+					Description: "The first interest of the contact",
 				},
 				{
 					Name: "locales",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "locations",
-					Type: rpc.ColumnTypeString,
+					Name:        "locations",
+					Type:        rpc.ColumnTypeString,
+					Description: "The location of the contact",
 				},
 				{
 					Name: "names",
@@ -148,36 +161,43 @@ func google_contactsFlatCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Data
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "organizations",
-					Type: rpc.ColumnTypeString,
+					Name:        "organizations",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the first organization of the contact",
 				},
 				{
-					Name: "phone_numbers",
-					Type: rpc.ColumnTypeString,
+					Name:        "phone_numbers",
+					Type:        rpc.ColumnTypeString,
+					Description: "The first phone number of the contact",
 				},
 				{
-					Name: "photos",
-					Type: rpc.ColumnTypeString,
+					Name:        "photos",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the photo of the contact",
 				},
+
 				{
-					Name: "relations",
-					Type: rpc.ColumnTypeString,
+					Name:        "relations",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A map of relations for the contact. RelationType => PersonName",
 				},
 				{
 					Name: "sip_addresses",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "skills",
-					Type: rpc.ColumnTypeString,
+					Name:        "skills",
+					Type:        rpc.ColumnTypeString,
+					Description: "The first skill of the contact",
 				},
 				{
 					Name: "urls",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "user_defined",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_defined",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A map of user defined fields for the contact",
 				},
 			},
 		}, nil
@@ -387,24 +407,6 @@ func (t *google_contacts_flatTable) CreateReader() rpc.ReaderInterface {
 	return &google_contacts_flatCursor{
 		srv: t.srv,
 	}
-}
-
-// A slice of rows to insert
-func (t *google_contacts_flatTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *google_contacts_flatTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *google_contacts_flatTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

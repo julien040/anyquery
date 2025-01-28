@@ -22,7 +22,7 @@ Most of the times, the table requires arguments (`list_id`, `workspace_id`, `doc
 To retrieve these IDs, follow these instructions:
 
 - `list_id`: Go to the list you want to query, and copy the ID from the URL. For example, in `https://app.clickup.com/12345678/v/l/li/98765432`, the list ID is `98765432`.
-- `workspace_id`: Go to the workspace you want to query, and copy the first part of the URL. For example, in `https://app.clickup.com/12345678/v/w/98765432`, the workspace ID is `98765432`.
+- `workspace_id`: Go to the workspace you want to query, and copy the first part of the URL. For example, in `https://app.clickup.com/12345678/v/l/li/98765432`, the workspace ID is `12345678`.
 - `document_id`: Go to the document you want to query, and copy the ID from the URL after `/dc/`. For example, in `https://app.clickup.com/12345678/v/dc/98765432/dakg-78`, the document ID is `98765432`. Omit the part after the document ID.
 - `folder_id`: Go to the folder you want to query, and copy the ID from the URL. For example, in `https://app.clickup.com/12345678/v/o/f/98765432`, the folder ID is `98765432`.
 - `space_id`: Go to the space you want to query, and copy the ID from the URL. For example, in `https://app.clickup.com/12345678/v/s/98765432`, the space ID is `98765432`.

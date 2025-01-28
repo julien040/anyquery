@@ -64,64 +64,79 @@ func raindropCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 			PrimaryKey:    0,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the drop (the Raindrop bookmark)",
 				},
 				{
-					Name: "link",
-					Type: rpc.ColumnTypeString,
+					Name:        "link",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the bookmark",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the bookmark",
 				},
 				{
-					Name: "excerpt",
-					Type: rpc.ColumnTypeString,
+					Name:        "excerpt",
+					Type:        rpc.ColumnTypeString,
+					Description: "A small summary of the bookmark",
 				},
 				{
-					Name: "note",
-					Type: rpc.ColumnTypeString,
+					Name:        "note",
+					Type:        rpc.ColumnTypeString,
+					Description: "Markdown notes of the bookmark written by the user",
 				},
 				{
-					Name: "user_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who created the bookmark",
 				},
 				{
-					Name: "cover",
-					Type: rpc.ColumnTypeString,
+					Name:        "cover",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the cover image of the bookmark",
 				},
 				{
-					Name: "tags",
-					Type: rpc.ColumnTypeString,
+					Name:        "tags",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of tags",
 				},
 				{
-					Name: "important",
-					Type: rpc.ColumnTypeInt,
+					Name:        "important",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the bookmark is marked as important",
 				},
 				{
-					Name: "removed",
-					Type: rpc.ColumnTypeInt,
+					Name:        "removed",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the bookmark is removed",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the bookmark was created (RFC3339)",
 				},
 				{
-					Name: "last_updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "last_updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the bookmark was last updated (RFC3339)",
 				},
 				{
-					Name: "domain",
-					Type: rpc.ColumnTypeString,
+					Name:        "domain",
+					Type:        rpc.ColumnTypeString,
+					Description: "The hostname of the URL of the bookmark",
 				},
 				{
-					Name: "collection_id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "collection_id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the collection the bookmark is in. -1 if the bookmark is not in a collection. -99 if deleted, and 0 if in the root collection. You can find the collection_id in the URL. For example, in https://app.raindrop.io/my/27189677, the collection_id is 27189677.",
 				},
 				{
-					Name: "reminder",
-					Type: rpc.ColumnTypeString,
+					Name:        "reminder",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the Raindrop app will send a reminder to the user to read the bookmark. If the bookmark is not a reminder, this field is null.",
 				},
 			},
 		}, nil
@@ -186,8 +201,6 @@ func (t *raindropCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 		return nil, true, fmt.Errorf("failed to get data from the API: %s", res.String())
 	}
 
-	log.Printf("got %d items from the API", len(apiData.Items))
-
 	// Compute the rows
 	for _, item := range apiData.Items {
 		important := false
@@ -218,8 +231,6 @@ func (t *raindropCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 			reminder,
 		})
 	}
-
-	log.Printf("got %d rows", len(rows))
 
 	err = t.db.Update(func(txn *badger.Txn) error {
 		// Marshal with gob
@@ -341,7 +352,6 @@ func (t *raindropTable) Insert(rows [][]interface{}) error {
 		// Append the item to the request
 		request.Items = append(request.Items, item)
 	}
-	log.Printf("inserting %+v", request)
 
 	data := &MultipleCreateItemResponse{}
 
@@ -367,18 +377,6 @@ func (t *raindropTable) Insert(rows [][]interface{}) error {
 	// We need to clear the cache after inserting so that we don't return stale data
 	return t.clearCache()
 
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *raindropTable) Update(rows [][]interface{}) error {
-	// Update are not supported because they consume the rate limit way too much.
-	// Batch update only allows to modify the tags, the collection and the important flag
-	// To update the title, or any other field, we need to update one item at a time
-	// meaning you can update at most 120 items per minute
-	return nil
 }
 
 // A slice of primary keys to delete

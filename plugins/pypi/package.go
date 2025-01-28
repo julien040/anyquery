@@ -22,58 +22,72 @@ func packageCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The name of the Pypi (pip) package you want to get information about",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the package to see more information",
 			},
 			{
-				Name: "author",
-				Type: rpc.ColumnTypeString,
+				Name:        "author",
+				Type:        rpc.ColumnTypeString,
+				Description: "The author of the package",
 			},
 			{
-				Name: "author_email",
-				Type: rpc.ColumnTypeString,
+				Name:        "author_email",
+				Type:        rpc.ColumnTypeString,
+				Description: "The email of the author",
 			},
 			{
-				Name: "description",
-				Type: rpc.ColumnTypeString,
+				Name:        "description",
+				Type:        rpc.ColumnTypeString,
+				Description: "The description of the package",
 			},
 			{
-				Name: "home_page",
-				Type: rpc.ColumnTypeString,
+				Name:        "home_page",
+				Type:        rpc.ColumnTypeString,
+				Description: "A link to the homepage of the package",
 			},
 			{
-				Name: "keywords",
-				Type: rpc.ColumnTypeString,
+				Name:        "keywords",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of keywords",
 			},
 			{
-				Name: "license",
-				Type: rpc.ColumnTypeString,
+				Name:        "license",
+				Type:        rpc.ColumnTypeString,
+				Description: "The license of the package",
 			},
 			{
-				Name: "maintainer",
-				Type: rpc.ColumnTypeString,
+				Name:        "maintainer",
+				Type:        rpc.ColumnTypeString,
+				Description: "The maintainer of the package",
 			},
 			{
-				Name: "maintainer_email",
-				Type: rpc.ColumnTypeString,
+				Name:        "maintainer_email",
+				Type:        rpc.ColumnTypeString,
+				Description: "The email of the maintainer",
 			},
 			{
-				Name: "documentation_url",
-				Type: rpc.ColumnTypeString,
+				Name:        "documentation_url",
+				Type:        rpc.ColumnTypeString,
+				Description: "A link to the documentation of the package",
 			},
 			{
-				Name: "source_code_url",
-				Type: rpc.ColumnTypeString,
+				Name:        "source_code_url",
+				Type:        rpc.ColumnTypeString,
+				Description: "A link to the source code of the package",
 			},
 			{
-				Name: "current_version",
-				Type: rpc.ColumnTypeString,
+				Name:        "current_version",
+				Type:        rpc.ColumnTypeString,
+				Description: "The current version of the package that will be downloaded using pip",
 			},
 			{
-				Name: "version_count",
-				Type: rpc.ColumnTypeInt,
+				Name:        "version_count",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The number of versions available",
 			},
 		},
 	}, nil
@@ -140,24 +154,6 @@ func (t *packageCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 // Create a new cursor that will be used to read rows
 func (t *packageTable) CreateReader() rpc.ReaderInterface {
 	return &packageCursor{}
-}
-
-// A slice of rows to insert
-func (t *packageTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *packageTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *packageTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

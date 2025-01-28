@@ -1,15 +1,20 @@
 
 name = "airtable"
-version = "0.1.1"
+version = "0.1.2"
 description = "Use your Airtable base as a SQL database."
-author = "Julien040"
+author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/airtable"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/airtable"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["table"]
+[[table]]
+name = "table"
+description = "List and update records in an Airtable table (the schema changes dynamically)."
+examples = [
+    "-- List all records in the table\nSELECT * FROM airtable_table;",
+]
 
 # The user configuration schema
 [[userConfig]]

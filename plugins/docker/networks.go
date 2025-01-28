@@ -20,22 +20,27 @@ func networksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 				Name:        "host",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The Docker host to connect to. Can be a hostname or an IP address. Defaults to `unix:///var/run/docker.sock` if not set",
 			},
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the network",
 			},
 			{
-				Name: "name",
-				Type: rpc.ColumnTypeString,
+				Name:        "name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the network",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The time the network was created (RFC3339)",
 			},
 			{
-				Name: "scope",
-				Type: rpc.ColumnTypeString,
+				Name:        "scope",
+				Type:        rpc.ColumnTypeString,
+				Description: "The scope of the network",
 			},
 			{
 				Name: "driver",
@@ -50,8 +55,9 @@ func networksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 				Type: rpc.ColumnTypeString,
 			},
 			{
-				Name: "containers",
-				Type: rpc.ColumnTypeString,
+				Name:        "containers",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of containers connected to the network",
 			},
 			{
 				Name: "options",
@@ -144,24 +150,6 @@ func (t *networksCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 // Create a new cursor that will be used to read rows
 func (t *networksTable) CreateReader() rpc.ReaderInterface {
 	return &networksCursor{}
-}
-
-// A slice of rows to insert
-func (t *networksTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *networksTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *networksTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

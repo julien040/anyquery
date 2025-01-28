@@ -1,15 +1,31 @@
 
 name = "vercel"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query your projects, deployments and events from Vercel"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/vercel"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/vercel"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["projects", "deployments"]
+
+[[table]]
+name = "projects"
+description = "List all vercel projects, and their details"
+examples = [
+    "-- List all projects\nSELECT * FROM vercel_projects;",
+    "-- List all projects for a specific team\nSELECT * FROM vercel_projects('team_id');",
+]
+
+[[table]]
+name = "deployments"
+description = "List all vercel deployments, and their details"
+examples = [
+    "-- List all deployments\nSELECT * FROM vercel_deployments;",
+    "-- List all deployments for a specific project\nSELECT * FROM vercel_deployments('project_id');",
+    "-- List all deployments for a specific project by using the project name\nSELECT * FROM vercel_deployments JOIN vercel_projects ON vercel_projects.project_id = vercel_deployments.project_id WHERE vercel_projects.name='project_name';", 
+]
 
 # The user configuration schema
 [[userConfig]]

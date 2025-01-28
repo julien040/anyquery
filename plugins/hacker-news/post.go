@@ -23,58 +23,71 @@ func postCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, err
 				Name:        "id",
 				Type:        rpc.ColumnTypeInt,
 				IsParameter: true,
+				Description: "The ID of the post to find information about",
 			},
 			{
-				Name: "by",
-				Type: rpc.ColumnTypeString,
+				Name:        "by",
+				Type:        rpc.ColumnTypeString,
+				Description: "The username of the author",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The creation date of the item",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the item, if any",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL to see the item in the browser",
 			},
 			{
-				Name: "text",
-				Type: rpc.ColumnTypeString,
+				Name:        "text",
+				Type:        rpc.ColumnTypeString,
+				Description: "The text of the item, if any",
 			},
 			{
-				Name: "descendants",
-				Type: rpc.ColumnTypeInt,
+				Name:        "descendants",
+				Type:        rpc.ColumnTypeInt,
+				Description: "How many comments the post or comment has",
 			},
 			{
-				Name: "score",
-				Type: rpc.ColumnTypeInt,
+				Name:        "score",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The score of the item",
 			},
 			{
-				Name: "type",
-				Type: rpc.ColumnTypeString,
+				Name:        "type",
+				Type:        rpc.ColumnTypeString,
+				Description: "The type of the item. It can be 'job', 'story', 'comment', 'poll', 'pollopt'",
 			},
 			{
-				Name: "deleted",
-				Type: rpc.ColumnTypeInt,
+				Name:        "deleted",
+				Type:        rpc.ColumnTypeBool,
+				Description: "If the item is deleted",
 			},
 			{
-				Name: "dead",
-				Type: rpc.ColumnTypeInt,
+				Name:        "dead",
+				Type:        rpc.ColumnTypeBool,
+				Description: "If the item is dead",
 			},
 			{
-				Name: "parent",
-				Type: rpc.ColumnTypeInt,
+				Name:        "parent",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the parent item",
 			},
 			{
 				Name: "poll",
 				Type: rpc.ColumnTypeInt,
 			},
 			{
-				Name: "kids",
-				Type: rpc.ColumnTypeString,
+				Name:        "kids",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of the IDs of the kids of the item",
 			},
 		},
 	}, nil
@@ -160,24 +173,6 @@ func (t *postCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bo
 // Create a new cursor that will be used to read rows
 func (t *postTable) CreateReader() rpc.ReaderInterface {
 	return &postCursor{}
-}
-
-// A slice of rows to insert
-func (t *postTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *postTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *postTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -40,66 +40,82 @@ func albumTableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchem
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the album to search for. In https://open.spotify.com/album/37rI2gAtakAmSFtbIE9THq, the id is 37rI2gAtakAmSFtbIE9THq",
 				},
 				{
-					Name: "album_type",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_type",
+					Type:        rpc.ColumnTypeString,
+					Description: "The type of the album. Can be album, single or compilation",
 				},
 				{
-					Name: "total_tracks_album",
-					Type: rpc.ColumnTypeInt,
+					Name:        "total_tracks_album",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The total number of tracks on the album",
 				},
 				{
-					Name: "href",
-					Type: rpc.ColumnTypeString,
+					Name:        "href",
+					Type:        rpc.ColumnTypeString,
+					Description: "A link to the Web API endpoint providing full details of the album",
 				},
 				{
-					Name: "album_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the album",
 				},
 				{
-					Name: "release_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "release_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the album was first released",
 				},
 				{
-					Name: "artist_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "artist_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the artist",
 				},
 				{
-					Name: "copyright",
-					Type: rpc.ColumnTypeString,
+					Name:        "copyright",
+					Type:        rpc.ColumnTypeString,
+					Description: "The copyright information for the album",
 				},
 				{
-					Name: "album_popularity",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_popularity",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The popularity of the album",
 				},
 				{
-					Name: "track_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of one of the tracks on the album",
 				},
 				{
-					Name: "track_duration_ms",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_duration_ms",
+					Type:        rpc.ColumnTypeString,
+					Description: "The duration of the track in milliseconds",
 				},
 				{
-					Name: "track_disc_number",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_disc_number",
+					Type:        rpc.ColumnTypeString,
+					Description: "The disc number of the track",
 				},
 				{
-					Name: "track_explicit",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_explicit",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether or not the track has explicit lyrics",
 				},
 				{
-					Name: "track_href",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_href",
+					Type:        rpc.ColumnTypeString,
+					Description: "A link to the Web API endpoint providing full details of the track",
 				},
 				{
-					Name: "track_artists",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_artists",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of the artists on the track",
 				},
 				{
-					Name: "track_number",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_number",
+					Type:        rpc.ColumnTypeString,
+					Description: "The number of the track",
 				},
 			},
 		}, nil
@@ -201,24 +217,6 @@ func (t *albumTable) CreateReader() rpc.ReaderInterface {
 	return &albumCursor{
 		accessToken: t.accessToken,
 	}
-}
-
-// A slice of rows to insert
-func (t *albumTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *albumTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *albumTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

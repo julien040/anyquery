@@ -1,16 +1,24 @@
 
 name = "todoist"
 displayName = "Todoist"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query/insert/close tasks from Todoist"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/todoist"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/todoist"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["active_tasks"]
+[[table]]
+name = "active_tasks"
+description = "List all active tasks, insert a task, or close a task"
+examples = [
+    "-- List all active tasks\nSELECT * FROM todoist_active_tasks;",
+    "-- Insert a task\nINSERT INTO todoist_active_tasks(content, due_date) VALUES ('Buy milk', '2021-12-31');",
+    "-- Close a task\nDELETE FROM todoist_active_tasks WHERE content='Buy milk';",
+    "-- Find all subtasks of a task\nSELECT * FROM todoist_active_tasks WHERE parent_id = (SELECT id FROM todoist_active_tasks WHERE content='Buy milk');",
+]
 
 # The user configuration schema
 [[userConfig]]

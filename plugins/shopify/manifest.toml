@@ -1,15 +1,47 @@
 
 name = "shopify"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query Shopify data"
-author = "Julien040"
+author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/shopify"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/shopify"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["orders", "products", "product_variants", "customers"]
+
+[[table]]
+name = "orders"
+description = "List orders in Shopify"
+examples = [
+    "-- List all orders\nSELECT * FROM shopify_orders;",
+    "-- List how many orders were returned\nSELECT count(*) as returned_orders FROM shopify_orders WHERE return_status <> 'NO_RETURN';",
+]
+
+[[table]]
+name = "products"
+description = "List products in Shopify"
+examples = [
+    "-- List all products\nSELECT * FROM shopify_products;",
+    "-- List your products and their stock\nSELECT title, total_inventory FROM shopify_products;",
+]
+
+[[table]]
+name = "product_variants"
+description = "List product variants in Shopify"
+examples = [
+    "-- List all product variants\nSELECT * FROM shopify_product_variants;",
+    "-- List product variants that are out of stock\nSELECT display_name, product_title FROM shopify_product_variants WHERE inventory_quantity = 0;",
+]
+
+[[table]]
+name = "customers"
+description = "List customers in Shopify"
+examples = [
+    "-- List all customers\nSELECT * FROM shopify_customers;",
+    "-- Get the top paying customers of your store\nSELECT email, first_name, last_name, amount_spent || amount_spent_currency as total FROM shopify_customers ORDER BY amount_spent DESC LIMIT 1;",
+]
+
 
 # The user configuration schema
 [[userConfig]]

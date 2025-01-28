@@ -19,72 +19,89 @@ func containerCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The ID of the container. Can be retrieved from the containers table, or by running `docker ps`",
 			},
 			{
 				Name:        "host",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The Docker host to connect to. Can be a hostname or an IP address. Defaults to `unix:///var/run/docker.sock`",
 			},
 
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the container",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The time the container was created (RFC3339)",
 			},
 			{
-				Name: "path",
-				Type: rpc.ColumnTypeString,
+				Name:        "path",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path to the command that is running in the container",
 			},
 			{
-				Name: "args",
-				Type: rpc.ColumnTypeString,
+				Name:        "args",
+				Type:        rpc.ColumnTypeString,
+				Description: "The arguments to the command that is running in the container",
 			},
 			{
-				Name: "container_state",
-				Type: rpc.ColumnTypeString,
+				Name:        "container_state",
+				Type:        rpc.ColumnTypeString,
+				Description: "The state of the container. Can be `created`, `restarting`, `running`, `removing`, `paused`, `exited`, `dead`",
 			},
 			{
-				Name: "image",
-				Type: rpc.ColumnTypeString,
+				Name:        "image",
+				Type:        rpc.ColumnTypeString,
+				Description: "The image used to create the container",
 			},
 			{
-				Name: "resolv_conf_path",
-				Type: rpc.ColumnTypeString,
+				Name:        "resolv_conf_path",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path to the resolv.conf file used by the container",
 			},
 			{
-				Name: "hostname_path",
-				Type: rpc.ColumnTypeString,
+				Name:        "hostname_path",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path to the hostname file used by the container",
 			},
 			{
-				Name: "hosts_path",
-				Type: rpc.ColumnTypeString,
+				Name:        "hosts_path",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path to the hosts file used by the container",
 			},
 			{
-				Name: "log_path",
-				Type: rpc.ColumnTypeString,
+				Name:        "log_path",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path to the log file used by the container",
 			},
 			{
-				Name: "name",
-				Type: rpc.ColumnTypeString,
+				Name:        "name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the container",
 			},
 			{
-				Name: "restart_count",
-				Type: rpc.ColumnTypeInt,
+				Name:        "restart_count",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The number of times the container has been restarted",
 			},
 			{
-				Name: "driver",
-				Type: rpc.ColumnTypeString,
+				Name:        "driver",
+				Type:        rpc.ColumnTypeString,
+				Description: "The driver used by the container",
 			},
 			{
-				Name: "platform",
-				Type: rpc.ColumnTypeString,
+				Name:        "platform",
+				Type:        rpc.ColumnTypeString,
+				Description: "The platform of the container",
 			},
 			{
-				Name: "mount_label",
-				Type: rpc.ColumnTypeString,
+				Name:        "mount_label",
+				Type:        rpc.ColumnTypeString,
+				Description: "The mount label of the container",
 			},
 			{
 				Name: "process_label",
@@ -167,24 +184,6 @@ func (t *containerCursor) Query(constraints rpc.QueryConstraint) ([][]interface{
 // Create a new cursor that will be used to read rows
 func (t *containerTable) CreateReader() rpc.ReaderInterface {
 	return &containerCursor{}
-}
-
-// A slice of rows to insert
-func (t *containerTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *containerTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *containerTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

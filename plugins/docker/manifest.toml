@@ -1,16 +1,49 @@
 
 name = "docker"
 displayName = "Docker"
-version = "0.1.0"
+version = "0.1.2"
 description = "Query docker containers, images, and networks"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/plugins/docker"
 homepage = "https://github.com/julien040/anyquery/plugins/docker"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["containers", "container", "images", "networks"]
+
+[[table]]
+name = "containers"
+description = "List all containers"
+examples = [
+    "-- List all containers\nSELECT * FROM docker_containers;",
+    "-- List all containers with a specific name\nSELECT * FROM docker_containers WHERE name='container_name';",
+    "-- List all containers from another docker daemonSELECT * FROM docker_containers WHERE host='tcp://0.0.0.0:2375';",
+]
+
+[[table]]
+name = "container"
+description = "List a container's details"
+examples = [
+    "-- List a container's details\nSELECT * FROM docker_container('container_id');",
+    "-- List all containers details\nSELECT * FROM docker_containers cs, docker_container(cs.id);",
+]
+
+[[table]]
+name = "images"
+description = "List all images"
+examples = [
+    "-- List all images\nSELECT * FROM docker_images;",
+    "-- Get the biggest image\nSELECT * FROM docker_images ORDER BY size DESC LIMIT 1;",
+]
+
+
+[[table]]
+name = "networks"
+description = "List all networks"
+examples = [
+    "-- List all networks\nSELECT * FROM docker_networks;",
+]
+
 
 [[file]]
 platform = "linux/amd64"

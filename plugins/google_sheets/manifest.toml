@@ -1,15 +1,24 @@
 
 name = "google_sheets"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query/insert/update/delete data in Google Sheets"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/google_sheets"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["table"]
+[[table]]
+name = "table"
+description = "Query/insert/update/delete data in Google Sheets"
+examples = [
+    "-- List all the rows in the spreadsheet\nSELECT * FROM google_sheets_table;",
+    "-- List all the rows in the spreadsheet where the column 'column_name' is equal to 'value'\nSELECT * FROM google_sheets_table WHERE column_name = 'value';",
+    "-- Insert a new row in the spreadsheet\nINSERT INTO google_sheets_table (column_name1, column_name2) VALUES ('value1', 'value2');",
+    "-- Update the rows in the spreadsheet where the column 'column_name' is equal to 'value'\nUPDATE google_sheets_table SET column_name1 = 'value1', column_name2 = 'value2' WHERE column_name = 'value';",
+    "-- Delete the rows in the spreadsheet where the column 'column_name' is equal to 'value'\nDELETE FROM google_sheets_table WHERE column_name = 'value';",
+]
 
 # The user configuration schema
 [[userConfig]]

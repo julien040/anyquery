@@ -20,18 +20,22 @@ func remotesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The path to the repository. Can be a local path (e.g. /path/to/repo) or a URL (e.g. https://github.com/julien040/anyquery.git)",
 			},
 			{
-				Name: "name",
-				Type: rpc.ColumnTypeString,
+				Name:        "name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the remote",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the remote",
 			},
 			{
-				Name: "is_mirror",
-				Type: rpc.ColumnTypeInt,
+				Name:        "is_mirror",
+				Type:        rpc.ColumnTypeInt,
+				Description: "If the remote is a mirror",
 			},
 		},
 	}, nil
@@ -91,24 +95,6 @@ func (t *remotesCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 // Create a new cursor that will be used to read rows
 func (t *remotesTable) CreateReader() rpc.ReaderInterface {
 	return &remotesCursor{}
-}
-
-// A slice of rows to insert
-func (t *remotesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *remotesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *remotesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -34,8 +34,9 @@ func foldersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 			PrimaryKey: -1,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "folder",
-					Type: rpc.ColumnTypeString,
+					Name:        "folder",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the folder in the mailbox",
 				},
 			},
 		}, nil
@@ -88,24 +89,6 @@ func (t *foldersTable) CreateReader() rpc.ReaderInterface {
 	return &foldersCursor{
 		dialer: t.dialer,
 	}
-}
-
-// A slice of rows to insert
-func (t *foldersTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *foldersTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *foldersTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -37,23 +37,28 @@ func branchesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the branch",
 				},
 				{
-					Name: "commit_sha",
-					Type: rpc.ColumnTypeString,
+					Name:        "commit_sha",
+					Type:        rpc.ColumnTypeString,
+					Description: "The SHA of the commit the branch is pointing to",
 				},
 
 				{
-					Name: "protected",
-					Type: rpc.ColumnTypeInt,
+					Name:        "protected",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the branch is protected (changes are restricted)",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the branch on GitHub",
 				},
 			},
 		}, nil
@@ -137,24 +142,6 @@ func (t *branchesTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *branchesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *branchesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *branchesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

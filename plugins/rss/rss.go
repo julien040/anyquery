@@ -24,54 +24,67 @@ func rssCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, erro
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The path of the RSS feed. Can be a URL or a local file",
 			},
 			{
-				Name: "guid",
-				Type: rpc.ColumnTypeString,
+				Name:        "guid",
+				Type:        rpc.ColumnTypeString,
+				Description: "The GUID of the item in the feed",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the item in the feed",
 			},
 			{
-				Name: "description",
-				Type: rpc.ColumnTypeString,
+				Name:        "description",
+				Type:        rpc.ColumnTypeString,
+				Description: "The description of the item in the feed",
 			},
 			{
-				Name: "content",
-				Type: rpc.ColumnTypeString,
+				Name:        "content",
+				Type:        rpc.ColumnTypeString,
+				Description: "The content of the item in the feed",
 			},
 			{
-				Name: "links",
-				Type: rpc.ColumnTypeString,
+				Name:        "links",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of links in the item",
 			},
 			{
-				Name: "updated",
-				Type: rpc.ColumnTypeString,
+				Name:        "updated_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The last time the item was updated (RFC 3339)",
 			},
 			{
-				Name: "published",
-				Type: rpc.ColumnTypeString,
+				Name:        "published_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The date the item was published (RFC 3339)",
 			},
 			{
-				Name: "authors",
-				Type: rpc.ColumnTypeString,
+				Name:        "authors",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of object authors (fields: name and email)",
 			},
 			{
-				Name: "image_url",
-				Type: rpc.ColumnTypeString,
+				Name:        "image_url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the image associated with the item, if any",
 			},
 			{
-				Name: "image_title",
-				Type: rpc.ColumnTypeString,
+				Name:        "image_title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the image associated with the item, if any",
 			},
 			{
-				Name: "categories",
-				Type: rpc.ColumnTypeString,
+				Name:        "categories",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of categories associated with the item",
 			},
 			{
-				Name: "enclosures",
-				Type: rpc.ColumnTypeString,
+				Name:        "enclosures",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of files associated with the item. Fields: url, length, type",
 			},
 		},
 	}, nil
@@ -185,24 +198,6 @@ func (t *rssCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, boo
 // Create a new cursor that will be used to read rows
 func (t *rssTable) CreateReader() rpc.ReaderInterface {
 	return &rssCursor{}
-}
-
-// A slice of rows to insert
-func (t *rssTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *rssTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *rssTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

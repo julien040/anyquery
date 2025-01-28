@@ -1,15 +1,23 @@
 
 name = "rss"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query RSS feeds locally or over HTTP"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/rss"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/rss"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["items"]
+[[table]]
+name = "items"
+description = "List all items in an RSS feed"
+examples = [
+    "-- List all items in an RSS feed\nSELECT * FROM rss_items('http://www.reddit.com/.rss');",
+    "-- List all items in an RSS feed with a filter by the first author\nSELECT * FROM rss_items('http://www.reddit.com/.rss') WHERE authors ->> '$[0].name' = 'author_name';",
+    "-- Print the first link of every item\nSELECT links ->> '$[0]' as link FROM rss_items('http://www.reddit.com/.rss');",
+    "-- Get all the links of each item using the json_each table function\nSELECT j.value as link FROM rss_items('http://www.reddit.com/.rss'), json_each(links) j;",
+]
 
 [[file]]
 platform = "linux/amd64"

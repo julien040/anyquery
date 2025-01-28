@@ -1,15 +1,47 @@
 
 name = "trello"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query and insert/update/delete cards from your Trello boards"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/trello"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/trello"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["boards", "cards", "lists"]
+[[table]]
+name = "boards"
+description = "List all boards that you have access to. Useful to get the board ID for the other tables."
+examples = [
+    "-- List all boards\nSELECT * FROM trello_boards;",
+    "-- List all boards with a specific name\nSELECT * FROM trello_boards WHERE name='My board';",
+]
+
+[[table]]
+name = "cards"
+description = "List all cards of a board, and insert/update/delete them."
+examples = [
+    "-- List all cards of a board\nSELECT * FROM trello_cards('board_id');",
+    "-- List all cards of a board with a specific name\nSELECT * FROM trello_cards('board_id') WHERE name='My card';",
+    "-- List all cards of a board with a specific label\nSELECT * FROM trello_cards('board_id') WHERE labels LIKE '%label_id%';",
+    "-- List all cards of a board with a specific due date\nSELECT * FROM trello_cards('board_id') WHERE due_at > '2021-12-31';",
+    "-- Insert a card in a list\nINSERT INTO trello_cards (name, description, due_at, list_id) VALUES ('My card', 'My description', '2021-12-31', 'list_id');",
+    "-- Update a card\nUPDATE trello_cards SET name = 'My new card name' WHERE name = 'My card' and board_id = 'board_id';",
+    "-- Delete a card\nDELETE FROM trello_cards WHERE name = 'My card' and board_id = 'board_id';",
+    "-- Move a card to another list\nUPDATE trello_cards SET list_id = 'list_id' WHERE name = 'My card' and board_id = 'board_id';",
+    "-- Group the cards by list\nSELECT list_id, count(id) as number_of_cards FROM trello_cards('board_id') GROUP BY list_id;",
+]
+
+[[table]]
+name = "lists"
+description = "List all lists of a board. Useful to get the list ID for the cards table."
+examples = [
+    "-- List all lists of a board\nSELECT * FROM trello_lists('board_id');",
+    "-- List all lists of all boards\nSELECT * FROM trello_boards JOIN trello_lists ON trello_boards.id = trello_lists.board_id;",
+]
+
+
+
 
 # The user configuration schema
 [[userConfig]]

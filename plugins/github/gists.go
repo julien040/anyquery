@@ -28,6 +28,7 @@ func gistsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			Type:        rpc.ColumnTypeString,
 			IsParameter: true,
 			IsRequired:  true,
+			Description: "The user to get the gists from",
 		},
 	}
 	columns = append(columns, gistSchema...)
@@ -121,24 +122,6 @@ func (t *gistsTable) CreateReader() rpc.ReaderInterface {
 	return &gistsCursor{
 		t.client, t.db, 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *gistsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *gistsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *gistsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

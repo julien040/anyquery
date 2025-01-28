@@ -20,42 +20,52 @@ func imagesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 				Name:        "host",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The Docker host to connect to. Can be a hostname or an IP address. Defaults to `unix:///var/run/docker.sock` if not set",
 			},
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the image",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The time the image was created (RFC3339)",
 			},
 			{
-				Name: "labels",
-				Type: rpc.ColumnTypeString,
+				Name:        "labels",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON object of labels assigned to the image",
 			},
 			{
-				Name: "parent_id",
-				Type: rpc.ColumnTypeString,
+				Name:        "parent_id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the parent image",
 			},
 			{
-				Name: "repo_tags",
-				Type: rpc.ColumnTypeString,
+				Name:        "repo_tags",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of tags assigned to the image",
 			},
 			{
-				Name: "repo_digests",
-				Type: rpc.ColumnTypeString,
+				Name:        "repo_digests",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of digests assigned to the image",
 			},
 			{
-				Name: "container_count",
-				Type: rpc.ColumnTypeInt,
+				Name:        "container_count",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The number of containers using the image",
 			},
 			{
-				Name: "shared_size",
-				Type: rpc.ColumnTypeInt,
+				Name:        "shared_size",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The size of the image shared with other images",
 			},
 			{
-				Name: "size",
-				Type: rpc.ColumnTypeInt,
+				Name:        "size",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The size of the image",
 			},
 		},
 	}, nil
@@ -109,24 +119,6 @@ func (t *imagesCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 // Create a new cursor that will be used to read rows
 func (t *imagesTable) CreateReader() rpc.ReaderInterface {
 	return &imagesCursor{}
-}
-
-// A slice of rows to insert
-func (t *imagesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *imagesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *imagesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

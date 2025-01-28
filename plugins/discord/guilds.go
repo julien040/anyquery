@@ -32,24 +32,29 @@ func (m *discordMod) guildsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "guild_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "guild_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the guild",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the guild",
 				},
 				{
-					Name: "icon",
-					Type: rpc.ColumnTypeString,
+					Name:        "icon",
+					Type:        rpc.ColumnTypeString,
+					Description: "A URL to the icon of the guild",
 				},
 				{
-					Name: "member_count",
-					Type: rpc.ColumnTypeInt,
+					Name:        "member_count",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The approximate number of members in the guild",
 				},
 				{
-					Name: "presence_count",
-					Type: rpc.ColumnTypeInt,
+					Name:        "presence_count",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The approximate number of members in the guild who are online",
 				},
 			},
 		}, nil
@@ -133,30 +138,6 @@ func (t *guildsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 
 	return rows, len(rows) < 200, nil
 
-}
-
-// A slice of rows to insert
-func (t *guildsTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *guildsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *guildsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

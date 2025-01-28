@@ -1,6 +1,6 @@
 
 name = "coda"
-version = "0.1.0"
+version = "0.1.1"
 description = "Read/Write on your coda tables"
 author = "julien040"
 license = "UNLICENSED"
@@ -9,7 +9,15 @@ homepage = "https://github.com/julien040/anyquery/plugins/coda"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["table"]
+[[table]]
+name = "table"
+description = "List rows in a Coda table (schema is dynamic)"
+examples = [
+    "-- List all rows in a table\nSELECT * FROM coda_table;",
+    "-- Insert a row in a table\nINSERT INTO coda_table (column1, column2) VALUES ('value1', 'value2');",
+    "-- Update a row in a table\nUPDATE coda_table SET column1='value1' WHERE column2='value2';",
+    "-- Delete a row in a table\nDELETE FROM coda_table WHERE column1='value1';",
+]
 
 # The user configuration schema
 [[userConfig]]

@@ -44,50 +44,62 @@ func (m *discordMod) messagesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the channel. In https://discord.com/channels/12345678/98765432, the channel ID is 98765432",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the message. It is the concatenation of the channel ID and the message ID",
 				},
 				{
-					Name: "message_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "message_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the message",
 				},
 				{
-					Name: "content",
-					Type: rpc.ColumnTypeString,
+					Name:        "content",
+					Type:        rpc.ColumnTypeString,
+					Description: "The content of the message",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The creation date of the message",
 				},
 				{
-					Name: "edited_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "edited_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The edition date of the message",
 				},
 				{
-					Name: "user_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who sent the message",
 				},
 				{
-					Name: "username",
-					Type: rpc.ColumnTypeString,
+					Name:        "username",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who sent the message",
 				},
 				{
-					Name: "pinned",
-					Type: rpc.ColumnTypeBool,
+					Name:        "pinned",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the message is pinned",
 				},
 				{
-					Name: "attachments",
-					Type: rpc.ColumnTypeString,
+					Name:        "attachments",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of attachments. Fields for each attachment are: content_type (MIME type), filename, height, id, proxy_url, size, url, width",
 				},
 				{
-					Name: "mentions",
-					Type: rpc.ColumnTypeString,
+					Name:        "mentions",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of mentions. Fields for each mention are: id, username, discriminator, avatar, bot",
 				},
 				{
-					Name: "reactions",
-					Type: rpc.ColumnTypeString,
+					Name:        "reactions",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of reactions. Fields for each reaction are: count, emoji {name, id, animated}, me",
 				},
 			},
 		}, nil
@@ -252,14 +264,6 @@ func (t *messageTable) Insert(rows [][]interface{}) error {
 	}
 
 	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *messageTable) Update(rows [][]interface{}) error {
-	return fmt.Errorf("Update is not supported")
 }
 
 // A slice of primary keys to delete

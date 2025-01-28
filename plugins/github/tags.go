@@ -36,18 +36,22 @@ func tagsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, err
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the tag",
 				},
 				{
-					Name: "commit_sha",
-					Type: rpc.ColumnTypeString,
+					Name:        "commit_sha",
+					Type:        rpc.ColumnTypeString,
+					Description: "The SHA of the commit the tag is pointing to",
 				},
 				{
-					Name: "commit_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "commit_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the commit the tag is pointing to",
 				},
 			},
 		}, nil
@@ -127,24 +131,6 @@ func (t *tagsTable) CreateReader() rpc.ReaderInterface {
 		client: t.client,
 		db:     t.db,
 	}
-}
-
-// A slice of rows to insert
-func (t *tagsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *tagsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *tagsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

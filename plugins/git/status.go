@@ -20,18 +20,22 @@ func statusCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The path to the repository. Can be a local path (e.g. /path/to/repo) or a URL (e.g. https://github.com/julien040/anyquery.git)",
 			},
 			{
-				Name: "file_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "file_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The path of the file",
 			},
 			{
-				Name: "staging_status",
-				Type: rpc.ColumnTypeString,
+				Name:        "staging_status",
+				Type:        rpc.ColumnTypeString,
+				Description: "The status of the file in the staging area (untracked, unmodified, added, deleted, modified, renamed, copied, updated_but_unmerged)",
 			},
 			{
-				Name: "worktree_status",
-				Type: rpc.ColumnTypeString,
+				Name:        "worktree_status",
+				Type:        rpc.ColumnTypeString,
+				Description: "The status of the file in the worktree (untracked, unmodified, added, deleted, modified, renamed, copied, updated_but_unmerged)",
 			},
 		},
 	}, nil
@@ -138,24 +142,6 @@ func (t *statusCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 // Create a new cursor that will be used to read rows
 func (t *statusTable) CreateReader() rpc.ReaderInterface {
 	return &statusCursor{}
-}
-
-// A slice of rows to insert
-func (t *statusTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *statusTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *statusTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -35,32 +35,39 @@ func tabsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, err
 		HandlesDelete: false, // Due to index issues, tabs deletion is delayed
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "tab_index",
-				Type: rpc.ColumnTypeInt,
+				Name:        "tab_index",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The index of the tab in the window",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the tab",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the tab",
 			},
 			{
-				Name: "window_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "window_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the window the tab is in",
 			},
 			{
-				Name: "window_index",
-				Type: rpc.ColumnTypeInt,
+				Name:        "window_index",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The index of the window the tab is in",
 			},
 			{
-				Name: "visible",
-				Type: rpc.ColumnTypeInt,
+				Name:        "visible",
+				Type:        rpc.ColumnTypeInt,
+				Description: "Whether the tab is visible",
 			},
 			{
-				Name: "uid",
-				Type: rpc.ColumnTypeInt,
+				Name:        "uid",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The unique identifier of the tab",
 			},
 		},
 	}, nil
@@ -191,11 +198,6 @@ func (t *tabsTable) Update(rows [][]interface{}) error {
 
 	return nil
 
-}
-
-// A slice of primary keys to delete
-func (t *tabsTable) Delete(primaryKeys []interface{}) error {
-	return fmt.Errorf("deletion of tabs is not yet supported")
 }
 
 // A destructor to clean up resources

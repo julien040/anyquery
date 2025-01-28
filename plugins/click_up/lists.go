@@ -44,38 +44,47 @@ func listsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the folder. In https://app.clickup.com/12345678/v/o/f/98765432, the folder ID is 98765432",
 				},
 				{
-					Name: "list_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "list_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of a list in the folder",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the list",
 				},
 				{
-					Name: "order_index",
-					Type: rpc.ColumnTypeString,
+					Name:        "order_index",
+					Type:        rpc.ColumnTypeString,
+					Description: "The position of the list in the folder",
 				},
 				{
-					Name: "description",
-					Type: rpc.ColumnTypeString,
+					Name:        "description",
+					Type:        rpc.ColumnTypeString,
+					Description: "A small description of the list",
 				},
 				{
-					Name: "task_count",
-					Type: rpc.ColumnTypeInt,
+					Name:        "task_count",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of tasks in the list",
 				},
 				{
-					Name: "due_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "due_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The due date of the list",
 				},
 				{
-					Name: "start_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "start_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The start date of the list",
 				},
 				{
-					Name: "archived",
-					Type: rpc.ColumnTypeBool,
+					Name:        "archived",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the list is archived",
 				},
 			},
 		}, nil
@@ -153,30 +162,6 @@ func (t *listsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 	}
 
 	return rows, true, nil
-}
-
-// A slice of rows to insert
-func (t *listsTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *listsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *listsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -38,26 +38,31 @@ func contributorsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSch
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the contributor",
 				},
 				{
 					Name: "contributor_url",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "additions",
-					Type: rpc.ColumnTypeInt,
+					Name:        "additions",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of lines added by the contributor",
 				},
 				{
-					Name: "deletions",
-					Type: rpc.ColumnTypeInt,
+					Name:        "deletions",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of lines deleted by the contributor",
 				},
 				{
-					Name: "commits",
-					Type: rpc.ColumnTypeInt,
+					Name:        "commits",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of commits made by the contributor",
 				},
 			},
 		}, nil
@@ -144,24 +149,6 @@ func (t *contributorsTable) CreateReader() rpc.ReaderInterface {
 		client: t.client,
 		db:     t.db,
 	}
-}
-
-// A slice of rows to insert
-func (t *contributorsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *contributorsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *contributorsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

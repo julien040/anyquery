@@ -35,32 +35,39 @@ func tabsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, err
 		HandlesDelete: true,
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the tab",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the tab",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The current URL of the tab (updatable)",
 			},
 			{
-				Name: "window_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "window_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the window",
 			},
 			{
-				Name: "window_id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "window_id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the window",
 			},
 			{
-				Name: "active",
-				Type: rpc.ColumnTypeInt,
+				Name:        "active",
+				Type:        rpc.ColumnTypeInt,
+				Description: "If the tab is active",
 			},
 			{
-				Name: "loading",
-				Type: rpc.ColumnTypeInt,
+				Name:        "loading",
+				Type:        rpc.ColumnTypeInt,
+				Description: "If the tab is loading",
 			},
 		},
 	}, nil

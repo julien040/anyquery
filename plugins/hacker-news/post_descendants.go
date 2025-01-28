@@ -24,46 +24,57 @@ func postDescendantCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseS
 				Name:        "post_id",
 				Type:        rpc.ColumnTypeInt,
 				IsParameter: true,
+				Description: "The ID of the post",
 			},
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the Hacker News item which is a descendant of post_id",
 			},
 			{
-				Name: "by",
-				Type: rpc.ColumnTypeString,
+				Name:        "by",
+				Type:        rpc.ColumnTypeString,
+				Description: "The username of the author",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The creation date of the item",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL to see the item in the browser",
 			},
 			{
-				Name: "text",
-				Type: rpc.ColumnTypeString,
+				Name:        "text",
+				Type:        rpc.ColumnTypeString,
+				Description: "The text of the item, if any",
 			},
 			{
-				Name: "type",
-				Type: rpc.ColumnTypeString,
+				Name:        "type",
+				Type:        rpc.ColumnTypeString,
+				Description: "The type of the item. It can be 'job', 'story', 'comment', 'poll', 'pollopt'",
 			},
 			{
-				Name: "deleted",
-				Type: rpc.ColumnTypeInt,
+				Name:        "deleted",
+				Type:        rpc.ColumnTypeBool,
+				Description: "If the item is deleted",
 			},
 			{
-				Name: "dead",
-				Type: rpc.ColumnTypeInt,
+				Name:        "dead",
+				Type:        rpc.ColumnTypeBool,
+				Description: "If the item is dead",
 			},
 			{
-				Name: "parent",
-				Type: rpc.ColumnTypeInt,
+				Name:        "parent",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the parent item",
 			},
 			{
-				Name: "kids",
-				Type: rpc.ColumnTypeString,
+				Name:        "kids",
+				Type:        rpc.ColumnTypeJSON,
+				Description: "A JSON array of the IDs of the kids of the item",
 			},
 		},
 	}, nil
@@ -188,24 +199,6 @@ func (t *postDescendantCursor) Query(constraints rpc.QueryConstraint) ([][]inter
 // Create a new cursor that will be used to read rows
 func (t *postDescendantTable) CreateReader() rpc.ReaderInterface {
 	return &postDescendantCursor{}
-}
-
-// A slice of rows to insert
-func (t *postDescendantTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *postDescendantTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *postDescendantTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -43,56 +43,68 @@ func homebrewCasksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSc
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "token",
-					Type: rpc.ColumnTypeString,
+					Name:        "token",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the cask. Used to install the cask with 'brew install --cask <token>'",
 				},
 				{
-					Name: "full_token",
-					Type: rpc.ColumnTypeString,
+					Name:        "full_token",
+					Type:        rpc.ColumnTypeString,
+					Description: "The full name of the cask",
 				},
 				{
-					Name: "old_tokens",
-					Type: rpc.ColumnTypeString,
+					Name:        "old_tokens",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of old names of the cask",
 				},
 				{
-					Name: "tap",
-					Type: rpc.ColumnTypeString,
+					Name:        "tap",
+					Type:        rpc.ColumnTypeString,
+					Description: "The tap of the cask. Example: 'homebrew/cask'",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the cask",
 				},
 				{
-					Name: "desc",
-					Type: rpc.ColumnTypeString,
+					Name:        "desc",
+					Type:        rpc.ColumnTypeString,
+					Description: "The description of the cask",
 				},
 				{
-					Name: "homepage",
-					Type: rpc.ColumnTypeString,
+					Name:        "homepage",
+					Type:        rpc.ColumnTypeString,
+					Description: "The homepage of the cask",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the cask",
 				},
 				{
 					Name: "version",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "sha256",
-					Type: rpc.ColumnTypeString,
+					Name:        "sha256",
+					Type:        rpc.ColumnTypeString,
+					Description: "The SHA256 of the cask",
 				},
 				{
-					Name: "install_30_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_30_days",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of installations in the last 30 days",
 				},
 				{
-					Name: "install_90_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_90_days",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of installations in the last 90 days",
 				},
 				{
-					Name: "install_365_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_365_days",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of installations in the last 365 days",
 				},
 			},
 		}, nil
@@ -141,24 +153,6 @@ func (t *casksTable) CreateReader() rpc.ReaderInterface {
 	return &casksCursor{
 		casks: t.casks,
 	}
-}
-
-// A slice of rows to insert
-func (t *casksTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *casksTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *casksTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

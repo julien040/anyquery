@@ -1,6 +1,6 @@
 
 name = "safari"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query and modify Safari tabs"
 author = "julien040"
 license = "UNLICENSED"
@@ -9,7 +9,15 @@ homepage = "https://github.com/julien040/anyquery/tree/main/plugins/safari"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["tabs"]
+[[table]]
+name = "tabs"
+description = "List all safari tabs, and insert/update them"
+examples = [
+    "-- List all tabs\nSELECT * FROM safari_tabs;",
+    "-- List all tabs in the window with the given index\nSELECT * FROM safari_tabs WHERE window_index = 1;",
+    "-- Change the URL of the tabs for the given url\nUPDATE safari_tabs SET url = 'https://example.com' WHERE url = 'https://github.com/';",
+    "-- Create a new tab\nINSERT INTO safari_tabs (url) VALUES ('https://example.com');",
+]
 
 [[file]]
 platform = "darwin/amd64"

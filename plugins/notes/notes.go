@@ -104,32 +104,39 @@ func notesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the note",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the note",
 				},
 				{
-					Name: "creation_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "creation_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The creation date of the note (RFC3339 format)",
 				},
 				{
-					Name: "modification_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "modification_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The modification date of the note (RFC3339 format)",
 				},
 				{
-					Name: "html_body",
-					Type: rpc.ColumnTypeString,
+					Name:        "html_body",
+					Type:        rpc.ColumnTypeString,
+					Description: "The HTML body of the note. Images are base64 encoded. Inline css is used for text formatting",
 				},
 				{
-					Name: "folder",
-					Type: rpc.ColumnTypeString,
+					Name:        "folder",
+					Type:        rpc.ColumnTypeString,
+					Description: "The folder of the note",
 				},
 				{
-					Name: "account",
-					Type: rpc.ColumnTypeString,
+					Name:        "account",
+					Type:        rpc.ColumnTypeString,
+					Description: "The account of the note",
 				},
 			},
 		}, nil
@@ -256,24 +263,6 @@ func (t *notesTable) CreateReader() rpc.ReaderInterface {
 		cache: t.cache,
 		count: t.noteCount,
 	}
-}
-
-// A slice of rows to insert
-func (t *notesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *notesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *notesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

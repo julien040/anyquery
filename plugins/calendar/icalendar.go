@@ -26,62 +26,77 @@ func icalendarCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The path to the iCalendar file. Can be a local file path (./calendar.ics) or a URL (https://example.com/calendar.ics)",
 			},
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the event",
 			},
 			{
-				Name: "start_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "start_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The start date and time of the event in RFC3339 format",
 			},
 			{
-				Name: "end_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "end_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The end date and time of the event in RFC3339 format",
 			},
 			{
-				Name: "summary",
-				Type: rpc.ColumnTypeString,
+				Name:        "summary",
+				Type:        rpc.ColumnTypeString,
+				Description: "A summary of what the event is about",
 			},
 			{
-				Name: "description",
-				Type: rpc.ColumnTypeString,
+				Name:        "description",
+				Type:        rpc.ColumnTypeString,
+				Description: "A thorough description of the event",
 			},
 			{
-				Name: "attendees",
-				Type: rpc.ColumnTypeString,
+				Name:        "attendees",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of attendees",
 			},
 			{
-				Name: "status",
-				Type: rpc.ColumnTypeString,
+				Name:        "status",
+				Type:        rpc.ColumnTypeString,
+				Description: "The status of the event",
 			},
 			{
-				Name: "priority",
-				Type: rpc.ColumnTypeString,
+				Name:        "priority",
+				Type:        rpc.ColumnTypeString,
+				Description: "The priority of the event",
 			},
 			{
-				Name: "location",
-				Type: rpc.ColumnTypeString,
+				Name:        "location",
+				Type:        rpc.ColumnTypeString,
+				Description: "The location of the event",
 			},
 			{
-				Name: "geo",
-				Type: rpc.ColumnTypeString,
+				Name:        "geo",
+				Type:        rpc.ColumnTypeString,
+				Description: "The geographical location of the event",
 			},
 			{
-				Name: "organizer",
-				Type: rpc.ColumnTypeString,
+				Name:        "organizer",
+				Type:        rpc.ColumnTypeString,
+				Description: "The organizer of the event",
 			},
 			{
-				Name: "sequence",
-				Type: rpc.ColumnTypeInt,
+				Name:        "sequence",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The sequence number of the event",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The date and time the event was created in RFC3339 format",
 			},
 			{
-				Name: "last_modified_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "last_modified_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The date and time the event was last modified in RFC3339 format",
 			},
 		},
 	}, nil
@@ -270,24 +285,6 @@ func (t *icalendarCursor) Query(constraints rpc.QueryConstraint) ([][]interface{
 // Create a new cursor that will be used to read rows
 func (t *icalendarTable) CreateReader() rpc.ReaderInterface {
 	return &icalendarCursor{}
-}
-
-// A slice of rows to insert
-func (t *icalendarTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *icalendarTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *icalendarTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

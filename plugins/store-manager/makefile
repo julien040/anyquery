@@ -1,4 +1,4 @@
-Files := main.go
+Files := main.go structs.go
 
 all: $(Files)
 	go build -o store-manager.out $(Files)

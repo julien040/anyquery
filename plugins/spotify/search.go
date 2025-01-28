@@ -47,16 +47,19 @@ func searchCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The id of the result item",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the result item",
 				},
 				{
-					Name: "type",
-					Type: rpc.ColumnTypeString,
+					Name:        "type",
+					Type:        rpc.ColumnTypeString,
+					Description: "The type of the result item. One of track, artist, album, playlist, show, episode, audiobook",
 				},
 				{
 					Name: "href",
@@ -67,15 +70,18 @@ func searchCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The query to search for",
 				},
 				{
 					Name:        "object_type",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The type of the object to search for. One of track, artist, album, playlist, show, episode, audiobook",
 				},
 				{
-					Name: "author",
-					Type: rpc.ColumnTypeString,
+					Name:        "author",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author of the result item",
 				},
 			},
 		}, nil

@@ -1,15 +1,25 @@
 
 name = "raindrop"
-version = "0.1.1"
+version = "0.1.2"
 description = "Insert/delete/query items in a Raindrop.io collection"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/raindrop"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/raindrop"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["items"]
+
+[[table]]
+name = "items"
+description = "List and insert/delete items in a Raindrop.io collection"
+examples = [
+    "-- List all items in a collection\nSELECT * FROM raindrop_items;",
+    "-- Insert a bookmark\nINSERT INTO raindrop_items(title, link, created_at, reminder) VALUES ('A cool SQL tool', 'https://anyquery.dev', '2024-07-10', '2024-07-20');",
+    "-- Delete a bookmark\nDELETE FROM raindrop_items WHERE title = 'A cool SQL tool';",
+    "-- Query all bookmarks in a specific collection\nSELECT * FROM raindrop_items WHERE collection_id = 123456789;",
+]
+
 
 # The user configuration schema
 [[userConfig]]

@@ -17,36 +17,44 @@ func internetCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 		HandleOffset:  false,
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the row",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random URL",
 			},
 			{
-				Name: "domain_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "domain_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random domain name not linked to the URL",
 			},
 			{
-				Name: "domain_extension",
-				Type: rpc.ColumnTypeString,
+				Name:        "domain_extension",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random domain extension not linked to the URL",
 			},
 			{
-				Name: "ipv4",
-				Type: rpc.ColumnTypeString,
+				Name:        "ipv4",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random IPv4 address",
 			},
 			{
-				Name: "ipv6",
-				Type: rpc.ColumnTypeString,
+				Name:        "ipv6",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random IPv6 address",
 			},
 			{
-				Name: "mac_address",
-				Type: rpc.ColumnTypeString,
+				Name:        "mac_address",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random MAC address",
 			},
 			{
-				Name: "user_agent",
-				Type: rpc.ColumnTypeString,
+				Name:        "user_agent",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random user agent",
 			},
 		},
 	}, nil
@@ -91,24 +99,6 @@ func (t *internetTable) CreateReader() rpc.ReaderInterface {
 	return &internetCursor{
 		rowID: 0,
 	}
-}
-
-// A slice of rows to insert
-func (t *internetTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *internetTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *internetTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -26,44 +26,54 @@ func boardsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the board. In https://trello.com/b/12345678/board-name, the board ID is 12345678",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the board",
 				},
 				{
-					Name: "description",
-					Type: rpc.ColumnTypeString,
+					Name:        "description",
+					Type:        rpc.ColumnTypeString,
+					Description: "The description of the board",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL of the board to view it in the browser",
 				},
 				{
-					Name: "pinned",
-					Type: rpc.ColumnTypeBool,
+					Name:        "pinned",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the board is pinned",
 				},
 				{
-					Name: "starred",
-					Type: rpc.ColumnTypeBool,
+					Name:        "starred",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the board is starred",
 				},
 				{
-					Name: "subscribed",
-					Type: rpc.ColumnTypeBool,
+					Name:        "subscribed",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the authenticated user is subscribed to the board",
 				},
 				{
-					Name: "closed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the board was closed",
 				},
 				{
-					Name: "last_viewed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "last_viewed_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the board was last viewed",
 				},
 				{
-					Name: "last_activity_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "last_activity_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the board was last modified",
 				},
 			},
 		}, nil
@@ -145,24 +155,6 @@ func (t *boardTable) CreateReader() rpc.ReaderInterface {
 		key:    t.key,
 		token:  t.token,
 	}
-}
-
-// A slice of rows to insert
-func (t *boardTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *boardTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *boardTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

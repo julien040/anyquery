@@ -18,22 +18,27 @@ func user_dataCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				Name:        "id",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The ID of the user",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The creation date of the account",
 			},
 			{
-				Name: "karma",
-				Type: rpc.ColumnTypeInt,
+				Name:        "karma",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The karma of the user",
 			},
 			{
-				Name: "about",
-				Type: rpc.ColumnTypeString,
+				Name:        "about",
+				Type:        rpc.ColumnTypeString,
+				Description: "A small bio of the user",
 			},
 			{
-				Name: "post_id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "post_id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of one of the user's submitted posts",
 			},
 		},
 	}, nil
@@ -104,24 +109,6 @@ func (t *user_dataCursor) Query(constraints rpc.QueryConstraint) ([][]interface{
 // Create a new cursor that will be used to read rows
 func (t *user_dataTable) CreateReader() rpc.ReaderInterface {
 	return &user_dataCursor{}
-}
-
-// A slice of rows to insert
-func (t *user_dataTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *user_dataTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *user_dataTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

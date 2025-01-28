@@ -88,76 +88,89 @@ func homebrewFormulaCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Database
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the formula. Example: 'git'",
 				},
 				{
-					Name: "full_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "full_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The full name of the formula. Example: 'git'",
 				},
 				{
-					Name: "tap",
-					Type: rpc.ColumnTypeString,
+					Name:        "tap",
+					Type:        rpc.ColumnTypeString,
+					Description: "The tap of the formula. Example: 'homebrew/core'",
 				},
 				{
-					Name: "oldnames",
-					Type: rpc.ColumnTypeString,
+					Name:        "oldnames",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of old names of the formula. Example: ['git']",
 				},
 				{
-					Name: "aliases",
-					Type: rpc.ColumnTypeString,
+					Name:        "aliases",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of aliases of the formula. Example: ['git']",
 				},
 				{
-					Name: "versioned_formulae",
-					Type: rpc.ColumnTypeString,
+					Name:        "versioned_formulae",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of versioned formulae of the formula. Example: ['git']",
 				},
 				{
-					Name: "description",
-					Type: rpc.ColumnTypeString,
+					Name:        "description",
+					Type:        rpc.ColumnTypeString,
+					Description: "The description of the formula",
 				},
 				{
-					Name: "license",
-					Type: rpc.ColumnTypeString,
+					Name:        "license",
+					Type:        rpc.ColumnTypeString,
+					Description: "The license of the formula",
 				},
 				{
 					Name: "versions",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "build_dependencies",
-					Type: rpc.ColumnTypeString,
+					Name:        "build_dependencies",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of build dependencies of the formula",
 				},
 				{
-					Name: "dependencies",
-					Type: rpc.ColumnTypeString,
+					Name:        "dependencies",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "An array of dependencies of the formula",
 				},
 				{
 					Name: "test_dependencies",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeJSON,
 				},
 				{
 					Name: "recommended_dependencies",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeJSON,
 				},
 				{
 					Name: "optional_dependencies",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeJSON,
 				},
 				{
 					Name: "revision",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "install_30_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_30_days",
+					Type:        rpc.ColumnTypeString,
+					Description: "The number of installs in the last 30 days",
 				},
 				{
-					Name: "install_90_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_90_days",
+					Type:        rpc.ColumnTypeString,
+					Description: "The number of installs in the last 90 days",
 				},
 				{
-					Name: "install_365_days",
-					Type: rpc.ColumnTypeString,
+					Name:        "install_365_days",
+					Type:        rpc.ColumnTypeString,
+					Description: "The number of installs in the last 365 days",
 				},
 			},
 		}, nil
@@ -211,24 +224,6 @@ func (t *brewFormulaeTable) CreateReader() rpc.ReaderInterface {
 	return &brewFormulaeCursor{
 		t.formulae,
 	}
-}
-
-// A slice of rows to insert
-func (t *brewFormulaeTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *brewFormulaeTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *brewFormulaeTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

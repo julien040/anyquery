@@ -39,42 +39,52 @@ func commitsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "sha",
-					Type: rpc.ColumnTypeString,
+					Name:        "sha",
+					Type:        rpc.ColumnTypeString,
+					Description: "The SHA of the commit",
 				},
 				{
-					Name: "committer",
-					Type: rpc.ColumnTypeString,
+					Name:        "committer",
+					Type:        rpc.ColumnTypeString,
+					Description: "The committer of the commit (username)",
 				},
 				{
-					Name: "committer_email",
-					Type: rpc.ColumnTypeString,
+					Name:        "committer_email",
+					Type:        rpc.ColumnTypeString,
+					Description: "The committer email of the commit",
 				},
 				{
-					Name: "committer_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "committer_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The committer date of the commit",
 				},
 				{
-					Name: "author",
-					Type: rpc.ColumnTypeString,
+					Name:        "author",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author of the commit (username)",
 				},
 				{
-					Name: "author_email",
-					Type: rpc.ColumnTypeString,
+					Name:        "author_email",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author email of the commit",
 				},
 				{
-					Name: "author_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "author_date",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author date of the commit",
 				},
 				{
-					Name: "message",
-					Type: rpc.ColumnTypeString,
+					Name:        "message",
+					Type:        rpc.ColumnTypeString,
+					Description: "The message of the commit",
 				},
 				{
-					Name: "html_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "html_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the commit on GitHub",
 				},
 			},
 		}, nil
@@ -185,24 +195,6 @@ func (t *commitsTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *commitsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *commitsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *commitsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -1,6 +1,6 @@
 
 name = "git"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query local and remote git repositories"
 author = "julien040"
 license = "UNLICENSED"
@@ -18,6 +18,81 @@ tables = [
     "references",
     "commits_diff",
 ]
+
+[[table]]
+name = "commits"
+description = "List commits in a git repository"
+examples = [
+    "-- List commits of a repository\nSELECT * FROM git_commits('path/to/repo');",
+    "Get the count of commits of 'Junio C Hamano' in the git repository\nSELECT count(*) FROM git_commits('https://github.com/git/git.git') WHERE author_name='Junio C Hamano';",
+    """
+    -- Get infos about the parents of a commit (the parents columns is an array of hashes)
+    SELECT p.* FROM git_commits('path/to/repo') c, git_commits('path/to/repo') p, json_each(c.parents) parent
+    WHERE c.hash='a1b2c3d4' AND parent.value=p.hash;
+    """,
+    """
+    -- How many commits were made in the last 7 days
+    SELECT count(*) FROM git_commits('path/to/repo') WHERE author_date > datetime('now', '-7 days');
+    """
+]
+
+[[table]]
+name = "branches"
+description = "List branches in a git repository"
+examples = [
+    "-- List branches of a repository\nSELECT * FROM git_branches('path/to/repo');",
+    """-- Get the commit of a branch
+     SELECT * FROM git_branches('path/to/repo') b, git_commits('path/to/repo') c 
+     WHERE b.name='main' AND b.hash=c.hash;""",
+]
+
+[[table]]
+name = "tags"
+description = "List tags in a git repository"
+examples = [
+    "-- List tags of a repository\nSELECT * FROM git_tags('path/to/repo');",
+    """-- Get the commit of a tag
+     SELECT * FROM git_tags('path/to/repo') t, git_commits('path/to/repo') c 
+     WHERE t.name='v1.0.0' AND t.hash=c.hash;""",
+]
+
+[[table]]
+name = "remotes"
+description = "List remotes in a git repository"
+examples = [
+    "-- List remotes of a repository\nSELECT * FROM git_remotes('path/to/repo');",
+]
+
+[[table]]
+name = "status"
+description = "Get the status of file in a git repository (untracked, modified, deleted, renamed, copied, updated in the staging area and working tree)"
+examples = [
+    "-- Get the status of a repository\nSELECT * FROM git_status('path/to/repo');",
+]
+
+[[table]]
+name = "references"
+description = "List references in a git repository"
+examples = [
+    "-- List references of a repository\nSELECT * FROM git_references('path/to/repo');",
+]
+
+[[table]]
+name = "commits_diff"
+description = "List all commits of a repository with additionnal diff stats (slower than git_commits)"
+examples = [
+    "-- List commits of a repository with diff stats\nSELECT * FROM git_commits_diff('path/to/repo');",
+    """
+    -- Get the most modified files in the git repository
+SELECT sum(addition)+sum(deletion) as "changes", file_name FROM git_commits_diff('/path/to/repo') GROUP BY file_name ORDER BY
+"changes" DESC LIMIT 10;""",
+    """
+    -- Get the number of lines added per user in the git repository
+SELECT sum(addition) as "addition", author_name FROM git_commits_diff('/path/to/repo') GROUP BY author_name ORDER BY "addition" DESC;
+    """
+]
+
+
 
 [[file]]
 platform = "linux/amd64"

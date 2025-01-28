@@ -1,15 +1,23 @@
 
 name = "notes"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query/export notes from the Apple Notes app"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/notes"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/notes"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["items"]
+[[table]]
+name = "items"
+description = "List all notes"
+examples = [
+    "-- List all notes\nSELECT * FROM notes_items;",
+    "-- List all notes with a specific title\nSELECT * FROM notes_items WHERE name='My diary';",
+    "-- List all notes with a specific content\nSELECT * FROM notes_items WHERE html_body LIKE '%note_content%';",
+    "-- List all notes with a specific folder\nSELECT * FROM notes_items WHERE folder='folder_name';",
+]
 
 [[file]]
 platform = "darwin/amd64"

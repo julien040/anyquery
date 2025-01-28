@@ -1,15 +1,33 @@
 
 name = "file"
-version = "0.1.1"
+version = "0.1.2"
 description = "List and search file in the system"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/file"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/file"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
 tables = ["list", "search"]
+
+[[table]]
+name = "list"
+description = "List files in a directory"
+examples = [
+    "-- List all files in a directory\nSELECT * FROM file_list('/path/to/directory');",
+]
+
+[[table]]
+name = "search"
+description = "Search files in a directory"
+examples = [
+    """-- find -name '*.ext'
+SELECT * FROM file_search('*.ext');
+-- find -daystart -mtime -7
+SELECT * FROM file_search('*') where last_modified > datetime('now', '-7 days');
+"""
+]
 
 [[file]]
 platform = "linux/amd64"

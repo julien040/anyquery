@@ -1,6 +1,6 @@
 
 name = "random"
-version = "0.1.0"
+version = "0.1.1"
 description = "Generate random data"
 author = "julien040"
 license = "UNLICENSED"
@@ -10,6 +10,33 @@ type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
 tables = ["people", "password", "internet"]
+
+[[table]]
+name = "people"
+description = "Generate 1000 random people"
+examples = [
+    "-- Generate 1000 random people with a random name\nSELECT first_name, last_name, ssn FROM people;",
+    "-- Generate 1000 random people with an IP address\nSELECT first_name, last_name, i.ipv4 FROM people p JOIN internet i ON p.id = i.id;",
+    "-- Generate 10 random people with all the information\nSELECT * FROM people LIMIT 10;",
+]
+
+[[table]]
+name = "password"
+description = "Generate 1000 random passwords"
+examples = [
+    "-- Generate a random password\nSELECT password_lower, password_lower_upper FROM password LIMIT 1;",
+]
+
+[[table]]
+name = "internet"
+description = "Generate 1000 random data about the internet (domain, ipv4, ipv6, mac, url)"
+examples = [
+    "-- Generate a random domain\nSELECT domain_name FROM internet LIMIT 1;",
+    "-- Generate a random ipv4\nSELECT ipv4 FROM internet LIMIT 1;",
+    "-- Generate a random ipv6\nSELECT ipv6 FROM internet LIMIT 1;",
+    "-- Generate a random mac\nSELECT mac_address FROM internet LIMIT 1;",
+]
+
 
 [[file]]
 platform = "linux/amd64"

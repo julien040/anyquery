@@ -56,8 +56,9 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 
 	cols := []rpc.DatabaseSchemaColumn{
 		{
-			Name: "id",
-			Type: rpc.ColumnTypeString,
+			Name:        "id",
+			Type:        rpc.ColumnTypeString,
+			Description: "The primary key of the row",
 		},
 	}
 
@@ -84,13 +85,15 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		switch col.Type {
 		case "slider", "scale", "number":
 			cols = append(cols, rpc.DatabaseSchemaColumn{
-				Name: col.Name,
-				Type: rpc.ColumnTypeFloat,
+				Name:        col.Name,
+				Type:        rpc.ColumnTypeFloat,
+				Description: fmt.Sprintf("Coda type: %s", col.Type),
 			})
 		default:
 			cols = append(cols, rpc.DatabaseSchemaColumn{
-				Name: col.Name,
-				Type: rpc.ColumnTypeString,
+				Name:        col.Name,
+				Type:        rpc.ColumnTypeString,
+				Description: fmt.Sprintf("Coda type: %s", col.Type),
 			})
 		}
 
@@ -108,6 +111,24 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 
 	}
 
+	// Request information about the table
+	tableResponse := &TableDescription{}
+	resp, err = client.R().
+		SetHeader("Authorization", fmt.Sprintf("Bearer %s", token)).
+		SetPathParams(map[string]string{
+			"doc_id":   doc_id,
+			"table_id": table_id,
+		}).SetResult(tableResponse).
+		Get("https://coda.io/apis/v1/docs/{doc_id}/tables/{table_id}")
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("error while fetching table information: %w", err)
+	}
+
+	if resp.IsError() {
+		return nil, nil, fmt.Errorf("error while fetching table information(%d): %s", resp.StatusCode(), resp.String())
+	}
+
 	return &codaTable{
 			cache:   cache,
 			tableID: table_id,
@@ -122,6 +143,8 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			BufferInsert:  25,
 			BufferUpdate:  0, // Coda API doesn't support batch updates
 			BufferDelete:  25,
+			Description: fmt.Sprintf("Table name in Coda: %s. Created at: %s. Updated at: %s. Broswable at: %s",
+				tableResponse.Name, tableResponse.CreatedAt, tableResponse.UpdatedAt, tableResponse.BrowserLink),
 		}, nil
 }
 

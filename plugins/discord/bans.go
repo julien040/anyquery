@@ -40,34 +40,42 @@ func (m *discordMod) bansCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Dat
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the guild. In https://discord.com/channels/12345678/98765432, the guild ID is 12345678",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the ban. It is the concatenation of the guild ID and the user ID",
 				},
 				{
-					Name: "user_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who was banned",
 				},
 				{
-					Name: "username",
-					Type: rpc.ColumnTypeString,
+					Name:        "username",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who was banned",
 				},
 				{
-					Name: "discriminator",
-					Type: rpc.ColumnTypeString,
+					Name:        "discriminator",
+					Type:        rpc.ColumnTypeString,
+					Description: "The discriminator of the user who was banned",
 				},
 				{
-					Name: "email_verified",
-					Type: rpc.ColumnTypeBool,
+					Name:        "email_verified",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user has verified their email",
 				},
 				{
-					Name: "bot",
-					Type: rpc.ColumnTypeBool,
+					Name:        "bot",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the banned user is a bot",
 				},
 				{
-					Name: "ban_reason",
-					Type: rpc.ColumnTypeString,
+					Name:        "ban_reason",
+					Type:        rpc.ColumnTypeString,
+					Description: "A short message indicating the reason for the ban",
 				},
 			},
 		}, nil
@@ -188,14 +196,6 @@ func (t *bansTable) Insert(rows [][]interface{}) error {
 		}
 	}
 
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *bansTable) Update(rows [][]interface{}) error {
 	return nil
 }
 

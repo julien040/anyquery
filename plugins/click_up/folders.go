@@ -42,18 +42,22 @@ func foldersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the space. In https://app.clickup.com/12345678/v/s/li/98765432, the space ID is 98765432",
 				},
 				{
-					Name: "folder_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "folder_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the folder",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the folder",
 				},
 				{
-					Name: "archived",
-					Type: rpc.ColumnTypeBool,
+					Name:        "archived",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the folder is archived",
 				},
 			},
 		}, nil
@@ -134,30 +138,6 @@ func (t *foldersCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 	}
 
 	return rows, true, nil
-}
-
-// A slice of rows to insert
-func (t *foldersTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *foldersTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *foldersTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

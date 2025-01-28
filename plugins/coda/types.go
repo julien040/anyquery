@@ -95,3 +95,17 @@ type UpdateRowsBody struct {
 type DeleteRowBody struct {
 	RowIds []string `json:"rowIds"`
 }
+
+type TableDescription struct {
+	ID          string `json:"id"`
+	Type        string `json:"type"`
+	TableType   string `json:"tableType"`
+	Href        string `json:"href"`
+	BrowserLink string `json:"browserLink"`
+	Name        string `json:"name"`
+	RowCount    int64  `json:"rowCount"`
+	CreatedAt   string `json:"createdAt"`
+	UpdatedAt   string `json:"updatedAt"`
+	ViewID      string `json:"viewId"`
+	Layout      string `json:"layout"`
+}

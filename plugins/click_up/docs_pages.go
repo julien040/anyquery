@@ -41,48 +41,59 @@ func docs_pagesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchem
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the workspace. In https://app.clickup.com/12345678/v/l/li/98765432, the workspace ID is 12345678",
 				},
 				{
 					Name:        "doc_id",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the document. In https://app.clickup.com/12345678/v/dc/98765432/dakg-78, the document ID is 98765432",
 				},
 				{
-					Name: "page_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "page_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the page in the document",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the page was created (RFC3339 format)",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the page was last updated (RFC3339 format)",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the page",
 				},
 				{
-					Name: "creator_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "creator_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the creator of the page",
 				},
 				{
-					Name: "content",
-					Type: rpc.ColumnTypeString,
+					Name:        "content",
+					Type:        rpc.ColumnTypeString,
+					Description: "Markdown content of the page",
 				},
 				{
-					Name: "archived",
-					Type: rpc.ColumnTypeBool,
+					Name:        "archived",
+					Type:        rpc.ColumnTypeBool,
+					Description: "If the page is archived",
 				},
 				{
-					Name: "deleted",
-					Type: rpc.ColumnTypeBool,
+					Name:        "deleted",
+					Type:        rpc.ColumnTypeBool,
+					Description: "If the page is deleted",
 				},
 				{
-					Name: "protected",
-					Type: rpc.ColumnTypeBool,
+					Name:        "protected",
+					Type:        rpc.ColumnTypeBool,
+					Description: "If the page is protected",
 				},
 			},
 		}, nil
@@ -177,30 +188,6 @@ func (t *docs_pagesCursor) Query(constraints rpc.QueryConstraint) ([][]interface
 	}
 
 	return rows, true, nil
-}
-
-// A slice of rows to insert
-func (t *docs_pagesTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *docs_pagesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *docs_pagesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

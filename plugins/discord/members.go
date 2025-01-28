@@ -41,58 +41,72 @@ func (m *discordMod) membersCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the guild. In https://discord.com/channels/12345678/98765432, the guild ID is 12345678",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the member. It is the concatenation of the guild ID and the user ID",
 				},
 				{
-					Name: "user_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user in the guild",
 				},
 				{
-					Name: "username",
-					Type: rpc.ColumnTypeString,
+					Name:        "username",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user in the guild",
 				},
 				{
-					Name: "discriminator",
-					Type: rpc.ColumnTypeString,
+					Name:        "discriminator",
+					Type:        rpc.ColumnTypeString,
+					Description: "The discriminator of the user in the guild. In the username#discriminator, the discriminator is the 4 digits after the #",
 				},
 				{
-					Name: "email_verified",
-					Type: rpc.ColumnTypeBool,
+					Name:        "email_verified",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user has verified their email",
 				},
 				{
-					Name: "bot",
-					Type: rpc.ColumnTypeBool,
+					Name:        "bot",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user is a bot",
 				},
 				{
-					Name: "joined_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "joined_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the user joined the guild",
 				},
 				{
-					Name: "nickname",
-					Type: rpc.ColumnTypeString,
+					Name:        "nickname",
+					Type:        rpc.ColumnTypeString,
+					Description: "The nickname of the user in the guild",
 				},
 				{
-					Name: "roles",
-					Type: rpc.ColumnTypeString,
+					Name:        "roles",
+					Type:        rpc.ColumnTypeString,
+					Description: "The roles of the user in the guild",
 				},
 				{
-					Name: "pending_membership",
-					Type: rpc.ColumnTypeBool,
+					Name:        "pending_membership",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user has a pending membership",
 				},
 				{
-					Name: "premium_since",
-					Type: rpc.ColumnTypeString,
+					Name:        "premium_since",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the user started premium subscription",
 				},
 				{
-					Name: "deaf",
-					Type: rpc.ColumnTypeBool,
+					Name:        "deaf",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user is deafened",
 				},
 				{
-					Name: "muted",
-					Type: rpc.ColumnTypeBool,
+					Name:        "muted",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the user is muted",
 				},
 			},
 		}, nil
@@ -211,25 +225,6 @@ func (t *membersCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 	}
 
 	return rows, len(members) < 1000, nil
-}
-
-// A slice of rows to insert
-func (t *membersTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return fmt.Errorf("insert not supported")
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *membersTable) Update(rows [][]interface{}) error {
-	return fmt.Errorf("update not supported")
 }
 
 // A slice of primary keys to delete

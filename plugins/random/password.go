@@ -14,28 +14,34 @@ func passwordCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 		PrimaryKey: -1,
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the row",
 			},
 			{
-				Name: "username",
-				Type: rpc.ColumnTypeString,
+				Name:        "username",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random username",
 			},
 			{
-				Name: "password_lower",
-				Type: rpc.ColumnTypeString,
+				Name:        "password_lower",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random password in lowercase",
 			},
 			{
-				Name: "password_lower_upper",
-				Type: rpc.ColumnTypeString,
+				Name:        "password_lower_upper",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random password in lowercase and uppercase",
 			},
 			{
-				Name: "password_with_special",
-				Type: rpc.ColumnTypeString,
+				Name:        "password_with_special",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random password with special characters",
 			},
 			{
-				Name: "password_with_special_number",
-				Type: rpc.ColumnTypeString,
+				Name:        "password_with_special_number",
+				Type:        rpc.ColumnTypeString,
+				Description: "A random password with special characters and numbers",
 			},
 		},
 	}, nil
@@ -76,24 +82,6 @@ func (t *passwordCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 // Create a new cursor that will be used to read rows
 func (t *passwordTable) CreateReader() rpc.ReaderInterface {
 	return &passwordCursor{}
-}
-
-// A slice of rows to insert
-func (t *passwordTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *passwordTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *passwordTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

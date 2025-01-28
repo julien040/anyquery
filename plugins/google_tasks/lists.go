@@ -75,16 +75,19 @@ func listsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the list",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the list",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date the list was last updated",
 				},
 			},
 		}, nil
@@ -127,24 +130,6 @@ func (t *listsTable) CreateReader() rpc.ReaderInterface {
 	return &listsCursor{
 		srv: t.srv,
 	}
-}
-
-// A slice of rows to insert
-func (t *listsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *listsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *listsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

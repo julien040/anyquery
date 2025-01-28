@@ -1,15 +1,22 @@
 
 name = "ip_api"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query IP information using ip-api.com"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/ip-api"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/ip-api"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["info"]
+
+[[table]]
+name = "info"
+description = "Get information about an IP address"
+examples = [
+    "-- Get information about an IP address\nSELECT * FROM ip_api_info('8.8.8.8');",
+    "-- Get information about your IP address\nSELECT * FROM ip_api_info;",
+]
 
 [[file]]
 platform = "linux/amd64"

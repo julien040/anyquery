@@ -39,18 +39,22 @@ func stargazers_repoCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.Database
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "login",
-					Type: rpc.ColumnTypeString,
+					Name:        "login",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the stargazer",
 				},
 				{
-					Name: "starred_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "starred_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date when the user starred the repository",
 				},
 				{
-					Name: "user_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "user_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user",
 				},
 			},
 		}, nil
@@ -135,24 +139,6 @@ func (t *stargazers_repoTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *stargazers_repoTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *stargazers_repoTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *stargazers_repoTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

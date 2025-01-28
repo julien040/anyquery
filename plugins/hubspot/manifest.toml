@@ -1,13 +1,13 @@
 
 name = "hubspot"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query and modify your HubSpot data"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/hubspot"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/hubspot"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
 tables = [
         "companies",

@@ -1,15 +1,25 @@
 
 name = "pocket"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query, insert and delete your Pocket articles."
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/pocket"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/pocket"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["pocket"]
+[[table]]
+name = "pocket"
+description = "List all your Pocket articles"
+examples = [
+    "-- List all articles\nSELECT * FROM pocket_items;",
+    "-- List all articles with a specific title\nSELECT * FROM pocket_items WHERE title='My article';",
+    "-- List all articles from a specific domain\nSELECT * FROM pocket_items WHERE given_url LIKE '%example.com%';",
+    "-- Insert a new article\nINSERT INTO pocket_items (given_url, title) VALUES ('https://www.example.com', 'Example article');",
+    "-- Delete an article\nDELETE FROM pocket_items WHERE given_url = 'https://www.example.com';",
+]
+
 
 # The user configuration schema
 [[userConfig]]

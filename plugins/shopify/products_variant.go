@@ -83,8 +83,9 @@ func (r *rateLimit) products_variantCreator(args rpc.TableCreatorArgs) (rpc.Tabl
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the product variant",
 				},
 				{
 					Name: "barcode",
@@ -92,11 +93,11 @@ func (r *rateLimit) products_variantCreator(args rpc.TableCreatorArgs) (rpc.Tabl
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "display_name",
@@ -144,11 +145,11 @@ func (r *rateLimit) products_variantCreator(args rpc.TableCreatorArgs) (rpc.Tabl
 				},
 				{
 					Name: "product_created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "product_updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "product_status",
@@ -323,24 +324,6 @@ func (t *products_variantTable) CreateReader() rpc.ReaderInterface {
 		storeName:  t.storeName,
 		nextCursor: "",
 	}
-}
-
-// A slice of rows to insert
-func (t *products_variantTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *products_variantTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *products_variantTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

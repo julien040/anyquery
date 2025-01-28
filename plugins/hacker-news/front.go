@@ -16,8 +16,9 @@ func frontCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the Hacker News item",
 				},
 			},
 		}, nil
@@ -131,24 +132,6 @@ func (t *listTable) CreateReader() rpc.ReaderInterface {
 	return &listCursor{
 		endpoint: t.endpoint,
 	}
-}
-
-// A slice of rows to insert
-func (t *listTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *listTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *listTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

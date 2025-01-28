@@ -19,44 +19,52 @@ func searchCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 		HandleOffset:  false,
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "id",
-				Type: rpc.ColumnTypeString,
+				Name:        "id",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ID of the Hacker News item",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the item, if any",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The creation date of the item",
 			},
 			{
 				Name: "type",
 				Type: rpc.ColumnTypeString,
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL to see the item in the browser",
 			},
 			{
-				Name: "author",
-				Type: rpc.ColumnTypeString,
+				Name:        "author",
+				Type:        rpc.ColumnTypeString,
+				Description: "The username of the author",
 			},
 			{
-				Name: "points",
-				Type: rpc.ColumnTypeInt,
+				Name:        "points",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The number of points the item has",
 			},
 			{
 				Name: "num_comments",
 				Type: rpc.ColumnTypeInt,
 			},
 			{
-				Name: "story_id",
-				Type: rpc.ColumnTypeInt,
+				Name:        "story_id",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the story",
 			},
 			{
-				Name: "story_title",
-				Type: rpc.ColumnTypeString,
+				Name:        "story_title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the story in Hacker News",
 			},
 			{
 				Name: "comment_text",
@@ -67,13 +75,15 @@ func searchCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 				Type: rpc.ColumnTypeInt,
 			},
 			{
-				Name: "tags",
-				Type: rpc.ColumnTypeString,
+				Name:        "tags",
+				Type:        rpc.ColumnTypeString,
+				Description: "The tag of the item. One of 'story', 'poll', 'job', 'comment', 'ask_hn', 'show_hn'",
 			},
 			{
 				Name:        "query",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The query to search for in the HN Algolia API",
 			},
 		},
 	}, nil
@@ -184,24 +194,6 @@ func (t *hacker_newsCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 // Create a new cursor that will be used to read rows
 func (t *hacker_newsTable) CreateReader() rpc.ReaderInterface {
 	return &hacker_newsCursor{}
-}
-
-// A slice of rows to insert
-func (t *hacker_newsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *hacker_newsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *hacker_newsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

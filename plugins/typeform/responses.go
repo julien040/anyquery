@@ -52,24 +52,29 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 
 	schema := []rpc.DatabaseSchemaColumn{
 		{
-			Name: "id",
-			Type: rpc.ColumnTypeString,
+			Name:        "id",
+			Type:        rpc.ColumnTypeString,
+			Description: "The ID of the response",
 		},
 		{
-			Name: "landed_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "landed_at",
+			Type:        rpc.ColumnTypeDateTime,
+			Description: "The time the user landed on the form",
 		},
 		{
-			Name: "submitted_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "submitted_at",
+			Type:        rpc.ColumnTypeDateTime,
+			Description: "The time the user submitted the form",
 		},
 		{
-			Name: "user_agent",
-			Type: rpc.ColumnTypeString,
+			Name:        "user_agent",
+			Type:        rpc.ColumnTypeString,
+			Description: "The user agent of the user",
 		},
 		{
-			Name: "response_type",
-			Type: rpc.ColumnTypeString,
+			Name:        "response_type",
+			Type:        rpc.ColumnTypeString,
+			Description: "The type of the response. One of started, partial, completed",
 		},
 	}
 
@@ -103,18 +108,21 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 
 			if slices.Contains(fieldNumber, subfield.Type) {
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: subfield.Title,
-					Type: rpc.ColumnTypeFloat,
+					Name:        subfield.Title,
+					Type:        rpc.ColumnTypeFloat,
+					Description: fmt.Sprintf("The field %s (type: %s) of the form", subfield.Title, subfield.Type),
 				})
 			} else if slices.Contains(fieldBool, subfield.Type) {
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: subfield.Title,
-					Type: rpc.ColumnTypeInt,
+					Name:        subfield.Title,
+					Type:        rpc.ColumnTypeInt,
+					Description: fmt.Sprintf("The field %s (type: %s) of the form", subfield.Title, subfield.Type),
 				})
 			} else {
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: subfield.Title,
-					Type: rpc.ColumnTypeString,
+					Name:        subfield.Title,
+					Type:        rpc.ColumnTypeString,
+					Description: fmt.Sprintf("The field %s (type: %s) of the form", subfield.Title, subfield.Type),
 				})
 			}
 
@@ -257,24 +265,6 @@ func (t *responsesTable) CreateReader() rpc.ReaderInterface {
 		token:            t.token,
 		mapIdColumnIndex: t.mapIdColumnIndex,
 	}
-}
-
-// A slice of rows to insert
-func (t *responsesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *responsesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *responsesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

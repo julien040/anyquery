@@ -38,74 +38,88 @@ func issuesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The repository in the format owner/name",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the issue",
 				},
 				{
-					Name: "number",
-					Type: rpc.ColumnTypeInt,
+					Name:        "number",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number ID of the issue",
 				},
 				{
-					Name: "title",
-					Type: rpc.ColumnTypeString,
+					Name:        "title",
+					Type:        rpc.ColumnTypeString,
+					Description: "The title of the issue",
 				},
 				{
-					Name: "body",
-					Type: rpc.ColumnTypeString,
+					Name:        "body",
+					Type:        rpc.ColumnTypeString,
+					Description: "The markdown body of the issue",
 				},
 				{
-					Name: "state",
-					Type: rpc.ColumnTypeString,
+					Name:        "state",
+					Type:        rpc.ColumnTypeString,
+					Description: "The state of the issue (open, closed)",
 				},
 				{
-					Name: "state_reason",
-					Type: rpc.ColumnTypeString,
+					Name:        "state_reason",
+					Type:        rpc.ColumnTypeString,
+					Description: "The reason why the issue is in the current state",
 				},
 				{
-					Name: "by",
-					Type: rpc.ColumnTypeString,
+					Name:        "by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who posted the issue",
 				},
 				{
-					Name: "assignees",
-					Type: rpc.ColumnTypeString,
+					Name:        "assignees",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON array of the assignees of the issue",
 				},
 				{
-					Name: "labels",
-					Type: rpc.ColumnTypeString,
+					Name:        "labels",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of the labels of the issue",
 				},
 				{
-					Name: "closed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The date and time the issue was closed (RFC3339 format). Can be null if the issue is open",
 				},
 				{
-					Name: "closed_by",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the user who closed the issue",
 				},
 				{
 					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
 					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Type: rpc.ColumnTypeDateTime,
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the issue on GitHub",
 				},
 				{
-					Name: "reactions",
-					Type: rpc.ColumnTypeString,
+					Name:        "reactions",
+					Type:        rpc.ColumnTypeJSON,
+					Description: "A JSON object containing the reactions for each reaction type (total_count, +1, -1, laugh, confused, heart, hooray, rocket, eyes)",
 				},
 				{
 					Name: "draft",
-					Type: rpc.ColumnTypeInt,
+					Type: rpc.ColumnTypeBool,
 				},
 				{
 					Name: "locked",
-					Type: rpc.ColumnTypeInt,
+					Type: rpc.ColumnTypeBool,
 				},
 			},
 		}, nil
@@ -223,24 +237,6 @@ func (t *issuesTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *issuesTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *issuesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *issuesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

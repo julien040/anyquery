@@ -1,14 +1,59 @@
 name = "spotify"
-version = "0.1.2"
+version = "0.1.3"
 description = "Run queries on your Spotify data"
 author = "Julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/spotify"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["album", "track", "playlist", "search", "history", "saved_tracks"]
+[[table]]
+name = "album"
+description = "Get the tracks of an album"
+examples = [
+    "-- Get the tracks of an album\nSELECT track_name, track_artists, track_duration_ms FROM spotify_album('album_id');",
+    "-- Get album information\nSELECT DISTINCT album_type, album_name, artist_name, release_date FROM spotify_album('album_id');"
+]
+
+[[table]]
+name = "track"
+description = "Get the information of a track"
+examples = [
+    "-- Get the information of a track\nSELECT track_name, track_artists, track_duration_ms FROM spotify_track('track_id');",
+]
+
+[[table]]
+name = "playlist"
+description = "Get the tracks of a playlist"
+examples = [
+    "-- Get the tracks of a playlist\nSELECT track_name, track_artists, track_duration_ms FROM spotify_playlist('playlist_id');",
+    "-- Get playlist information\nSELECT DISTINCT playlist_name, playlist_description, playlist_owner, playlist_followers FROM spotify_playlist('playlist_id');"
+]
+
+[[table]]
+name = "search"
+description = "Search for tracks, albums, playlists, and artists"
+examples = [
+    "-- Search for tracks\nSELECT track_name, track_artists, track_duration_ms FROM spotify_search('track_name', 'track');",
+    "-- Search for albums\nSELECT album_name, artist_name, release_date FROM spotify_search('album_name', 'album');",
+    "-- Search for playlists\nSELECT playlist_name, playlist_description, playlist_owner, playlist_followers FROM spotify_search('playlist_name', 'playlist');",
+    "-- Search for artists\nSELECT artist_name, artist_followers, artist_popularity FROM spotify_search('artist_name', 'artist');"
+]
+
+[[table]]
+name = "history"
+description = "Get the history of the user"
+examples = [
+    "-- Get the history of the user\nSELECT track_name, track_artists, track_duration_ms FROM spotify_history;"
+]
+
+[[table]]
+name = "saved_tracks"
+description = "Get the saved tracks of the user"
+examples = [
+    "-- Get the saved tracks of the user\nSELECT track_name, track_artists, track_duration_ms FROM spotify_saved_tracks;"
+]
 
 # The user configuration schema
 [[userConfig]]

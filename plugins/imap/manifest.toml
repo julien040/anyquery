@@ -1,15 +1,38 @@
 
 name = "imap"
-version = "0.1.3"
+version = "0.1.4"
 description = "Query your emails with SQL"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/imap"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/imap"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["folders", "emails", "emails_body"]
+[[table]]
+name = "folders"
+description = "List all folders in the mailbox"
+examples = [
+    "-- List all folders in the mailbox\nSELECT * FROM imap_folders;",
+]
+
+[[table]]
+name = "emails"
+description = "List all emails in the inbox without the body (fast)"
+examples = [
+    "-- List all emails in the inbox\nSELECT * FROM imap_emails;",
+    "-- List all emails in the inbox with a specific subject\nSELECT * FROM imap_emails WHERE subject LIKE '%important%';",
+    "-- List unseen emails in the inbox\nSELECT * FROM imap_emails WHERE flags NOT LIKE '%\"Seen\"%';",
+    "-- List flagged emails in the inbox\nSELECT * FROM imap_emails WHERE flags LIKE '%\"Flagged\"%';",
+    "-- List all emails in the inbox with a specific sender\nSELECT * FROM imap_emails EXISTS (SELECT 1 FROM json_tree(_from) WHERE key = 'email' AND value = '<the sender email>');",
+]
+
+[[table]]
+name = "emails_body"
+description = "List all emails in the inbox with the body (slower)"
+examples = [
+    "-- List all emails containing a specific word in the body\nSELECT * FROM imap_emails_body WHERE body LIKE '%meeting with John%';",
+]
 
 
 [[userConfig]]

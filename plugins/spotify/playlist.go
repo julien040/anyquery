@@ -40,66 +40,82 @@ func playlistCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 					Name:        "id",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The ID of the playlist to search for. In https://open.spotify.com/playlist/37rI2gAtakAmSFtbIE9THq, the id is 37rI2gAtakAmSFtbIE9THq",
 				},
 				{
-					Name: "playlist_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "playlist_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the playlist",
 				},
 				{
-					Name: "playlist_followers",
-					Type: rpc.ColumnTypeInt,
+					Name:        "playlist_followers",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of followers the playlist has",
 				},
 				{
-					Name: "playlist_owner",
-					Type: rpc.ColumnTypeString,
+					Name:        "playlist_owner",
+					Type:        rpc.ColumnTypeString,
+					Description: "The owner of the playlist",
 				},
 				{
-					Name: "playlist_href",
-					Type: rpc.ColumnTypeString,
+					Name:        "playlist_href",
+					Type:        rpc.ColumnTypeString,
+					Description: "A link to the Web API endpoint providing full details of the playlist",
 				},
 				{
-					Name: "is_public",
-					Type: rpc.ColumnTypeInt,
+					Name:        "is_public",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the playlist is public or not",
 				},
 				{
-					Name: "album_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the album of the track in the playlist",
 				},
 				{
-					Name: "album_release_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_release_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The release date of the album of the track in the playlist",
 				},
 				{
-					Name: "artist_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "artist_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the artist of the track in the playlist",
 				},
 				{
-					Name: "track_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the track in the playlist",
 				},
 				{
-					Name: "track_href",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_href",
+					Type:        rpc.ColumnTypeString,
+					Description: "A link to the Web API endpoint providing full details of the track",
 				},
 				{
-					Name: "track_popularity",
-					Type: rpc.ColumnTypeInt,
+					Name:        "track_popularity",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The popularity of the track in the playlist (0-100)",
 				},
 				{
-					Name: "track_duration_ms",
-					Type: rpc.ColumnTypeInt,
+					Name:        "track_duration_ms",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The duration of the track in milliseconds",
 				},
 				{
-					Name: "track_explicit",
-					Type: rpc.ColumnTypeInt,
+					Name:        "track_explicit",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether or not the track has explicit lyrics",
 				},
 				{
-					Name: "track_preview_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_preview_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "A link to a 30 second preview (MP3 format) of the track",
 				},
 				{
-					Name: "track_number",
-					Type: rpc.ColumnTypeInt,
+					Name:        "track_number",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of the track in the playlist",
 				},
 			},
 		}, nil
@@ -258,24 +274,6 @@ func (t *playlistTable) CreateReader() rpc.ReaderInterface {
 	return &playlistCursor{
 		accessToken: t.accessToken,
 	}
-}
-
-// A slice of rows to insert
-func (t *playlistTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *playlistTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *playlistTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

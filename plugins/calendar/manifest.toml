@@ -1,15 +1,28 @@
 
 name = "calendar"
-version = "0.1.0"
+version = "0.1.2"
 description = "Query events from a calendar (iCal format)"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/calendar"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/calendar"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["events"]
+[[table]]
+name = "events"
+description = "List events from a calendar"
+examples = [
+"""-- Select all events during the year 2021
+SELECT * FROM calendar_events('./my_calendar.ics') WHERE start_at > '2021-01-01' AND end_at < '2021-12-31';
+-- Select all events where the summary contains 'meeting'
+SELECT * FROM calendar_events('./my_calendar.ics') WHERE summary LIKE '%meeting%';
+-- Select all events where the description contains 'meeting' and the location is 'Room A113'
+SELECT * FROM calendar_events WHERE description LIKE '%meeting%' AND location = 'Room A113' AND path = './my_calendar.ics';
+-- Select all events from a remote calendar (Google Calendar for example)
+SELECT * FROM calendar_events('https://calendar.google.com/calendar/ical/mymail%40gmail.com/private-ba23e19e/basic.ics');""",
+]
+
 
 # Results of GoReleaser
 [[file]]

@@ -23,42 +23,52 @@ func commitsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The path to the repository. Can be a local path (e.g. /path/to/repo) or a URL (e.g. https://github.com/julien040/anyquery.git)",
 			},
 			{
-				Name: "hash",
-				Type: rpc.ColumnTypeString,
+				Name:        "hash",
+				Type:        rpc.ColumnTypeString,
+				Description: "The hash of the commit",
 			},
 			{
-				Name: "author_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "author_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the author of the commit",
 			},
 			{
-				Name: "author_email",
-				Type: rpc.ColumnTypeString,
+				Name:        "author_email",
+				Type:        rpc.ColumnTypeString,
+				Description: "The email of the author of the commit",
 			},
 			{
-				Name: "author_date",
-				Type: rpc.ColumnTypeString,
+				Name:        "author_date",
+				Type:        rpc.ColumnTypeString,
+				Description: "The date when the commit was authored",
 			},
 			{
-				Name: "committer_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "committer_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The name of the committer of the commit",
 			},
 			{
-				Name: "committer_email",
-				Type: rpc.ColumnTypeString,
+				Name:        "committer_email",
+				Type:        rpc.ColumnTypeString,
+				Description: "The email of the committer of the commit",
 			},
 			{
-				Name: "committer_date",
-				Type: rpc.ColumnTypeString,
+				Name:        "committer_date",
+				Type:        rpc.ColumnTypeString,
+				Description: "The date when the commit was committed",
 			},
 			{
-				Name: "message",
-				Type: rpc.ColumnTypeString,
+				Name:        "message",
+				Type:        rpc.ColumnTypeString,
+				Description: "The content of the message commit (title + body)",
 			},
 			{
-				Name: "parents",
-				Type: rpc.ColumnTypeString,
+				Name:        "parents",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of the hashes of the parent commits",
 			},
 		},
 	}, nil
@@ -167,24 +177,6 @@ func (t *commitsTable) CreateReader() rpc.ReaderInterface {
 	return &commitsCursor{
 		alreadyVisited: make(map[string]bool),
 	}
-}
-
-// A slice of rows to insert
-func (t *commitsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *commitsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *commitsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

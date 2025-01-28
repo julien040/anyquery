@@ -1,16 +1,23 @@
 
 name = "google_forms"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query the responses of a Google Form"
 author = "Julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/google_forms"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/google_forms"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
 
-tables = ["responses"]
+[[table]]
+name = "responses"
+description = "List responses of a Google Form"
+examples = [
+    "-- List all responses of a Google Form\nSELECT * FROM google_forms_responses;",
+    "-- List all responses of a Google Form with a specific field\nSELECT * FROM google_forms_responses WHERE field='value';",
+    "-- Get the latest response of a Google Form\nSELECT * FROM google_forms_responses ORDER BY created_at DESC LIMIT 1;",
+]
 
 # The user configuration schema
 [[userConfig]]

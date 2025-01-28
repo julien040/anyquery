@@ -48,56 +48,68 @@ func historyCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, 
 			HandleOffset:  false,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the track",
 				},
 				{
-					Name: "played_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "played_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the track was played (RFC3339)",
 				},
 				{
-					Name: "played_from",
-					Type: rpc.ColumnTypeString,
+					Name:        "played_from",
+					Type:        rpc.ColumnTypeString,
+					Description: "The source of the track (artist, album, playlist, show)",
 				},
 				{
-					Name: "artist_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "artist_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the artist",
 				},
 				{
-					Name: "track_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "track_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the track",
 				},
 				{
-					Name: "album_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the album",
 				},
 				{
-					Name: "album_release_date",
-					Type: rpc.ColumnTypeString,
+					Name:        "album_release_date",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The release date of the album",
 				},
 				{
 					Name: "href",
 					Type: rpc.ColumnTypeString,
 				},
 				{
-					Name: "popularity",
-					Type: rpc.ColumnTypeInt,
+					Name:        "popularity",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The popularity of the track",
 				},
 				{
-					Name: "duration_ms",
-					Type: rpc.ColumnTypeInt,
+					Name:        "duration_ms",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The duration of the track in milliseconds",
 				},
 				{
-					Name: "explicit",
-					Type: rpc.ColumnTypeInt,
+					Name:        "explicit",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the track is explicit",
 				},
 				{
-					Name: "preview_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "preview_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The preview URL of the track. It's a small MP3 file that you can play in the browser. It's only available for a short time.",
 				},
 				{
-					Name: "track_number",
-					Type: rpc.ColumnTypeInt,
+					Name:        "track_number",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The track number of the track",
 				},
 			},
 		}, nil
@@ -215,24 +227,6 @@ func (t *historyTable) CreateReader() rpc.ReaderInterface {
 		accessToken: t.accessToken,
 		db:          t.db,
 	}
-}
-
-// A slice of rows to insert
-func (t *historyTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *historyTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *historyTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

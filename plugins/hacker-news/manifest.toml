@@ -1,28 +1,101 @@
 
 name = "hn"
 displayName = "Hacker News"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query user and post data from Hacker News"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/hacker-news"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/hacker-news"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = [
-        "search", 
-        "post", 
-        "descendants", 
-        "user_posts",
-        "top",
-        "new",
-        "best",
-        "ask",
-        "show",
-        "job",
-        "user"
-    ]
+
+[[table]]
+name = "search"
+description = "Search for posts using the HN Algolia API"
+examples = [
+    """
+    -- Search for "Gut cli" in comments using the Algolia API
+    SELECT * FROM hn_search('Gut cli') WHERE type = 'comment'
+    """
+]
+
+[[table]]
+name = "post"
+description = "Get a post by its id"
+examples = [
+    "-- Retrieve a post by its id\nSELECT * FROM hn_post(36391655)",
+    "-- Retrieve all posts of a user\nSELECT * FROM hn_user('julien040') u JOIN hn_post p ON u.post_id = p.id",
+    "-- Retrieve all posts of the front page\nSELECT * FROM hn_top JOIN hn_post ON hn_top.id = hn_post.id"
+]
+
+[[table]]
+name = "descendants"
+description = "Get all the comments, and subcomments for a given post id"
+examples = [
+    "-- Find all the comments recursively for a given post id\nSELECT * FROM hn_descendants(36391655)"
+]
+
+[[table]]
+name = "user_posts"
+description = "Get the last 100 posts of a user"
+examples = [
+    "-- Find all the posts of a user\nSELECT * FROM hn_user_posts('julien040')"
+]
+
+[[table]]
+name = "top"
+description = "Get the post ids of the current front page"
+examples = [
+    "-- Get the post ids of the top posts\nSELECT * FROM hn_top"
+]
+
+[[table]]
+name = "new"
+description = "Get the post ids of the new posts"
+examples = [
+    "-- Get the post ids of the new posts\nSELECT * FROM hn_new"
+]
+
+[[table]]
+name = "best"
+description = "Get the post ids of the list Best"
+examples = [
+    "-- Get the post ids of the best posts\nSELECT * FROM hn_best"
+]
+
+[[table]]
+name = "ask"
+description = "Get the post ids of the list Ask HN"
+examples = [
+    "-- Get the post ids of the Ask HN posts\nSELECT * FROM hn_ask"
+]
+
+[[table]]
+name = "show"
+description = "Get the post ids of the list Show HN"
+examples = [
+    "-- Get the post ids of the Show HN posts\nSELECT * FROM hn_show"
+]
+
+[[table]]
+name = "job"
+description = "Get the post ids of the list Job"
+examples = [
+    "-- Get the post ids of the Job posts\nSELECT * FROM hn_job"
+]
+
+[[table]]
+name = "user"
+description = "Get the user information, and the list of posts"
+examples = [
+    "-- Get the user posts\nSELECT post_id FROM hn_user('julien040')",
+    "-- Get the user karma\nSELECT karma FROM hn_user('julien040') LIMIT 1",
+    "-- Get the user about\nSELECT about FROM hn_user('julien040') LIMIT 1",
+    "-- Get the user creation date\nSELECT created_at FROM hn_user WHERE id = 'julien040'"
+]
+
 
 # Results of GoReleaser
 [[file]]

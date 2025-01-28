@@ -1,6 +1,6 @@
 
 name = "brave"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query and modify Brave tabs"
 author = "julien040"
 license = "UNLICENSED"
@@ -9,7 +9,16 @@ homepage = "https://github.com/julien040/anyquery/tree/main/plugins/brave"
 type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
-tables = ["tabs"]
+[[table]]
+name = "tabs"
+description = "List and modify Brave tabs"
+examples = [
+    "-- List all tabs\nSELECT * FROM brave_tabs;",
+    "-- -- Close tabs with a specific URL\nDELETE FROM brave_tabs WHERE url='https://gut-cli.dev/';",
+    "-- Update the url of a tab\nUPDATE brave_tabs SET url='https://hn-recommend.julienc.me' WHERE url = 'https://julienc.me';",
+    "-- Open a new tab\nINSERT INTO brave_tabs (url) VALUES ('https://julienc.me');",
+]
+
 
 [[file]]
 platform = "darwin/amd64"

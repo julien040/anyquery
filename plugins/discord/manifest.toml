@@ -1,23 +1,121 @@
 
 name = "discord"
-version = "0.1.0"
+version = "0.1.2"
 description = "Query and modify Discord servers"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/discord"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/discord"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = [
-        "messages",
-        "channels",
-        "members",
-        "bans",
-        "roles",
-        "guilds",
-        "invites"
-    ]
+[[table]]
+name = "messages"
+description = "List messages in a Discord channel, and insert them"
+examples = [
+    """
+    SELECT * FROM discord_messages('channel_id');
+SELECT * FROM discord_messages WHERE channel_id = 'channel_id';
+
+-- Write a message to a channel
+INSERT INTO discord_messages('channel_id', 'content') VALUES ('channel_id', 'Hello, world!');
+
+-- Delete recent messages from a channel that contain the word 'hello'
+-- Only messages from the last 14 days can be deleted. Any older messages will make the request fail.
+DELETE FROM discord_messages('channel_id') WHERE content LIKE '%hello%' AND created_at > datetime('now', '-14 days');
+
+-- Count the number of messages in a channel that contain the word 'hello'
+SELECT COUNT(*) FROM discord_messages('channel_id') WHERE content LIKE '%hello%';
+
+-- Get the number of messages per user in a channel
+SELECT username, COUNT(*) FROM discord_messages('channel_id') GROUP BY username, user_id ORDER BY COUNT(*) DESC;
+    """
+]
+
+[[table]]
+name = "channels"
+description = "List channels in a Discord guild, and insert, update, or delete them"
+examples = [
+    """
+    -- Get all channels from a server from top to bottom
+SELECT * FROM discord_channels('guild_id') ORDER BY position;
+
+-- Create a new channel
+INSERT INTO discord_channels(guild_id, name, type) VALUES ('guild_id', 'my-channel', 'GUILD_TEXT');
+
+-- Update a channel's name
+UPDATE discord_channels('guild_id') SET name = 'new-name' WHERE name = 'old-name';
+
+-- Delete a channel
+DELETE FROM discord_channels('guild_id') WHERE name = 'channel-name';
+    """
+]
+
+[[table]]
+name = "members"
+description = "List members in a Discord guild, or kick a member"
+examples = [
+    """
+    -- Get all members of a server
+SELECT * FROM discord_members('guild_id');
+
+-- Count the number of members in a server
+SELECT COUNT(*) FROM discord_members('guild_id');
+
+-- Kick a member from a server
+DELETE FROM discord_members('guild_id') WHERE username = 'username';
+"""
+]
+
+[[table]]
+name = "bans"
+description = "List banned members in a Discord guild, and ban/unban a member"
+examples = [
+    """
+   -- Get all banned users from a server
+SELECT * FROM discord_bans('guild_id');
+
+-- Ban a user from a server
+INSERT INTO discord_bans('guild_id', 'user_id') VALUES ('guild_id', 'user_id');
+
+-- Unban a user from a server
+DELETE FROM discord_bans('guild_id') WHERE user_id = 'user_id';
+    """
+]
+
+[[table]]
+name = "roles"
+description = "List roles in a Discord guild"
+examples = [
+    """
+    -- Get all roles from a server  
+SELECT * FROM discord_roles('guild_id');
+    """
+]
+
+[[table]]
+name = "guilds"
+description = "List guilds the bot is in. Can be used to retrieve the guild ID"
+examples = [
+    """
+    -- Get all guilds the bot is in
+SELECT * FROM discord_guilds;
+    """
+
+]
+
+[[table]]
+name = "invites"
+description = "List invites in a Discord guild"
+examples = [
+    """-- Get all invites of a server
+SELECT * FROM discord_invites('guild_id');
+
+-- Get the number of uses per invite
+SELECT code, uses FROM discord_invites('guild_id') ORDER BY uses DESC;
+    """
+]
+
 
 # The user configuration schema
 [[userConfig]]

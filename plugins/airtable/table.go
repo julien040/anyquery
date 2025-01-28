@@ -106,14 +106,17 @@ func (t *tablePlugin) tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 			Type:        rpc.ColumnTypeString,
 			IsParameter: true,
 			IsRequired:  false,
+			Description: "The ID of the view to query the data to. If missing, the default view is used",
 		},
 		{
-			Name: "id",
-			Type: rpc.ColumnTypeString,
+			Name:        "id",
+			Type:        rpc.ColumnTypeString,
+			Description: "The primary key of the record in the table",
 		},
 		{
-			Name: "created_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "created_at",
+			Type:        rpc.ColumnTypeString,
+			Description: "The time the record was created",
 		},
 	}
 
@@ -152,8 +155,9 @@ func (t *tablePlugin) tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 			"singleSelect",
 			"externalSyncSource", "url":
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: name,
-				Type: rpc.ColumnTypeString,
+				Name:        name,
+				Type:        rpc.ColumnTypeString,
+				Description: field.Description,
 			})
 		case
 			"autoNumber",
@@ -164,8 +168,9 @@ func (t *tablePlugin) tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 			"multipleLookupValues",
 			"rollup":
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: name,
-				Type: rpc.ColumnTypeInt,
+				Name:        name,
+				Type:        rpc.ColumnTypeInt,
+				Description: field.Description,
 			})
 		case
 			"currency",
@@ -173,8 +178,9 @@ func (t *tablePlugin) tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 			"percent",
 			"rating":
 			schema = append(schema, rpc.DatabaseSchemaColumn{
-				Name: name,
-				Type: rpc.ColumnTypeFloat,
+				Name:        name,
+				Type:        rpc.ColumnTypeFloat,
+				Description: field.Description,
 			})
 		default:
 			log.Printf("unsupported type %s for column %s", field.Type, name)
@@ -231,6 +237,7 @@ func (t *tablePlugin) tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.D
 			BufferInsert:  9,
 			BufferUpdate:  9,
 			BufferDelete:  9,
+			Description:   fmt.Sprintf("Airtable table %s (description: %s) in base %s", table, airtableSchema.Description, base),
 		}, nil
 }
 

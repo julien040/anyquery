@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/hashicorp/go-retryablehttp"
 	"github.com/julien040/anyquery/rpc"
@@ -106,17 +107,26 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 		return nil, nil, fmt.Errorf("failed to get form schema: %w", err)
 	}
 
+	tableDescription := strings.Builder{}
+	if form.Info != nil {
+		tableDescription.WriteString(form.Info.Title)
+		tableDescription.WriteString("-")
+		tableDescription.WriteString(form.Info.Description)
+	}
+
 	colIndex := 2 // 0 is reserved for the id, 1 for the created_at
 	mapIdColInfo := make(map[string]col)
 	columnNameDedup := make(map[string]bool)
 	schema := []rpc.DatabaseSchemaColumn{
 		{
-			Name: "id",
-			Type: rpc.ColumnTypeString,
+			Name:        "id",
+			Type:        rpc.ColumnTypeString,
+			Description: "The ID of the response",
 		},
 		{
-			Name: "created_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "created_at",
+			Type:        rpc.ColumnTypeDateTime,
+			Description: "The creation date of the response (RFC3339 format)",
 		},
 	}
 
@@ -131,10 +141,21 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 					title += "_"
 					_, alreadyExist = columnNameDedup[title]
 				}
+				description := strings.Builder{}
+				description.WriteString("A choice question with the following choices: ")
+				for i, choice := range item.QuestionItem.Question.ChoiceQuestion.Options {
+					if choice != nil {
+						if i > 0 {
+							description.WriteString(", ")
+						}
+						description.WriteString(choice.Value)
+					}
+				}
 				columnNameDedup[title] = true
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: title,
-					Type: rpc.ColumnTypeString,
+					Name:        title,
+					Type:        rpc.ColumnTypeString,
+					Description: description.String(),
 				})
 				mapIdColInfo[item.QuestionItem.Question.QuestionId] = col{colIndex, colTypeArray}
 				colIndex++
@@ -147,8 +168,9 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				}
 				columnNameDedup[title] = true
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: title,
-					Type: rpc.ColumnTypeString,
+					Name:        title,
+					Type:        rpc.ColumnTypeString,
+					Description: "A text question in the form",
 				})
 				mapIdColInfo[item.QuestionItem.Question.QuestionId] = col{colIndex, colTypeString}
 				colIndex++
@@ -161,8 +183,9 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				}
 				columnNameDedup[title] = true
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: title,
-					Type: rpc.ColumnTypeString,
+					Name:        title,
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "A date question in the form",
 				})
 				mapIdColInfo[item.QuestionItem.Question.QuestionId] = col{colIndex, colTypeString}
 				colIndex++
@@ -175,8 +198,9 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				}
 				columnNameDedup[title] = true
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: title,
-					Type: rpc.ColumnTypeString,
+					Name:        title,
+					Type:        rpc.ColumnTypeTime,
+					Description: "A time question in the form",
 				})
 				mapIdColInfo[item.QuestionItem.Question.QuestionId] = col{colIndex, colTypeString}
 				colIndex++
@@ -191,6 +215,8 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 				schema = append(schema, rpc.DatabaseSchemaColumn{
 					Name: title,
 					Type: rpc.ColumnTypeFloat,
+					Description: fmt.Sprintf("A scale question in the form with a minimum of %d (%s) and a maximum of %d (%s)", item.QuestionItem.Question.ScaleQuestion.Low, item.QuestionItem.Question.ScaleQuestion.LowLabel,
+						item.QuestionItem.Question.ScaleQuestion.High, item.QuestionItem.Question.ScaleQuestion.HighLabel),
 				})
 				mapIdColInfo[item.QuestionItem.Question.QuestionId] = col{colIndex, colTypeNumber}
 				colIndex++
@@ -217,8 +243,9 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 					columnNameDedup[title] = true
 
 					schema = append(schema, rpc.DatabaseSchemaColumn{
-						Name: title,
-						Type: rpc.ColumnTypeString,
+						Name:        title,
+						Type:        rpc.ColumnTypeString,
+						Description: "A grid question in the form",
 					})
 					mapIdColInfo[subfield.QuestionId] = col{colIndex, colTypeArray}
 					colIndex++
@@ -233,11 +260,8 @@ func responsesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema
 			client:  client,
 			formID:  formID,
 		}, &rpc.DatabaseSchema{
-			HandlesInsert: false,
-			HandlesUpdate: false,
-			HandlesDelete: false,
-			HandleOffset:  false,
-			Columns:       schema,
+			Columns:     schema,
+			Description: tableDescription.String(),
 		}, nil
 }
 
@@ -342,24 +366,6 @@ func (t *google_formsTable) CreateReader() rpc.ReaderInterface {
 		colInfo: t.colInfo,
 		formID:  t.formID,
 	}
-}
-
-// A slice of rows to insert
-func (t *google_formsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *google_formsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *google_formsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

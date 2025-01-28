@@ -1,15 +1,59 @@
 
 name = "clickup"
-version = "0.1.0"
+version = "0.1.2"
 description = "Read tasks and documents from ClickUp"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/plugins/click_up"
 homepage = "https://github.com/julien040/anyquery/plugins/click_up"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["tasks", "docs", "pages", "folders", "lists", "whoami"]
+[[table]]
+name = "tasks"
+description = "List tasks in a ClickUp list"
+examples = [
+    "-- List all tasks in a list\nSELECT * FROM clickup_tasks('list_id');",
+    "-- List all tasks in a list with a specific status\nSELECT * FROM clickup_tasks('list_id') WHERE status='open';",
+    "-- List all tasks in a list with a specific assignee\nSELECT * FROM clickup_tasks('list_id') WHERE assignee='julien040';",
+    "-- List all tasks in a list with a specific tag\nSELECT * FROM clickup_tasks('list_id') WHERE tags='important';",
+]
+
+[[table]]
+name = "docs"
+description = "List documents in a ClickUp workspace"
+examples = [
+    "-- List all documents in a workspace\nSELECT * FROM clickup_docs('workspace_id');",
+]
+
+[[table]]
+name = "pages"
+description = "List pages in a ClickUp doc (retrieved from clickup_docs)"
+examples = [
+    "-- List all pages in a doc\nSELECT * FROM clickup_pages('workspace_id', 'doc_id');",
+    "-- Concatenate all pages in a doc\nSELECT group_concat(content) FROM clickup_pages('workspace_id', 'doc_id');",
+]
+
+[[table]]
+name = "folders"
+description = "List folders in a ClickUp workspace"
+examples = [
+    "-- List all folders in a workspace\nSELECT * FROM clickup_folders('workspace_id');",
+]
+
+[[table]]
+name = "lists"
+description = "List lists in a ClickUp folder (retrieved from clickup_folders)"
+examples = [
+    "-- List all lists in a folder\nSELECT * FROM clickup_lists('folder_id');",
+]
+
+[[table]]
+name = "whoami"
+description = "Get the user information"
+examples = [
+    "-- Get the user information\nSELECT * FROM clickup_whoami;",
+]
 
 # The user configuration schema
 [[userConfig]]

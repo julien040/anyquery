@@ -1,6 +1,6 @@
 
 name = "google_contacts"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query your Google Contacts"
 author = "julien040"
 license = "UNLICENSED"
@@ -10,7 +10,26 @@ type = "anyquery"
 minimumAnyqueryVersion = "0.0.1"
 
 
-tables = ["items", "flat"]
+[[table]]
+name = "items"
+description = "List all contacts (each field is a JSON array)"
+examples = [
+    "-- List all contacts\nSELECT * FROM google_contacts_items;",
+    "-- List all contacts with a specific name\nSELECT * FROM google_contacts_items WHERE name='John Doe';",
+    "-- List all contacts with a specific skill\nSELECT * FROM google_contacts_items WHERE json_has(skills, 'python');",
+    "-- Get phone_numbers of contacts\n SELECT phone_numbers --> '$[0]' as phone_number, name FROM google_contacts_items;",
+]
+
+[[table]]
+name = "flat"
+description = "List all contacts (each field is the first value of the items table)"
+examples = [
+    "-- List all contacts\nSELECT * FROM google_contacts_flat;",
+    "-- List all contacts with a specific name\nSELECT * FROM google_contacts_flat WHERE name='John Doe';",
+    "-- List all contacts with a specific first skill\nSELECT * FROM google_contacts_flat WHERE skills = 'python';",
+    "-- List all contacts with a specific email\nSELECT * FROM google_contacts_flat WHERE email = 'john.doe@example.com';",
+    "-- Get phone_numbers of contacts\n SELECT phone_number, name FROM google_contacts_flat;",
+]
 
 # The user configuration schema
 [[userConfig]]

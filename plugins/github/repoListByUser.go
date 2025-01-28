@@ -27,6 +27,7 @@ func repoListByUserCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseS
 			Type:        rpc.ColumnTypeString,
 			IsParameter: true,
 			IsRequired:  true,
+			Description: "The user to get the repositories from",
 		},
 	}
 	columns = append(columns, repositorySchema...)
@@ -111,24 +112,6 @@ func (t *repoListByUserTable) CreateReader() rpc.ReaderInterface {
 		pageID: 1,
 		db:     t.db,
 	}
-}
-
-// A slice of rows to insert
-func (t *repoListByUserTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *repoListByUserTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *repoListByUserTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

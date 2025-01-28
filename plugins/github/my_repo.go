@@ -155,24 +155,6 @@ func (t *githubTable) CreateReader() rpc.ReaderInterface {
 	}
 }
 
-// A slice of rows to insert
-func (t *githubTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *githubTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *githubTable) Delete(primaryKeys []interface{}) error {
-	return nil
-}
-
 // A destructor to clean up resources
 func (t *githubTable) Close() error {
 	return nil

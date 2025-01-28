@@ -7,15 +7,17 @@ type GetSchemaResponses struct {
 type Table struct {
 	ID             string  `json:"id"`
 	Name           string  `json:"name"`
+	Description    string  `json:"description"`
 	PrimaryFieldID string  `json:"primaryFieldId"`
 	Fields         []Field `json:"fields"`
 	Views          []Field `json:"views"`
 }
 
 type Field struct {
-	Type string `json:"type"`
-	ID   string `json:"id"`
-	Name string `json:"name"`
+	Type        string `json:"type"`
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type ListRecordsResponse struct {

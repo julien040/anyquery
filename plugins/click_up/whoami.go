@@ -21,36 +21,44 @@ func whoamiCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 		}, &rpc.DatabaseSchema{
 			Columns: []rpc.DatabaseSchemaColumn{
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeInt,
+					Name:        "id",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The ID of the authenticated user",
 				},
 				{
-					Name: "username",
-					Type: rpc.ColumnTypeString,
+					Name:        "username",
+					Type:        rpc.ColumnTypeString,
+					Description: "The username of the authenticated user",
 				},
 				{
-					Name: "email",
-					Type: rpc.ColumnTypeString,
+					Name:        "email",
+					Type:        rpc.ColumnTypeString,
+					Description: "The email of the authenticated user",
 				},
 				{
-					Name: "color",
-					Type: rpc.ColumnTypeString,
+					Name:        "color",
+					Type:        rpc.ColumnTypeString,
+					Description: "The color of the authenticated user",
 				},
 				{
-					Name: "profile_picture",
-					Type: rpc.ColumnTypeString,
+					Name:        "profile_picture",
+					Type:        rpc.ColumnTypeString,
+					Description: "URL of the profile picture of the authenticated user",
 				},
 				{
-					Name: "initials",
-					Type: rpc.ColumnTypeString,
+					Name:        "initials",
+					Type:        rpc.ColumnTypeString,
+					Description: "The initials of the authenticated user",
 				},
 				{
-					Name: "week_start_day",
-					Type: rpc.ColumnTypeInt,
+					Name:        "week_start_day",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The day of the week the user starts on",
 				},
 				{
-					Name: "timezone",
-					Type: rpc.ColumnTypeString,
+					Name:        "timezone",
+					Type:        rpc.ColumnTypeString,
+					Description: "The timezone of the authenticated user",
 				},
 			},
 		}, nil
@@ -110,30 +118,6 @@ func (t *whoamiCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 			body.User.Timezone,
 		},
 	}, true, nil
-}
-
-// A slice of rows to insert
-func (t *whoamiTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *whoamiTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *whoamiTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

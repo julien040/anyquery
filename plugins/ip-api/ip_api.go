@@ -36,22 +36,27 @@ func ip_apiCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 				Name:        "ip",
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
+				Description: "The IP address to get information about. If not set, the IP address of the client will be used",
 			},
 			{
-				Name: "country",
-				Type: rpc.ColumnTypeString,
+				Name:        "country",
+				Type:        rpc.ColumnTypeString,
+				Description: "The full name of the country",
 			},
 			{
-				Name: "country_code",
-				Type: rpc.ColumnTypeString,
+				Name:        "country_code",
+				Type:        rpc.ColumnTypeString,
+				Description: "The ISO 3166-1 alpha-2 country code",
 			},
 			{
-				Name: "region",
-				Type: rpc.ColumnTypeString,
+				Name:        "region",
+				Type:        rpc.ColumnTypeString,
+				Description: "The region code",
 			},
 			{
-				Name: "region_name",
-				Type: rpc.ColumnTypeString,
+				Name:        "region_name",
+				Type:        rpc.ColumnTypeString,
+				Description: "The full name of the region",
 			},
 			{
 				Name: "city",
@@ -154,24 +159,6 @@ func (t *ip_apiCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, 
 // Create a new cursor that will be used to read rows
 func (t *ip_apiTable) CreateReader() rpc.ReaderInterface {
 	return &ip_apiCursor{}
-}
-
-// A slice of rows to insert
-func (t *ip_apiTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *ip_apiTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *ip_apiTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

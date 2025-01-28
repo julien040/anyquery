@@ -84,18 +84,22 @@ func pypiVersionCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSche
 				Type:        rpc.ColumnTypeString,
 				IsParameter: true,
 				IsRequired:  true,
+				Description: "The name of the Pypi (pip) package you want to list versions of",
 			},
 			{
-				Name: "package_url",
-				Type: rpc.ColumnTypeString,
+				Name:        "package_url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the package to see more information",
 			},
 			{
-				Name: "package_author",
-				Type: rpc.ColumnTypeString,
+				Name:        "package_author",
+				Type:        rpc.ColumnTypeString,
+				Description: "The author of the package",
 			},
 			{
-				Name: "version",
-				Type: rpc.ColumnTypeString,
+				Name:        "version",
+				Type:        rpc.ColumnTypeString,
+				Description: "One of the versions of the package",
 			},
 			{
 				Name: "md5_digest",
@@ -103,7 +107,7 @@ func pypiVersionCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSche
 			},
 			{
 				Name: "upload_time",
-				Type: rpc.ColumnTypeString,
+				Type: rpc.ColumnTypeDateTime,
 			},
 			{
 				Name: "filename",
@@ -194,24 +198,6 @@ func (t *pypiVersionCursor) Query(constraints rpc.QueryConstraint) ([][]interfac
 // Create a new cursor that will be used to read rows
 func (t *pypiVersionTable) CreateReader() rpc.ReaderInterface {
 	return &pypiVersionCursor{}
-}
-
-// A slice of rows to insert
-func (t *pypiVersionTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *pypiVersionTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *pypiVersionTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

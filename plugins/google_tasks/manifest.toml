@@ -1,15 +1,35 @@
 
 name = "google_tasks"
-version = "0.1.0"
+version = "0.1.1"
 description = "Query/insert/update tasks from Google Tasks"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/google_tasks"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/google_tasks"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["lists", "items"]
+[[table]]
+name = "lists"
+description = "List all task lists (useful to get the list-id for the items table)"
+examples = [
+    "-- List all task lists\nSELECT * FROM google_tasks_lists;",
+]
+
+[[table]]
+name = "items"
+description = "List all tasks in a task list"
+examples = [
+    "-- List all tasks in a task list\nSELECT * FROM google_tasks_items('list-id');",
+    "-- List all tasks in a task list where the title contains 'task'\nSELECT * FROM google_tasks_items('list-id') WHERE title LIKE '%task%';",
+    "-- List all tasks in a task list where the status is 'completed'\nSELECT * FROM google_tasks_items('list-id') WHERE status = 'completed';",
+    "-- List all tasks in a task list where the due_at is before '2021-12-31'\nSELECT * FROM google_tasks_items('list-id') WHERE due_at < '2021-12-31';",
+    "-- List all tasks in a task list where the completed_at is after '2021-12-31'\nSELECT * FROM google_tasks_items('list-id') WHERE completed_at > '2021-12-31';",
+    "-- Insert a new task in a task list\nINSERT INTO google_tasks_items (list_id, title, due_at) VALUES ('list-id', 'New task', '2021-12-31T20:15:00Z');",
+    "-- Update the tasks in a task list\nUPDATE google_tasks_items SET status = 'completed', completed_at = '2024-08-15' WHERE title LIKE '%done%' and list_id = 'list-id';",
+    "-- List all tasks of all task lists\nSELECT * FROM google_tasks_lists JOIN google_tasks_items ON google_tasks_lists.id = google_tasks_items.list_id;",
+    "-- List all subtasks of a task\nSELECT * FROM google_tasks_items('list-id') WHERE parent_id = 'task-id';",
+]
 
 # The user configuration schema
 [[userConfig]]

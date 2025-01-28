@@ -55,94 +55,117 @@ func tasksCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the list. In https://app.clickup.com/12345678/v/l/li/98765432, the list ID is 98765432",
 				},
 				{
-					Name: "task_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "task_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of a task in the list",
 				},
 				{
-					Name: "description",
-					Type: rpc.ColumnTypeString,
+					Name:        "description",
+					Type:        rpc.ColumnTypeString,
+					Description: "A description of the task",
 				},
 				{
-					Name: "status",
-					Type: rpc.ColumnTypeString,
+					Name:        "status",
+					Type:        rpc.ColumnTypeString,
+					Description: "The current status of the task",
 				},
 				{
-					Name: "order_index",
-					Type: rpc.ColumnTypeInt,
+					Name:        "order_index",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The position of the task in the list",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task was created (RFC3339 format)",
 				},
 				{
-					Name: "updated_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "updated_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task was last updated (RFC3339 format)",
 				},
 				{
-					Name: "closed_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "closed_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task was closed (RFC3339 format). Might be NULL",
 				},
 				{
-					Name: "done_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "done_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task was done (RFC3339 format). Might be NULL",
 				},
 				{
-					Name: "created_by",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_by",
+					Type:        rpc.ColumnTypeString,
+					Description: "The user who created the task",
 				},
 				{
-					Name: "started_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "started_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task was started (RFC3339 format). Might be NULL",
 				},
 				{
-					Name: "due_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "due_at",
+					Type:        rpc.ColumnTypeString,
+					Description: "The date the task is due (RFC3339 format). Might be NULL",
 				},
 				{
-					Name: "estimated_time",
-					Type: rpc.ColumnTypeInt,
+					Name:        "estimated_time",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The estimated time to complete the task. Might be NULL",
 				},
 				{
-					Name: "time_spent",
-					Type: rpc.ColumnTypeInt,
+					Name:        "time_spent",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The time spent on the task. Might be NULL",
 				},
 				{
-					Name: "assignees",
-					Type: rpc.ColumnTypeString,
+					Name:        "assignees",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of the assignees of the task",
 				},
 				{
-					Name: "watchers",
-					Type: rpc.ColumnTypeString,
+					Name:        "watchers",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of the watchers of the task",
 				},
 				{
-					Name: "tags",
-					Type: rpc.ColumnTypeString,
+					Name:        "tags",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON array of the tags of the task",
 				},
 				{
-					Name: "custom_fields",
-					Type: rpc.ColumnTypeString,
+					Name:        "custom_fields",
+					Type:        rpc.ColumnTypeString,
+					Description: "A JSON object of the custom fields of the task. Use custom_field ->> '$.name' to get the value of a custom field",
 				},
 				{
-					Name: "parent",
-					Type: rpc.ColumnTypeString,
+					Name:        "parent",
+					Type:        rpc.ColumnTypeString,
+					Description: "The id of the parent task",
 				},
 				{
-					Name: "project_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "project_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the project",
 				},
 				{
-					Name: "folder_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "folder_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the folder",
 				},
 				{
-					Name: "space_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "space_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the space",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "An URL to the task",
 				},
 			},
 		}, nil
@@ -263,30 +286,6 @@ func (t *tasksCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 	}
 
 	return rows, len(rows) < 100, nil
-}
-
-// A slice of rows to insert
-func (t *tasksTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *tasksTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *tasksTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

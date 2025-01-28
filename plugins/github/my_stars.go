@@ -24,8 +24,9 @@ func my_starsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema,
 
 	columns := []rpc.DatabaseSchemaColumn{
 		{
-			Name: "starred_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "starred_at",
+			Type:        rpc.ColumnTypeString,
+			Description: "The date the repository was starred",
 		},
 	}
 	columns = append(columns, repositorySchema...)
@@ -148,24 +149,6 @@ func (t *my_starsTable) CreateReader() rpc.ReaderInterface {
 		client: t.client,
 		db:     t.db,
 	}
-}
-
-// A slice of rows to insert
-func (t *my_starsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *my_starsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *my_starsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

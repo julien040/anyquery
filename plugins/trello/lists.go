@@ -29,26 +29,32 @@ func listsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the board. In https://trello.com/b/12345678/board-name, the board ID is 12345678. Can be found in the trello_boards table",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the list. A list is a collection of cards (often the stages of a project)",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the list",
 				},
 				{
-					Name: "color",
-					Type: rpc.ColumnTypeString,
+					Name:        "color",
+					Type:        rpc.ColumnTypeString,
+					Description: "The color of the list",
 				},
 				{
-					Name: "subscribed",
-					Type: rpc.ColumnTypeBool,
+					Name:        "subscribed",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the authenticated user is subscribed to the list",
 				},
 				{
-					Name: "position",
-					Type: rpc.ColumnTypeFloat,
+					Name:        "position",
+					Type:        rpc.ColumnTypeFloat,
+					Description: "The position of the list in the board",
 				},
 			},
 		}, nil
@@ -123,24 +129,6 @@ func (t *listsTable) CreateReader() rpc.ReaderInterface {
 		key:   t.key,
 		token: t.token,
 	}
-}
-
-// A slice of rows to insert
-func (t *listsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *listsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *listsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

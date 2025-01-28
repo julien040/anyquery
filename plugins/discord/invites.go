@@ -36,58 +36,72 @@ func (m *discordMod) invitesCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
 					IsRequired:  true,
+					Description: "The ID of the guild. In https://discord.com/channels/12345678/98765432, the guild ID is 12345678",
 				},
 				{
-					Name: "to_channel_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "to_channel_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "To which channel the invite is for",
 				},
 				{
-					Name: "to_channel_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "to_channel_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "To which channel (name) the invite is for",
 				},
 				{
-					Name: "created_by_id",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_by_id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the user who created the invite",
 				},
 				{
-					Name: "created_by_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_by_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the user who created the invite",
 				},
 				{
-					Name: "invide_code",
-					Type: rpc.ColumnTypeString,
+					Name:        "invide_code",
+					Type:        rpc.ColumnTypeString,
+					Description: "The code of the invite",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the invite was created",
 				},
 				{
-					Name: "expires_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "expires_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "When the invite expires (RFC3339 format)",
 				},
 				{
-					Name: "max_uses",
-					Type: rpc.ColumnTypeInt,
+					Name:        "max_uses",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The maximum number of uses the invite has",
 				},
 				{
-					Name: "uses",
-					Type: rpc.ColumnTypeInt,
+					Name:        "uses",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The number of times the invite has been used",
 				},
 				{
-					Name: "max_age",
-					Type: rpc.ColumnTypeInt,
+					Name:        "max_age",
+					Type:        rpc.ColumnTypeInt,
+					Description: "The maximum age of the invite in seconds",
 				},
 				{
-					Name: "temporary",
-					Type: rpc.ColumnTypeBool,
+					Name:        "temporary",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the invite is temporary",
 				},
 				{
-					Name: "revoked",
-					Type: rpc.ColumnTypeBool,
+					Name:        "revoked",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the invite has been revoked",
 				},
 				{
-					Name: "unique",
-					Type: rpc.ColumnTypeBool,
+					Name:        "unique",
+					Type:        rpc.ColumnTypeBool,
+					Description: "Whether the invite is unique",
 				},
 			},
 		}, nil
@@ -182,30 +196,6 @@ func (t *invitesCursor) Query(constraints rpc.QueryConstraint) ([][]interface{},
 	}
 
 	return rows, true, nil
-}
-
-// A slice of rows to insert
-func (t *invitesTable) Insert(rows [][]interface{}) error {
-	// Example: insert the rows in a database
-	// for _, row := range rows {
-	// 	err := db.Insert(row[0], row[1], row[2])
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *invitesTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *invitesTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

@@ -102,20 +102,29 @@ func factory(objectName string, readOnly bool) rpc.TableCreator {
 				continue mainLoop
 			}
 			switch property.Type {
-			case "enumeration", "string", "date", "datetime":
+			case "enumeration", "string":
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: colName,
-					Type: rpc.ColumnTypeString,
+					Name:        colName,
+					Type:        rpc.ColumnTypeString,
+					Description: property.Description,
+				})
+			case "datetime", "date":
+				schema = append(schema, rpc.DatabaseSchemaColumn{
+					Name:        colName,
+					Type:        rpc.ColumnTypeDateTime,
+					Description: property.Description,
 				})
 			case "number":
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: colName,
-					Type: rpc.ColumnTypeFloat,
+					Name:        colName,
+					Type:        rpc.ColumnTypeFloat,
+					Description: property.Description,
 				})
 			case "bool":
 				schema = append(schema, rpc.DatabaseSchemaColumn{
-					Name: colName,
-					Type: rpc.ColumnTypeBool,
+					Name:        colName,
+					Type:        rpc.ColumnTypeBool,
+					Description: property.Description,
 				})
 			default:
 				continue mainLoop
@@ -134,12 +143,14 @@ func factory(objectName string, readOnly bool) rpc.TableCreator {
 
 		// Append created_at and updated_at
 		schema = append(schema, rpc.DatabaseSchemaColumn{
-			Name: "record_created_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "record_created_at",
+			Type:        rpc.ColumnTypeDateTime,
+			Description: "The date and time the record was created in RFC3339 format",
 		})
 		schema = append(schema, rpc.DatabaseSchemaColumn{
-			Name: "record_updated_at",
-			Type: rpc.ColumnTypeString,
+			Name:        "record_updated_at",
+			Type:        rpc.ColumnTypeDateTime,
+			Description: "The date and time the record was last updated in RFC3339 format",
 		})
 
 		// The field name for the primary key is hs_object_id

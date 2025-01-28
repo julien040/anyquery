@@ -30,12 +30,14 @@ func my_followingCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSch
 		PrimaryKey: 0,
 		Columns: []rpc.DatabaseSchemaColumn{
 			{
-				Name: "follower",
-				Type: rpc.ColumnTypeString,
+				Name:        "follower",
+				Type:        rpc.ColumnTypeString,
+				Description: "The username of the follower",
 			},
 			{
-				Name: "follower_url",
-				Type: rpc.ColumnTypeString,
+				Name:        "follower_url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The profile URL of the follower",
 			},
 		},
 	}, nil
@@ -104,24 +106,6 @@ func (t *my_followingTable) CreateReader() rpc.ReaderInterface {
 		db:     t.db,
 		pageID: 1,
 	}
-}
-
-// A slice of rows to insert
-func (t *my_followingTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *my_followingTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *my_followingTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

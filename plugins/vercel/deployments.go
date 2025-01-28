@@ -34,79 +34,98 @@ func deploymentsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSche
 					Name:        "project_id",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The ID of the project. In https://vercel.com/samuel-project/samuel-app, the project ID is samuel-app. Can be retrieved using the projects table",
 				},
 				{
 					Name:        "team_id",
 					Type:        rpc.ColumnTypeString,
 					IsParameter: true,
+					Description: "The ID of the team. Follow https://vercel.com/docs/accounts/create-a-team#find-your-team-id to find the team ID",
 				},
 				{
-					Name: "id",
-					Type: rpc.ColumnTypeString,
+					Name:        "id",
+					Type:        rpc.ColumnTypeString,
+					Description: "The ID of the deployment",
 				},
 				{
-					Name: "name",
-					Type: rpc.ColumnTypeString,
+					Name:        "name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the deployment",
 				},
 				{
-					Name: "url",
-					Type: rpc.ColumnTypeString,
+					Name:        "url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to see the result of the deployment",
 				},
 				{
-					Name: "created_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "created_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the deployment was created",
 				},
 				{
-					Name: "ready_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "ready_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the deployment was finished",
 				},
 				{
-					Name: "building_at",
-					Type: rpc.ColumnTypeString,
+					Name:        "building_at",
+					Type:        rpc.ColumnTypeDateTime,
+					Description: "The time the deployment started building. Can be different from created_at if the deployment was queued",
 				},
 				{
-					Name: "source",
-					Type: rpc.ColumnTypeString,
+					Name:        "source",
+					Type:        rpc.ColumnTypeString,
+					Description: "One of api-trigger-git-deploy | cli | clone/repo | git | import | import/repo | redeploy | v0-web",
 				},
 				{
-					Name: "state",
-					Type: rpc.ColumnTypeString,
+					Name:        "state",
+					Type:        rpc.ColumnTypeString,
+					Description: "One of: BUILDING | ERROR | INITIALIZING | QUEUED | READY | CANCELED | DELETED",
 				},
 				{
-					Name: "substate",
-					Type: rpc.ColumnTypeString,
+					Name:        "substate",
+					Type:        rpc.ColumnTypeString,
+					Description: "One of: STAGED | PROMOTED. Promoted means the deployment has seen production traffic",
 				},
 				{
-					Name: "type",
-					Type: rpc.ColumnTypeString,
+					Name:        "type",
+					Type:        rpc.ColumnTypeString,
+					Description: "The deployment type. One of LAMBDA",
 				},
 				{
-					Name: "target",
-					Type: rpc.ColumnTypeString,
+					Name:        "target",
+					Type:        rpc.ColumnTypeString,
+					Description: "One of: production | staging",
 				},
 				{
-					Name: "creator_email",
-					Type: rpc.ColumnTypeString,
+					Name:        "creator_email",
+					Type:        rpc.ColumnTypeString,
+					Description: "The email of the user who initiated the deployment",
 				},
 				{
-					Name: "creator_name",
-					Type: rpc.ColumnTypeString,
+					Name:        "creator_name",
+					Type:        rpc.ColumnTypeString,
+					Description: "The name of the user who initiated the deployment",
 				},
 				{
-					Name: "inspector_url",
-					Type: rpc.ColumnTypeString,
+					Name:        "inspector_url",
+					Type:        rpc.ColumnTypeString,
+					Description: "The URL to inspect the deployment (logs, status, etc.)",
 				},
 				{
-					Name: "github_commit_sha",
-					Type: rpc.ColumnTypeString,
+					Name:        "github_commit_sha",
+					Type:        rpc.ColumnTypeString,
+					Description: "The SHA of the commit that triggered the deployment, if triggered by a GitHub commit",
 				},
 				{
-					Name: "github_commit_author",
-					Type: rpc.ColumnTypeString,
+					Name:        "github_commit_author",
+					Type:        rpc.ColumnTypeString,
+					Description: "The author of the commit that triggered the deployment, if triggered by a GitHub commit",
 				},
 				{
-					Name: "github_commit_message",
-					Type: rpc.ColumnTypeString,
+					Name:        "github_commit_message",
+					Type:        rpc.ColumnTypeString,
+					Description: "The message of the commit that triggered the deployment, if triggered by a GitHub commit",
 				},
 			},
 		}, nil
@@ -260,24 +279,6 @@ func (t *deploymentsTable) CreateReader() rpc.ReaderInterface {
 		token: t.token,
 		next:  0,
 	}
-}
-
-// A slice of rows to insert
-func (t *deploymentsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *deploymentsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *deploymentsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

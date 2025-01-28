@@ -9,6 +9,7 @@ import (
 	"log"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/adrg/xdg"
@@ -127,11 +128,8 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		sheetName = spreadsheet.Sheets[0].Properties.Title
 		sheetID = spreadsheet.Sheets[0].Properties.SheetId
 	} else {
-		log.Printf("Sheets %+v", spreadsheet.Sheets)
 		for _, sheet := range spreadsheet.Sheets {
-			log.Printf("Sheet title: %s", sheet.Properties.Title)
 			if sheet.Properties.Title == sheetName {
-				log.Printf("Sheet found: %s", sheetName)
 				sheetID = sheet.Properties.SheetId
 				break
 			}
@@ -157,14 +155,14 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 	// Compute the schema
 	schema := []rpc.DatabaseSchemaColumn{
 		{
-			Name: "rowIndex",
-			Type: rpc.ColumnTypeInt,
+			Name:        "rowIndex",
+			Type:        rpc.ColumnTypeInt,
+			Description: "The row index in the spreadsheet",
 		},
 	}
 
 	// On the second call, we only fetch the right sheet because we are passing a range
 	if len(spreadsheet.Sheets[0].Data) == 0 {
-		log.Printf("Data for sheet %s is %+v", sheetName, *spreadsheet.Sheets[0])
 		return nil, nil, fmt.Errorf("no data found in the spreadsheet")
 	}
 
@@ -181,7 +179,7 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			if val.EffectiveValue != nil {
 				switch {
 				case val.EffectiveValue.BoolValue != nil:
-					colType = rpc.ColumnTypeInt
+					colType = rpc.ColumnTypeBool
 				case val.EffectiveValue.NumberValue != nil:
 					// Check if it's a date
 					if val.EffectiveFormat.NumberFormat != nil {
@@ -196,7 +194,7 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 					colType = rpc.ColumnTypeString
 				case val.EffectiveValue.ErrorValue != nil:
 					colType = rpc.ColumnTypeString
-				default:
+				default: // In anyquery, a float can be converted to anything
 					colType = rpc.ColumnTypeFloat
 				}
 			}
@@ -204,8 +202,9 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		mapColIndex[columnIndex] = sqliteIndex
 		mapColIndexReverse[sqliteIndex] = columnIndex
 		schema = append(schema, rpc.DatabaseSchemaColumn{
-			Name: cell.FormattedValue,
-			Type: colType,
+			Name:        cell.FormattedValue,
+			Type:        colType,
+			Description: fmt.Sprintf("The %dth column in the spreadsheet", columnIndex+1),
 		})
 		sqliteIndex++
 
@@ -233,6 +232,16 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 		db = badgerDB
 	}
 
+	tableDesc := strings.Builder{}
+	if spreadsheet.Properties != nil {
+		tableDesc.WriteString(fmt.Sprintf("Spreadsheet %s", spreadsheet.Properties.Title))
+		tableDesc.WriteString(fmt.Sprintf(" using locale %s", spreadsheet.Properties.Locale))
+	}
+
+	if spreadsheet.Sheets[0].Properties != nil {
+		tableDesc.WriteString(fmt.Sprintf(" and sheet %s", spreadsheet.Sheets[0].Properties.Title))
+	}
+
 	return &tableTable{
 			spreadsheetID:      spreadsheetID,
 			sheetID:            sheetID,
@@ -250,6 +259,7 @@ func tableCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, er
 			BufferUpdate:  200,
 			BufferDelete:  200,
 			Columns:       schema,
+			Description:   tableDesc.String(),
 		}, nil
 }
 
@@ -430,7 +440,6 @@ func (t *tableTable) Insert(rows [][]interface{}) error {
 func (t *tableTable) Update(rows [][]interface{}) error {
 	request := make([]*sheets.Request, 0, len(rows))
 	for _, row := range rows {
-		log.Printf("Row: %+v", row)
 		values := make([]*sheets.CellData, len(row)-1)
 		for i, cell := range row[2:] { // The first element is the former primary key, the second is the new primary key
 			extendedValue := &sheets.ExtendedValue{}

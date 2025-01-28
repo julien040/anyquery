@@ -23,54 +23,64 @@ func user_postsCreator(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchem
 				Name:        "id",
 				Type:        rpc.ColumnTypeInt,
 				IsParameter: true,
+				Description: "The ID of the user",
 			},
 			{
-				Name: "created_at",
-				Type: rpc.ColumnTypeString,
+				Name:        "created_at",
+				Type:        rpc.ColumnTypeDateTime,
+				Description: "The publication date of the post",
 			},
 			{
-				Name: "title",
-				Type: rpc.ColumnTypeString,
+				Name:        "title",
+				Type:        rpc.ColumnTypeString,
+				Description: "The title of the post",
 			},
 			{
-				Name: "url",
-				Type: rpc.ColumnTypeString,
+				Name:        "url",
+				Type:        rpc.ColumnTypeString,
+				Description: "The URL of the post to see it in the browser",
 			},
 			{
-				Name: "text",
-				Type: rpc.ColumnTypeString,
+				Name:        "text",
+				Type:        rpc.ColumnTypeString,
+				Description: "The text of the post",
 			},
 			{
-				Name: "descendants",
-				Type: rpc.ColumnTypeInt,
+				Name:        "descendants",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The number of comments the post has",
 			},
 			{
-				Name: "score",
-				Type: rpc.ColumnTypeInt,
+				Name:        "score",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The score of the post",
 			},
 			{
-				Name: "type",
-				Type: rpc.ColumnTypeString,
+				Name:        "type",
+				Type:        rpc.ColumnTypeString,
+				Description: "The type of the post",
 			},
 			{
 				Name: "deleted",
-				Type: rpc.ColumnTypeInt,
+				Type: rpc.ColumnTypeBool,
 			},
 			{
 				Name: "dead",
-				Type: rpc.ColumnTypeInt,
+				Type: rpc.ColumnTypeBool,
 			},
 			{
-				Name: "parent",
-				Type: rpc.ColumnTypeInt,
+				Name:        "parent",
+				Type:        rpc.ColumnTypeInt,
+				Description: "The ID of the parent post, if any",
 			},
 			{
 				Name: "poll",
 				Type: rpc.ColumnTypeInt,
 			},
 			{
-				Name: "kids",
-				Type: rpc.ColumnTypeString,
+				Name:        "kids",
+				Type:        rpc.ColumnTypeString,
+				Description: "A JSON array of the IDs of the comments",
 			},
 		},
 	}, nil
@@ -181,24 +191,6 @@ func (t *user_postsCursor) Query(constraints rpc.QueryConstraint) ([][]interface
 // Create a new cursor that will be used to read rows
 func (t *user_postsTable) CreateReader() rpc.ReaderInterface {
 	return &user_postsCursor{}
-}
-
-// A slice of rows to insert
-func (t *user_postsTable) Insert(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of rows to update
-// The first element of each row is the primary key
-// while the rest are the values to update
-// The primary key is therefore present twice
-func (t *user_postsTable) Update(rows [][]interface{}) error {
-	return nil
-}
-
-// A slice of primary keys to delete
-func (t *user_postsTable) Delete(primaryKeys []interface{}) error {
-	return nil
 }
 
 // A destructor to clean up resources

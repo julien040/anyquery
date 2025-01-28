@@ -1,15 +1,28 @@
 
 name = "reminders"
-version = "0.1.0"
+version = "0.1.1"
 description = "Add/modifiy/delete reminders in the Apple Reminders app"
 author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/reminders"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/reminders"
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
-tables = ["items"]
+
+[[table]]
+name = "items"
+description = "List all reminders in Apple Reminders, and add/modifiy/delete them"
+examples = [
+    "-- List all reminders\nSELECT * FROM reminders_items;",
+    "-- Add a reminder\nINSERT INTO reminders_items (name, body, due_date) VALUES ('Buy milk', 'From the grocery store', '2024-12-31 23:59');",
+    "-- Update a reminder\nUPDATE reminders_items SET name = 'Buy milk and bread' WHERE name = 'Buy milk'; UPDATE reminders_items SET completed = true WHERE name = 'Buy milk and bread';",
+    "-- Delete a reminder\nDELETE FROM reminders_items WHERE name = 'Buy milk and bread';",
+    "-- List all reminders with a due date\nSELECT * FROM reminders_items WHERE due_date IS NOT NULL;",
+    "-- List all reminders with a due date in the future\nSELECT * FROM reminders_items WHERE due_date IS NOT NULL AND due_date > NOW();",
+    "-- List all reminders with a due date in the past\nSELECT * FROM reminders_items WHERE due_date IS NOT NULL AND due_date < NOW();",
+    "-- List all reminders with a due date in the next 7 days\nSELECT * FROM reminders_items WHERE due_date < date('now', '+7 days');",
+]
 
 [[file]]
 platform = "darwin/amd64"
