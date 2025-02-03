@@ -2984,6 +2984,10 @@ func (node *CreateTable) FormatFast(buf *TrackedBuffer) {
 		buf.WriteByte(' ')
 		node.TableSpec.FormatFast(buf)
 	}
+	if node.Select != nil {
+		buf.WriteString(" as ")
+		node.Select.FormatFast(buf)
+	}
 }
 
 // FormatFast formats the node.
@@ -3979,6 +3983,9 @@ func (node *Variable) FormatFast(buf *TrackedBuffer) {
 	case NextTxScope:
 		buf.WriteString("@@")
 	}
+	// Here, we get the variable name directly, without using the IdentifierCI formatter.
+	// This is because the formatter might escape the variable name, which is not allowed for SQLite
+	// For example, @user becomes @`user`, which is not valid in SQLite
 	buf.WriteString(node.Name.String())
 }
 

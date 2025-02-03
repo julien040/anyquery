@@ -433,7 +433,7 @@ func markBindVariable(yylex yyLexer, bvar string) {
 %type <statement> command kill_statement
 %type <statement> explain_statement explainable_statement vexplain_statement
 %type <statement> prepare_statement execute_statement deallocate_statement
-%type <statement> stream_statement vstream_statement insert_statement update_statement delete_statement set_statement set_transaction_statement
+%type <statement> insert_statement update_statement delete_statement set_statement set_transaction_statement
 %type <statement> create_statement alter_statement rename_statement drop_statement truncate_statement flush_statement do_statement
 %type <selStmt> select_statement select_stmt_with_into query_expression_parens query_expression query_expression_body query_primary
 %type <with> with_clause_opt with_clause
@@ -651,8 +651,6 @@ command:
   {
     $$ = $1
   }
-| stream_statement
-| vstream_statement
 | insert_statement
 | update_statement
 | delete_statement
@@ -907,18 +905,6 @@ select_stmt_with_into:
     $$ = $1
   }
 
-stream_statement:
-  STREAM comment_opt select_expression FROM table_name
-  {
-    $$ = &Stream{Comments: Comments($2).Parsed(), SelectExpr: $3, Table: $5}
-  }
-
-vstream_statement:
-  VSTREAM comment_opt select_expression FROM table_name where_expression_opt limit_opt
-  {
-    $$ = &VStream{Comments: Comments($2).Parsed(), SelectExpr: $3, Table: $5, Where: NewWhere(WhereClause, $6), Limit: $7}
-  }
-
 // query_primary is an unparenthesized SELECT with no order by clause or beyond.
 query_primary:
 //  1         2            3              4                    5             6                7           8            9           10
@@ -1157,6 +1143,20 @@ create_statement:
   {
     // Create table [name] like [name]
     $1.OptLike = $2
+    $1.FullyParsed = true
+    $$ = $1
+  }
+// Create table [name] as select ....
+| create_table_prefix AS query_expression
+  {
+    $1.Select = $3
+    $1.FullyParsed = true
+    $$ = $1
+  }
+// Create table [name] as (select ....)
+| create_table_prefix AS query_expression_parens
+  {
+    $1.Select = $3
     $1.FullyParsed = true
     $$ = $1
   }
@@ -5228,20 +5228,18 @@ into_table_name:
 // - create table uses table_name
 // - select uses select_table_name
 select_table_name:
-table_id
+table_name
   {
-    $$ = TableName{Name: $1}
+    $$ = $1
   }
-| table_id '.' reserved_table_id
+| table_name '(' expression_list ')'
   {
-    $$ = TableName{Qualifier: $1, Name: $3}
-  }
-| table_id '(' expression_list ')'
-  {
-    $$ = TableName{
+    /* $$ = TableName{
       Name: $1,
       Args: $3,
-    }
+    } */
+    $$ = $1
+    $$.Args = $3
   }
 
 
