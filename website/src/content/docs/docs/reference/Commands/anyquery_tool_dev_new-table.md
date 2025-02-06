@@ -1,6 +1,6 @@
 ---
 title: anyquery tool dev new-table
-description: Learn how to use the anyquery tool dev new-table command in AnyQuery.
+description: Learn how to use the anyquery tool dev new-table command in Anyquery.
 ---
 
 Write the boilerplate for a new table

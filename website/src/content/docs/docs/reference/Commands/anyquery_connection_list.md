@@ -1,6 +1,6 @@
 ---
 title: anyquery connection list
-description: Learn how to use the anyquery connection list command in AnyQuery.
+description: Learn how to use the anyquery connection list command in Anyquery.
 ---
 
 List the connections

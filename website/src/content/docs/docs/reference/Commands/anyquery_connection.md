@@ -1,6 +1,6 @@
 ---
 title: anyquery connection
-description: Learn how to use the anyquery connection command in AnyQuery.
+description: Learn how to use the anyquery connection command in Anyquery.
 ---
 
 Manage connections to other databases

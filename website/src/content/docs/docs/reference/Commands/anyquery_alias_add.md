@@ -1,6 +1,6 @@
 ---
 title: anyquery alias add
-description: Learn how to use the anyquery alias add command in AnyQuery.
+description: Learn how to use the anyquery alias add command in Anyquery.
 ---
 
 Add an alias

@@ -1,6 +1,6 @@
 ---
 title: anyquery completion
-description: Learn how to use the anyquery completion command in AnyQuery.
+description: Learn how to use the anyquery completion command in Anyquery.
 ---
 
 Generate the autocompletion script for the specified shell

@@ -1,6 +1,6 @@
 ---
 title: anyquery query
-description: Learn how to use the anyquery query command in AnyQuery.
+description: Learn how to use the anyquery query command in Anyquery.
 ---
 
 Run a SQL query

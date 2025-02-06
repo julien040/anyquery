@@ -1,6 +1,6 @@
 ---
 title: anyquery connection remove
-description: Learn how to use the anyquery connection remove command in AnyQuery.
+description: Learn how to use the anyquery connection remove command in Anyquery.
 ---
 
 Remove a connection

@@ -1,6 +1,6 @@
 ---
 title: anyquery plugins
-description: Learn how to use the anyquery plugins command in AnyQuery.
+description: Learn how to use the anyquery plugins command in Anyquery.
 ---
 
 Print the plugins installed on the system

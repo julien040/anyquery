@@ -1,6 +1,6 @@
 ---
 title: anyquery alias
-description: Learn how to use the anyquery alias command in AnyQuery.
+description: Learn how to use the anyquery alias command in Anyquery.
 ---
 
 Manage the aliases

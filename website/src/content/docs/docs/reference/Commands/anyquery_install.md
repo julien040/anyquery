@@ -1,6 +1,6 @@
 ---
 title: anyquery install
-description: Learn how to use the anyquery install command in AnyQuery.
+description: Learn how to use the anyquery install command in Anyquery.
 ---
 
 Search and install a plugin

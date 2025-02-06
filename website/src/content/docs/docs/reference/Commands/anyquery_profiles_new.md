@@ -1,6 +1,6 @@
 ---
 title: anyquery profiles new
-description: Learn how to use the anyquery profiles new command in AnyQuery.
+description: Learn how to use the anyquery profiles new command in Anyquery.
 ---
 
 Create a new profile

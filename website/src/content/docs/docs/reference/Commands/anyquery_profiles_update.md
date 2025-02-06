@@ -1,6 +1,6 @@
 ---
 title: anyquery profiles update
-description: Learn how to use the anyquery profiles update command in AnyQuery.
+description: Learn how to use the anyquery profiles update command in Anyquery.
 ---
 
 Update the profiles configuration

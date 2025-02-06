@@ -1,6 +1,6 @@
 ---
 title: anyquery plugins uninstall
-description: Learn how to use the anyquery plugins uninstall command in AnyQuery.
+description: Learn how to use the anyquery plugins uninstall command in Anyquery.
 ---
 
 Uninstall a plugin and delete the linked profiles

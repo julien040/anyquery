@@ -1,6 +1,6 @@
 ---
 title: anyquery profiles
-description: Learn how to use the anyquery profiles command in AnyQuery.
+description: Learn how to use the anyquery profiles command in Anyquery.
 ---
 
 Print the profiles installed on the system

@@ -1,6 +1,6 @@
 ---
 title: anyquery registry refresh
-description: Learn how to use the anyquery registry refresh command in AnyQuery.
+description: Learn how to use the anyquery registry refresh command in Anyquery.
 ---
 
 Keep the registry up to date with the server

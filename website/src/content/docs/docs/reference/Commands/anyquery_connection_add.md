@@ -1,6 +1,6 @@
 ---
 title: anyquery connection add
-description: Learn how to use the anyquery connection add command in AnyQuery.
+description: Learn how to use the anyquery connection add command in Anyquery.
 ---
 
 Add a connection

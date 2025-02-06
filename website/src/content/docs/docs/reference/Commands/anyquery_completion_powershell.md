@@ -1,6 +1,6 @@
 ---
 title: anyquery completion powershell
-description: Learn how to use the anyquery completion powershell command in AnyQuery.
+description: Learn how to use the anyquery completion powershell command in Anyquery.
 ---
 
 Generate the autocompletion script for powershell

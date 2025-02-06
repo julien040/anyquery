@@ -1,6 +1,6 @@
 ---
 title: anyquery tool mysql-password
-description: Learn how to use the anyquery tool mysql-password command in AnyQuery.
+description: Learn how to use the anyquery tool mysql-password command in Anyquery.
 ---
 
 Hash a password from stdin to be used in an authentification file

@@ -1,6 +1,6 @@
 ---
 title: anyquery
-description: Learn how to use the anyquery command in AnyQuery.
+description: Learn how to use the anyquery command in Anyquery.
 ---
 
 A tool to query any data source

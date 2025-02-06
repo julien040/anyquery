@@ -1,6 +1,6 @@
 ---
 title: anyquery registry get
-description: Learn how to use the anyquery registry get command in AnyQuery.
+description: Learn how to use the anyquery registry get command in Anyquery.
 ---
 
 Print informations about a registry

@@ -1,6 +1,6 @@
 ---
 title: anyquery tool
-description: Learn how to use the anyquery tool command in AnyQuery.
+description: Learn how to use the anyquery tool command in Anyquery.
 ---
 
 Tools to help you with using anyquery

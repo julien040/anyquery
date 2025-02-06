@@ -1,6 +1,6 @@
 ---
 title: anyquery registry add
-description: Learn how to use the anyquery registry add command in AnyQuery.
+description: Learn how to use the anyquery registry add command in Anyquery.
 ---
 
 Add a new registry

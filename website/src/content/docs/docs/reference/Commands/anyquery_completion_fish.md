@@ -1,6 +1,6 @@
 ---
 title: anyquery completion fish
-description: Learn how to use the anyquery completion fish command in AnyQuery.
+description: Learn how to use the anyquery completion fish command in Anyquery.
 ---
 
 Generate the autocompletion script for fish

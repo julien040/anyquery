@@ -1,6 +1,6 @@
 ---
 title: anyquery alias list
-description: Learn how to use the anyquery alias list command in AnyQuery.
+description: Learn how to use the anyquery alias list command in Anyquery.
 ---
 
 List the aliases

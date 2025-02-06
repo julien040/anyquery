@@ -1,6 +1,6 @@
 ---
 title: anyquery completion zsh
-description: Learn how to use the anyquery completion zsh command in AnyQuery.
+description: Learn how to use the anyquery completion zsh command in Anyquery.
 ---
 
 Generate the autocompletion script for zsh

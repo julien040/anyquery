@@ -1,6 +1,6 @@
 ---
 title: anyquery tool generate-doc
-description: Learn how to use the anyquery tool generate-doc command in AnyQuery.
+description: Learn how to use the anyquery tool generate-doc command in Anyquery.
 ---
 
 Generate the markdown documentation of the CLI

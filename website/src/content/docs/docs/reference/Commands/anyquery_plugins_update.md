@@ -1,6 +1,6 @@
 ---
 title: anyquery plugins update
-description: Learn how to use the anyquery plugins update command in AnyQuery.
+description: Learn how to use the anyquery plugins update command in Anyquery.
 ---
 
 Update n or all plugins

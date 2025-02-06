@@ -1,6 +1,6 @@
 ---
 title: anyquery tool dev init
-description: Learn how to use the anyquery tool dev init command in AnyQuery.
+description: Learn how to use the anyquery tool dev init command in Anyquery.
 ---
 
 Initialize a new plugin

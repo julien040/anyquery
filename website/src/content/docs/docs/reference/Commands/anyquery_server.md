@@ -1,6 +1,6 @@
 ---
 title: anyquery server
-description: Learn how to use the anyquery server command in AnyQuery.
+description: Learn how to use the anyquery server command in Anyquery.
 ---
 
 Lets you connect to anyquery remotely

@@ -1,6 +1,6 @@
 ---
 title: anyquery tool dev
-description: Learn how to use the anyquery tool dev command in AnyQuery.
+description: Learn how to use the anyquery tool dev command in Anyquery.
 ---
 
 Development tools

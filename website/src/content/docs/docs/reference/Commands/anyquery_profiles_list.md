@@ -1,6 +1,6 @@
 ---
 title: anyquery profiles list
-description: Learn how to use the anyquery profiles list command in AnyQuery.
+description: Learn how to use the anyquery profiles list command in Anyquery.
 ---
 
 List the profiles

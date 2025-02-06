@@ -1,6 +1,6 @@
 ---
 title: anyquery alias delete
-description: Learn how to use the anyquery alias delete command in AnyQuery.
+description: Learn how to use the anyquery alias delete command in Anyquery.
 ---
 
 Delete an alias

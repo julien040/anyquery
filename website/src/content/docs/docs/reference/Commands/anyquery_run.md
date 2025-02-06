@@ -1,6 +1,6 @@
 ---
 title: anyquery run
-description: Learn how to use the anyquery run command in AnyQuery.
+description: Learn how to use the anyquery run command in Anyquery.
 ---
 
 Run a SQL query from the community repository

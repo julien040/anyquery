@@ -1,6 +1,6 @@
 ---
 title: anyquery profiles delete
-description: Learn how to use the anyquery profiles delete command in AnyQuery.
+description: Learn how to use the anyquery profiles delete command in Anyquery.
 ---
 
 Delete a profile

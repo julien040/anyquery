@@ -1,6 +1,6 @@
 ---
 title: anyquery tool hashdir
-description: Learn how to use the anyquery tool hashdir command in AnyQuery.
+description: Learn how to use the anyquery tool hashdir command in Anyquery.
 ---
 
 Hash a directory

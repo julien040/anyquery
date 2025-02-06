@@ -1,6 +1,6 @@
 ---
 title: anyquery registry
-description: Learn how to use the anyquery registry command in AnyQuery.
+description: Learn how to use the anyquery registry command in Anyquery.
 ---
 
 List the registries where plugins can be downloaded

@@ -1,6 +1,6 @@
 ---
 title: anyquery registry remove
-description: Learn how to use the anyquery registry remove command in AnyQuery.
+description: Learn how to use the anyquery registry remove command in Anyquery.
 ---
 
 Remove a registry
