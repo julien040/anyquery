@@ -30,7 +30,7 @@ func TestEmptyErrorAndComments(t *testing.T) {
 	}{
 		{
 			input:  "select 1",
-			output: "select 1 from dual",
+			output: "select 1",
 		}, {
 			input: "",
 			err:   ErrEmpty,
@@ -48,7 +48,7 @@ func TestEmptyErrorAndComments(t *testing.T) {
 			output: "# sdf",
 		}, {
 			input:  "/* sdf */ select 1",
-			output: "select 1 from dual",
+			output: "select 1",
 		},
 	}
 	parser := NewTestParser()

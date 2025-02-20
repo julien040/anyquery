@@ -238,11 +238,11 @@ func TestCanonicalOutput(t *testing.T) {
 		},
 		{
 			"select convert('abc' using utf8mb4)",
-			"SELECT CONVERT('abc' USING utf8mb4) FROM `dual`",
+			"SELECT CONVERT('abc' USING utf8mb4)",
 		},
 		{
 			"select point(4, 5)",
-			"SELECT POINT(4, 5) FROM `dual`",
+			"SELECT POINT(4, 5)",
 		},
 		{
 			"create table x(location geometry default (point(7.0, 3.0)))",

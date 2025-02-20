@@ -169,7 +169,7 @@ func TestParens(t *testing.T) {
 			stmt, err := parser.Parse("select " + tc.in)
 			require.NoError(t, err)
 			out := String(stmt)
-			require.Equal(t, "select "+tc.expected+" from dual", out)
+			require.Equal(t, "select "+tc.expected, out)
 		})
 	}
 }
