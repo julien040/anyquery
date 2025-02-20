@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	plugin := rpc.NewPlugin(tabsCreator)
+	plugin := rpc.NewPlugin(tabsCreator, historyCreator, downloadsCreator)
 	plugin.Serve()
 }

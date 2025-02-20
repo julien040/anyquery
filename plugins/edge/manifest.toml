@@ -1,6 +1,6 @@
 
 name = "edge"
-version = "0.1.1"
+version = "0.1.2"
 description = "Query and modify Edge tabs"
 author = "julien040"
 license = "UNLICENSED"
@@ -17,6 +17,27 @@ examples = [
     "-- -- Close tabs with a specific URL\nDELETE FROM edge_tabs WHERE url='https://gut-cli.dev/';",
     "-- Update the url of a tab\nUPDATE edge_tabs SET url='https://hn-recommend.julienc.me' WHERE url = 'https://julienc.me';",
     "-- Open a new tab\nINSERT INTO edge_tabs (url) VALUES ('https://julienc.me');",
+]
+
+
+[[table]]
+name = "history"
+description = "List the visit history of Edge"
+examples = [
+    "-- List all history\nSELECT * FROM edge_history;",
+    "-- List history of a specific URL\nSELECT * FROM edge_history WHERE url='https://gut-cli.dev/';",
+    "-- List history of a specific domain\nSELECT * FROM edge_history WHERE url LIKE  'https://julienc.me%';",
+    "-- Get the most visited domains in terms of click\nSELECT domain(url) as domain, count(url) as visits FROM edge_history GROUP BY domain ORDER BY visits DESC LIMIT 10;",
+    "-- Get the most visited domains in terms of time spent\nSELECT domain(url) as domain, sum(visited_for_milliseconds)/1000 as time_spent FROM edge_history GROUP BY domain ORDER BY time_spent DESC LIMIT 10;",
+]
+
+[[table]]
+name = "downloads"
+description = "List the file downloaded using Edge"
+examples = [
+    "-- List all downloads\nSELECT * FROM edge_downloads;",
+    "-- List downloads of a specific domain\nSELECT * FROM edge_downloads WHERE url LIKE 'https://julienc.me%';",
+    "-- List PDF downloads\nSELECT * FROM edge_downloads WHERE mime_type = 'application/pdf';",
 ]
 
 [[file]]
