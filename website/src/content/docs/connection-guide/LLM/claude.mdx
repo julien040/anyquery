@@ -1,0 +1,106 @@
+---
+title: Claude Desktop
+description: Connect Claude Desktop to Anyquery
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<img src="https://upload.wikimedia.org/wikipedia/commons/8/8a/Claude_AI_logo.svg" alt="Claude AI" width="400" />
+
+Claude for Desktop lets you talk to LLM models created by Anthropic. Using Anyquery, you can connect Claude Desktop to your local and online applications (such as Spotify, GitHub, Discord, etc.) and interact with them using natural language.
+
+## Prerequisites
+
+Before you begin, ensure that you have the following:
+
+- A working installation of Anyquery (`v0.4.0`). Follow the [installation guide](/docs/#installation) if you haven't installed it yet.
+- A few integrations set up in Anyquery. Refer to each [integration guide](/integrations) for more information.
+- Claude Desktop installed on your machine. You can download it from the [claude.ai](https://claude.ai/download) website.
+
+## Connect Claude Desktop to Anyquery
+
+<Steps>
+
+1. ### Open Claude Desktop
+    Open Claude Desktop on your machine.
+2. ### Open the settings
+
+    Click on the settings icon in the top right corner of the Claude Desktop window.
+    <img src="/images/docs/llm/claude-navbar.png" alt="Claude Desktop settings" width="360" />
+
+    Go to the `Developer` panel and click on `Edit Config`. It should show a JSON file in your file explorer. Open the file with your favorite text editor.
+
+    <img src="/images/docs/llm/claude-settings.png" alt="Claude Desktop settings" />
+
+3. ### Figure out where anyquery is installed
+
+    Following your installation method, Anyquery can be installed in different locations. You can find the location by running the following command in your terminal:
+
+    <Tabs>
+        <TabItem label="MacOS">
+            ```bash title="Terminal"
+            which anyquery
+            ```
+        </TabItem>
+        <TabItem label="Windows">
+            ```bash title="Terminal"
+            where anyquery
+            ```
+        </TabItem>
+        <TabItem label="Linux">
+            ```bash title="Terminal"
+            which anyquery
+            ```
+        </TabItem>
+    </Tabs>
+
+    Copy the result of this command. You will need it in the next step.
+
+4. ### Update the config file
+
+    Open the JSON file you opened in step 2. You should see a JSON that looks like this:
+
+    ```json
+    {
+        "mcpServers": {
+            ...
+        }
+    }
+    ```
+
+    Add a new key to the JSON object with the following structure:
+
+    ```json
+    {
+        "mcpServers": {
+            "anyquery": {
+                "command": "path/to/anyquery/that/you/copied/from/step-3",
+                "args": [
+                    "mcp",
+                    "--stdio",
+                    // If you want to connect to a particular SQLite database, you can specify it here
+                    // "--database",
+                    // "path/to/database.db"
+
+                    // Refer to the Anyquery documentation for more options
+                ]
+            }
+        }
+    }
+    ```
+
+    Save the file and restart Claude Desktop.
+
+5. ### Ensure Claude Desktop is connected to Anyquery
+
+    Open Claude Desktop, and you should see a small hammer next to a number greater or equal to 3 in the bottom right corner. This indicates that Claude Desktop is connected to Anyquery.
+
+    ![Claude Desktop connected to Anyquery](/images/docs/llm/claude-result.png)
+
+
+
+
+
+</Steps>

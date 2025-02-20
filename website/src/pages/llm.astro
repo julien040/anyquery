@@ -1,0 +1,612 @@
+---
+import Main from "../layouts/main.astro";
+---
+
+<Main
+    title="Connect LLM to Anyquery"
+    footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned. Some LLM answers may be truncated for brevity."
+>
+    <div class="max-w-2xl mx-auto text-center mb-12">
+        <h1 class="text-3xl tracking-[-1.2px] font-bold mt-8">
+            Connect LLM to your personal data
+        </h1>
+        <p class="text-white/70 mt-1 text-sm">
+            Allow LLM access your data such as your Spotify, your reminders, or
+            your email inbox
+        </p>
+        <a href="#get-started" class="button mt-4">
+            Get started <svg
+                width="12"
+                height="13"
+                viewBox="0 0 12 13"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+            >
+                <g id="mingcute:right-fill" clip-path="url(#clip0_1898_542)">
+                    <g id="Group">
+                        <path
+                            id="Vector"
+                            fill-rule="evenodd"
+                            clip-rule="evenodd"
+                            d="M8.03001 5.96996C8.17046 6.11058 8.24935 6.3012 8.24935 6.49996C8.24935 6.69871 8.17046 6.88933 8.03001 7.02996L5.20201 9.85896C5.06131 9.99959 4.87051 10.0786 4.67158 10.0785C4.47265 10.0785 4.28189 9.9994 4.14126 9.85871C4.00062 9.71801 3.92165 9.52721 3.92169 9.32828C3.92174 9.12935 4.00081 8.93859 4.14151 8.79796L6.43951 6.49996L4.14151 4.20196C4.00482 4.06057 3.92913 3.87115 3.93075 3.6745C3.93236 3.47785 4.01115 3.28971 4.15014 3.15058C4.28913 3.01146 4.47721 2.9325 4.67385 2.9307C4.8705 2.92889 5.05999 3.0044 5.20151 3.14096L8.03051 5.96946L8.03001 5.96996Z"
+                            fill="white"></path>
+                    </g>
+                </g>
+                <defs>
+                    <clipPath id="clip0_1898_542">
+                        <rect
+                            width="12"
+                            height="12"
+                            fill="white"
+                            transform="translate(0 0.5)"></rect>
+                    </clipPath>
+                </defs>
+            </svg>
+        </a>
+        <p class="text-white/50 text-xs mt-2">Free and open-source.</p>
+
+        <img
+            src="/images/llm-header.png"
+            alt="LLM"
+            class="max-w-[430px] w-full mx-auto mt-4"
+        />
+    </div>
+    <div id="demo" class="mt-12">
+        <h2 class="text-2xl">Demo</h2>
+        <p class="text-white/70 text-sm">
+            Hover the icons to see examples of what you can do with Anyquery and
+            LLM
+        </p>
+        <div class="grid md:grid-cols-2 grid-cols-1 gap-4 mt-4">
+            <div
+                id="chat-selector"
+                class="grid grid-cols-3 gap-2 grid-rows-3 h-60"
+            >
+            </div>
+            <div id="chat-demo" class="flex flex-col">
+                <div id="chat-demo-text" class="p-4 flex flex-col"></div>
+                <p
+                    id="chat-demo-footer"
+                    class="text-white/40 text-right text-xs mt-2"
+                >
+                </p>
+            </div>
+        </div>
+        <script>
+            const chatDemo = {
+                spotify: {
+                    title: "Spotify",
+                    description: "Play your favorite songs",
+                    messages: [
+                        {
+                            type: "user",
+                            text: "According to my Spotify history, can you recommend me similar music?",
+                        },
+                        {
+                            type: "bot",
+                            text: `Based on your recent listening history, here are some recommendations:
+
+1. Since you've listened to RAYE's "Genesis, pt. ii", let me find similar artists:
+
+2. For fans of indie pop similar to EARTH TO EMILY:
+
+Based on your listening history and these searches, here are my recommendations:
+
+1. Artists similar to RAYE and Leigh-Anne:
+- BANKS - Known for her alternative R&B style
+- FLO - A group that blends R&B with pop elements
+- Chlöe - Offers similar powerful vocals and production
+
+2. If you enjoy indie pop like EARTH TO EMILY:
+- Look into similar up-and-coming artists like JADE
+- Try tracks like "Nobody Knows" and "WHERE'S THE LIGHT?"
+
+Would you like me to search for more specific recommendations in any of these categories or would you prefer recommendations in a different style?`,
+                        },
+                    ],
+                    footer: "Claude Desktop with 3.5 Sonnet",
+                    icons: "/icons/spotify.svg",
+                    chatIcon: "/icons/claude.svg",
+                },
+                reminders: {
+                    title: "Reminders",
+                    description: "Set reminders",
+                    messages: [
+                        {
+                            type: "user",
+                            text: `I've the following ICS calendar, which is the calendar for my CS studies [REDACTED]. Can you list all my future exams (CC, or "Contrôle Continu")?`,
+                        },
+                        {
+                            type: "bot",
+                            text: `Here are your upcoming "Contrôle Continu" (CC) exams:
+
+Droit de l'Informatique - [REDACTED]
+Date: February 17, 2025, at 14:40
+Location: Amphi E (PAL-00)
+
+Systèmes distribués - [REDACTED]
+Date: March 25, 2025, at 07:00
+Location: Amphi A (SCI_R-00)`,
+                        },
+                        {
+                            type: "user",
+                            text: 'Can you add each of them to my reminders ? The reminder list is called "Devoirs".',
+                        },
+                        {
+                            type: "bot",
+                            text: `All the upcoming "Contrôle Continu" exams have been successfully added to your "Devoirs" reminder list. Let me know if you need anything else!`,
+                        },
+                    ],
+                    footer: "ChatGPT with GPT-4o",
+                    icons: "/icons/apple-reminders.png",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+                github: {
+                    title: "GitHub",
+                    description: "Check your notifications",
+                    messages: [
+                        {
+                            type: "user",
+                            text: "Which GitHub issues should I tackle today? I have four hours of free time.",
+                        },
+                        {
+                            type: "bot",
+                            text: `Here are some GitHub issues you could tackle today based on your four-hour availability:  
+
+1. Query Information about specific GitHub Repo  
+   - Repo: julien040/anyquery  
+   - Created: Sep 13, 2024  
+   - Comments: 6  
+   - Might require some research and discussion with other contributors.  
+
+2. Install git if not found?  
+   - Repo: julien040/gut  
+   - Created: Nov 26, 2024  
+   - Comments: 1  
+   - Likely a straightforward check-and-implement fix.  
+
+3. Something is missing when configuring the Notion plugin  
+   - Repo: julien040/anyquery  
+   - Created: Jan 3, 2025  
+   - Comments: 3  
+   - Could be a plugin setup or documentation issue.  
+
+Depending on your expertise, you could prioritize issues based on complexity. If you want something quick, start with "Install git if not found?" or "Git Attributes." If you're up for debugging, try the Notion date format or plugin issue.`,
+                        },
+                    ],
+                    footer: "Claude Desktop with 3.5 Sonnet",
+                    icons: "/icons/github.svg",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+                notion: {
+                    title: "Notion",
+                    description: "Check your tasks",
+                    messages: [
+                        {
+                            type: "user",
+                            text: 'In my Notion Kanban board, how many tasks do I still have to do (status is "Not started")?',
+                        },
+                        {
+                            type: "bot",
+                            text: 'You have 4 tasks in your Notion Kanban board that are still "Not started." Let me know if you need anything else!',
+                        },
+                        {
+                            type: "user",
+                            text: `Can you please add the following tasks to "Not started"?
+- Create the DB connection
+- Write the SQL schema`,
+                        },
+                        {
+                            type: "bot",
+                            text: `I've added the two tasks to your Notion Kanban board under "Not started." Let me know if you need any more updates!`,
+                        },
+                    ],
+                    footer: "ChatGPT with GPT-4o",
+                    icons: "/icons/notion.svg",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+                pocket: {
+                    title: "Pocket",
+                    description: "Insert articles",
+                    messages: [
+                        {
+                            type: "user",
+                            text: "Can you add my safari tabs from www.lemonde.fr to Pocket?",
+                        },
+                        {
+                            type: "bot",
+                            text: `I've added your Safari tabs from Le Monde to Pocket. Let me know if you need anything else!`,
+                        },
+                    ],
+                    footer: "ChatGPT with GPT-4o",
+                    icons: "/icons/pocket.png",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+                discord: {
+                    title: "Discord",
+                    description: "Statistics and moderation",
+                    messages: [
+                        {
+                            type: "user",
+                            text: "I'm just wondering, who has sent the most messages in this Discord channel 532619367393425012?",
+                        },
+                        {
+                            type: "bot",
+                            text: `The user who has sent the most messages in the Discord channel \`532619367393425012\` is **julien040** with **172** messages. Let me know if you need anything else!`,
+                        },
+                    ],
+                    footer: "ChatGPT with GPT-4o",
+                    icons: "/icons/discord.svg",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+                notes: {
+                    title: "Notes",
+                    description: "Convert Apple notes to markdown",
+                    messages: [
+                        {
+                            type: "user",
+                            text: `Make a markdown table of my note "Quotes"`,
+                        },
+                        {
+                            type: "bot",
+                            text: `Let me retrieve your note titled "Quotes":
+
+Here's your collection of quotes formatted as a markdown table:
+
+| Quote | Author |
+|-------|---------|
+| "Those who cannot remember the past are condemned to repeat it." | George Santanyana, The Life of Reason (1905) |
+| "Simplicity is the ultimate sophistication" | Leonardo da Vinci |
+| "I have only made this letter longer because I have not had the time to make it shorter" | Blaise Pascal |
+| "Roses are red. violets are blue... There's always an abstraction layer lower than you" | Unknown |
+| "Premature optimization is the root of all evil" | Knuth |
+
+Would you like me to sort these quotes differently or format them in another way?`,
+                        },
+                    ],
+                    footer: "Claude Desktop with 3.5 Sonnet",
+                    icons: "/icons/apple-notes.svg",
+                    chatIcon: "/icons/claude.svg",
+                },
+                chrome: {
+                    title: "Chrome",
+                    description: "Close tabs",
+                    messages: [
+                        {
+                            type: "user",
+                            text: "I want to clean up Chrome. Can you close all the tabs related to Anyquery?",
+                        },
+                        {
+                            type: "bot",
+                            text: `I closed 2 Chrome tabs related to Anyquery. Let me know if you need anything else!`,
+                        },
+                    ],
+                    footer: "ChatGPT with GPT-4o",
+                    icons: "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons@main/svg/chrome.svg",
+                    chatIcon: "/icons/chatgpt.svg",
+                },
+            };
+
+            function showChatDemo(service: string) {
+                const demo = chatDemo[service];
+                if (!demo) return;
+
+                const chatDemoElement =
+                    document.getElementById("chat-demo-text");
+                chatDemoElement.innerHTML = "";
+
+                for (const message of demo.messages) {
+                    const el = document.createElement("div");
+                    el.classList.add(
+                        "text-white",
+                        "text-sm",
+                        "py-2",
+                        "flex",
+                        "w-5/6"
+                    );
+
+                    const img = document.createElement("img");
+                    if (message.type === "bot") {
+                        img.src = demo.chatIcon;
+                        img.alt = demo.title;
+                        img.classList.add("w-5", "h-5", "mr-2");
+                    } else {
+                        img.src = "/icons/user.svg";
+                        img.alt = "User";
+                        img.classList.add(
+                            "w-5",
+                            "h-5",
+                            "ml-2",
+                            "text-purple-500"
+                        );
+                    }
+
+                    const text = document.createElement("p");
+                    text.textContent = message.text;
+                    text.classList.add(
+                        "w-full",
+                        "break-words",
+                        "whitespace-pre-line"
+                    );
+
+                    if (message.type === "user") {
+                        el.appendChild(text);
+                        el.appendChild(img);
+                        el.classList.add(
+                            "text-right",
+                            "text-white/90",
+                            "self-end"
+                        );
+                    } else {
+                        el.appendChild(img);
+                        el.appendChild(text);
+                        el.classList.add(
+                            "text-left",
+                            "text-white/70",
+                            "self-start"
+                        );
+                    }
+
+                    chatDemoElement.appendChild(el);
+                }
+
+                document.getElementById("chat-demo-footer").textContent =
+                    demo.footer;
+            }
+
+            // Create the element in chat-selector
+            const chatSelector = document.getElementById("chat-selector");
+            for (const service in chatDemo) {
+                const demo = chatDemo[service];
+                const el = document.createElement("div");
+                el.classList.add(
+                    "flex",
+                    "items-center",
+                    "justify-center",
+                    "bg-black",
+                    "border",
+                    "border-[#1B1B1B]",
+                    "rounded-lg",
+                    "px-5",
+                    "py-5",
+                    "gap-2"
+                );
+                el.onmouseover = () => showChatDemo(service);
+                el.innerHTML = `
+                    <img src="${demo.icons}" alt="${demo.title}" class="max-h-6" />
+                    <p class="text-white/70 text-sm">${demo.title}</p>
+                `;
+                el.style.boxShadow =
+                    "0px 0px 101.5px 0px rgba(153, 73, 255, 0.1)";
+                chatSelector.appendChild(el);
+            }
+
+            // By default, show the first demo
+            showChatDemo("spotify");
+        </script>
+    </div>
+    <div id="features" class="mt-12">
+        <h2 class="text-2xl">Features</h2>
+        <p class="text-white/70 text-sm">
+            Features of the LLM integration with Anyquery
+        </p>
+        <div class="grid md:grid-cols-6 grid-cols-1 md:grid-ro gap-3 mt-4">
+            <div
+                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+            >
+                <h3 class="text-white font-medium text-sm tracking-tight">
+                    Model Context Protocol
+                </h3>
+                <p class="text-white/60 text-xs mt-1">
+                    Compatible with all clients that support the <a
+                        href="https://modelcontextprotocol.io/introduction"
+                        class="underline">Model Context Protocol</a
+                    > (MCP)
+                </p>
+            </div>
+            <div
+                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+            >
+                <h3 class="text-white font-medium text-sm tracking-tight">
+                    Function calling
+                </h3>
+                <p class="text-white/60 text-xs mt-1">
+                    Can expose an API (<code>anyquery gpt</code>) so that LLM
+                    can call Anyquery tables (such as ChatGPT, TypingMind, etc.)
+                </p>
+            </div>
+            <div
+                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+            >
+                <h3 class="text-white font-medium text-sm tracking-tight">
+                    It&apos;s just Anyquery
+                </h3>
+                <p class="text-white/60 text-xs mt-1">
+                    It's a simple interface between Anyquery and LLM, so it's
+                    still SQLite under the hood with its vast ecosystem.
+                </p>
+            </div>
+            <div
+                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-3 col-span-1"
+            >
+                <h3 class="text-white font-medium text-sm tracking-tight">
+                    Local first
+                </h3>
+                <p class="text-white/60 text-xs mt-1">
+                    By default, Anyquery runs entirely on your local computer.
+                    Your data remains on your system and is never transmitted to
+                    external services excepting the LLM.
+                </p>
+            </div>
+            <div
+                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-3 col-span-1"
+            >
+                <h3 class="text-white font-medium text-sm tracking-tight">
+                    Wide range of LLM clients
+                </h3>
+                <p class="text-white/60 text-xs mt-1">
+                    We support ChatGPT, Claude Desktop, Librechat, TypingMind,
+                    and several more. See <a
+                        href="/integrations#llm"
+                        class="underline">the connection guides</a
+                    > for more information.
+                </p>
+            </div>
+        </div>
+    </div>
+    <div id="get-started" class="mt-12">
+        <h2 class="text-2xl">Get started</h2>
+        <p class="text-white/70 text-sm">
+            Follow these instructions to start connecting your data to LLMs
+        </p>
+        <div class="grid md:grid-cols-3 grid-cols-1 gap-4 mt-4 mb-12">
+            <div
+                class="p-6 bg-gradient-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+            >
+                <a
+                    href="docs/#installation"
+                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                >
+                    1. Install Anyquery
+                </a>
+                <p
+                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
+                >
+                    Following your OS, run the following instructions to install
+                    Anyquery on your machine.
+                </p>
+
+                <div
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <g clip-path="url(#clip0_1913_615)">
+                            <path
+                                d="M14.0256 3.26612L8.975 0.26775C8.68009 0.0927584 8.34355 0.00028033 8.00062 0C7.66462 0 7.32737 0.089625 7.02612 0.269L1.97438 3.2675C1.372 3.62487 1 4.28613 1 5.00225V10.9991C1 11.7153 1.37087 12.3765 1.9745 12.7339L7.025 15.7323C7.31967 15.9078 7.65637 16.0003 7.99937 16C8.34234 15.9997 8.67893 15.9073 8.97388 15.7323L14.0256 12.7339C14.628 12.3764 15.0001 11.7139 15.0001 10.9991V5.00087C15.0001 4.28613 14.6293 3.6235 14.0256 3.26612ZM10.1144 12.6295L10.1222 13.0605C10.1222 13.1128 10.0889 13.1716 10.0487 13.193L9.793 13.3403C9.75288 13.3603 9.718 13.3363 9.718 13.284L9.714 12.8597C9.49587 12.9507 9.27363 12.9722 9.13313 12.916C9.10638 12.9053 9.09437 12.8664 9.105 12.8209L9.19738 12.4314C9.20538 12.4006 9.2215 12.3698 9.24288 12.351C9.24987 12.3439 9.25803 12.338 9.267 12.3336C9.28162 12.3256 9.29638 12.3243 9.3085 12.3296C9.461 12.3805 9.65512 12.3564 9.8425 12.2627C10.0809 12.1423 10.24 11.8986 10.2375 11.6578C10.2347 11.4381 10.117 11.3485 9.82913 11.3457C9.46238 11.347 9.11975 11.2749 9.11438 10.734C9.11038 10.2896 9.34062 9.8265 9.70737 9.53463L9.70337 9.09962C9.70337 9.04612 9.7355 8.98712 9.777 8.96587L10.0245 8.80787C10.0647 8.78775 10.0995 8.81325 10.0995 8.86537L10.1036 9.30037C10.2856 9.22812 10.4436 9.20813 10.5868 9.24162C10.6176 9.24963 10.6322 9.29237 10.6189 9.34188L10.5226 9.72738C10.5149 9.75669 10.4996 9.78348 10.4784 9.80513C10.471 9.81268 10.4624 9.81901 10.453 9.82388C10.4395 9.8305 10.4275 9.83187 10.4155 9.8305C10.3499 9.81575 10.1946 9.78238 9.94963 9.9055C9.69263 10.0353 9.603 10.2589 9.60425 10.4249C9.607 10.623 9.70737 10.6831 10.058 10.6886C10.5252 10.6966 10.726 10.9 10.7314 11.3699C10.738 11.8304 10.4919 12.327 10.1144 12.6295ZM12.7619 11.9052C12.7619 11.9455 12.7566 11.9829 12.7231 12.0016L11.4461 12.778C11.4128 12.7981 11.3859 12.7808 11.3859 12.7405V12.4113C11.3859 12.3711 11.41 12.3498 11.4434 12.3296L12.7017 11.5774C12.7352 11.5574 12.762 11.5746 12.762 11.6149L12.7619 11.9052ZM13.6401 4.53113L8.86125 7.4825C8.26562 7.8305 7.8265 8.22138 7.82525 8.94025V14.8286C7.82525 15.2582 7.99925 15.5367 8.26562 15.6184C8.17814 15.6341 8.08951 15.6426 8.00062 15.6439C7.72075 15.6439 7.445 15.5676 7.20275 15.4242L2.15237 12.426C1.6585 12.1329 1.352 11.5854 1.352 10.9978V5.00087C1.352 4.41337 1.6585 3.86588 2.15237 3.57262L7.20425 0.57425C7.44576 0.431069 7.72124 0.35527 8.002 0.35475C8.28175 0.35475 8.5575 0.431 8.79975 0.57425L13.8516 3.57262C14.2679 3.82025 14.549 4.24725 14.6279 4.72788C14.4579 4.37038 14.0804 4.27413 13.6401 4.53113Z"
+                                fill="white"></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_1913_615">
+                                <rect width="16" height="16" fill="white"
+                                ></rect>
+                            </clipPath>
+                        </defs>
+                    </svg>
+                    <code
+                        id="code-download"
+                        class="break-all whitespace-pre-line"
+                        >winget install JulienCagniart.anyquery
+                    </code>
+                    <script>
+                        // Get the OS
+                        const os = navigator.platform;
+                        let command = "winget install anyquery";
+                        if (os.includes("Mac")) {
+                            command =
+                                "brew install julien040/anyquery/anyquery";
+                        } else if (os.includes("Linux")) {
+                            command = `echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+sudo apt update
+sudo apt install anyquery`;
+                        }
+                        document.getElementById("code-download").textContent =
+                            command;
+                    </script>
+                </div>
+            </div>
+
+            <div
+                class="p-6 bg-gradient-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+            >
+                <a
+                    href="/integrations"
+                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                >
+                    2. Add integrations
+                </a>
+                <p
+                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-4"
+                >
+                    Go to <a href="/integrations" class="underline"
+                        >https://anyquery.dev/integrations</a
+                    > to see some plugins that you might like. Install them to make
+                    them available to you chat
+                </p>
+
+                <div
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <g clip-path="url(#clip0_1913_615)">
+                            <path
+                                d="M14.0256 3.26612L8.975 0.26775C8.68009 0.0927584 8.34355 0.00028033 8.00062 0C7.66462 0 7.32737 0.089625 7.02612 0.269L1.97438 3.2675C1.372 3.62487 1 4.28613 1 5.00225V10.9991C1 11.7153 1.37087 12.3765 1.9745 12.7339L7.025 15.7323C7.31967 15.9078 7.65637 16.0003 7.99937 16C8.34234 15.9997 8.67893 15.9073 8.97388 15.7323L14.0256 12.7339C14.628 12.3764 15.0001 11.7139 15.0001 10.9991V5.00087C15.0001 4.28613 14.6293 3.6235 14.0256 3.26612ZM10.1144 12.6295L10.1222 13.0605C10.1222 13.1128 10.0889 13.1716 10.0487 13.193L9.793 13.3403C9.75288 13.3603 9.718 13.3363 9.718 13.284L9.714 12.8597C9.49587 12.9507 9.27363 12.9722 9.13313 12.916C9.10638 12.9053 9.09437 12.8664 9.105 12.8209L9.19738 12.4314C9.20538 12.4006 9.2215 12.3698 9.24288 12.351C9.24987 12.3439 9.25803 12.338 9.267 12.3336C9.28162 12.3256 9.29638 12.3243 9.3085 12.3296C9.461 12.3805 9.65512 12.3564 9.8425 12.2627C10.0809 12.1423 10.24 11.8986 10.2375 11.6578C10.2347 11.4381 10.117 11.3485 9.82913 11.3457C9.46238 11.347 9.11975 11.2749 9.11438 10.734C9.11038 10.2896 9.34062 9.8265 9.70737 9.53463L9.70337 9.09962C9.70337 9.04612 9.7355 8.98712 9.777 8.96587L10.0245 8.80787C10.0647 8.78775 10.0995 8.81325 10.0995 8.86537L10.1036 9.30037C10.2856 9.22812 10.4436 9.20813 10.5868 9.24162C10.6176 9.24963 10.6322 9.29237 10.6189 9.34188L10.5226 9.72738C10.5149 9.75669 10.4996 9.78348 10.4784 9.80513C10.471 9.81268 10.4624 9.81901 10.453 9.82388C10.4395 9.8305 10.4275 9.83187 10.4155 9.8305C10.3499 9.81575 10.1946 9.78238 9.94963 9.9055C9.69263 10.0353 9.603 10.2589 9.60425 10.4249C9.607 10.623 9.70737 10.6831 10.058 10.6886C10.5252 10.6966 10.726 10.9 10.7314 11.3699C10.738 11.8304 10.4919 12.327 10.1144 12.6295ZM12.7619 11.9052C12.7619 11.9455 12.7566 11.9829 12.7231 12.0016L11.4461 12.778C11.4128 12.7981 11.3859 12.7808 11.3859 12.7405V12.4113C11.3859 12.3711 11.41 12.3498 11.4434 12.3296L12.7017 11.5774C12.7352 11.5574 12.762 11.5746 12.762 11.6149L12.7619 11.9052ZM13.6401 4.53113L8.86125 7.4825C8.26562 7.8305 7.8265 8.22138 7.82525 8.94025V14.8286C7.82525 15.2582 7.99925 15.5367 8.26562 15.6184C8.17814 15.6341 8.08951 15.6426 8.00062 15.6439C7.72075 15.6439 7.445 15.5676 7.20275 15.4242L2.15237 12.426C1.6585 12.1329 1.352 11.5854 1.352 10.9978V5.00087C1.352 4.41337 1.6585 3.86588 2.15237 3.57262L7.20425 0.57425C7.44576 0.431069 7.72124 0.35527 8.002 0.35475C8.28175 0.35475 8.5575 0.431 8.79975 0.57425L13.8516 3.57262C14.2679 3.82025 14.549 4.24725 14.6279 4.72788C14.4579 4.37038 14.0804 4.27413 13.6401 4.53113Z"
+                                fill="white"></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_1913_615">
+                                <rect width="16" height="16" fill="white"
+                                ></rect>
+                            </clipPath>
+                        </defs>
+                    </svg>
+                    <code>anyquery i spotify </code>
+                </div>
+            </div>
+            <div
+                class="p-6 bg-gradient-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+            >
+                <a
+                    href="/integrations#llm"
+                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                >
+                    3. Connect to the chat
+                </a>
+                <p
+                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
+                >
+                    Visit the <a class="underline" href="/integrations#llm"
+                        >connection guides</a
+                    > to find a way to connect Anyquery to your chat. Follow the
+                    instructions, and profit ??
+                </p>
+
+                <div
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 16 16"
+                        fill="none"
+                    >
+                        <g clip-path="url(#clip0_1913_615)">
+                            <path
+                                d="M14.0256 3.26612L8.975 0.26775C8.68009 0.0927584 8.34355 0.00028033 8.00062 0C7.66462 0 7.32737 0.089625 7.02612 0.269L1.97438 3.2675C1.372 3.62487 1 4.28613 1 5.00225V10.9991C1 11.7153 1.37087 12.3765 1.9745 12.7339L7.025 15.7323C7.31967 15.9078 7.65637 16.0003 7.99937 16C8.34234 15.9997 8.67893 15.9073 8.97388 15.7323L14.0256 12.7339C14.628 12.3764 15.0001 11.7139 15.0001 10.9991V5.00087C15.0001 4.28613 14.6293 3.6235 14.0256 3.26612ZM10.1144 12.6295L10.1222 13.0605C10.1222 13.1128 10.0889 13.1716 10.0487 13.193L9.793 13.3403C9.75288 13.3603 9.718 13.3363 9.718 13.284L9.714 12.8597C9.49587 12.9507 9.27363 12.9722 9.13313 12.916C9.10638 12.9053 9.09437 12.8664 9.105 12.8209L9.19738 12.4314C9.20538 12.4006 9.2215 12.3698 9.24288 12.351C9.24987 12.3439 9.25803 12.338 9.267 12.3336C9.28162 12.3256 9.29638 12.3243 9.3085 12.3296C9.461 12.3805 9.65512 12.3564 9.8425 12.2627C10.0809 12.1423 10.24 11.8986 10.2375 11.6578C10.2347 11.4381 10.117 11.3485 9.82913 11.3457C9.46238 11.347 9.11975 11.2749 9.11438 10.734C9.11038 10.2896 9.34062 9.8265 9.70737 9.53463L9.70337 9.09962C9.70337 9.04612 9.7355 8.98712 9.777 8.96587L10.0245 8.80787C10.0647 8.78775 10.0995 8.81325 10.0995 8.86537L10.1036 9.30037C10.2856 9.22812 10.4436 9.20813 10.5868 9.24162C10.6176 9.24963 10.6322 9.29237 10.6189 9.34188L10.5226 9.72738C10.5149 9.75669 10.4996 9.78348 10.4784 9.80513C10.471 9.81268 10.4624 9.81901 10.453 9.82388C10.4395 9.8305 10.4275 9.83187 10.4155 9.8305C10.3499 9.81575 10.1946 9.78238 9.94963 9.9055C9.69263 10.0353 9.603 10.2589 9.60425 10.4249C9.607 10.623 9.70737 10.6831 10.058 10.6886C10.5252 10.6966 10.726 10.9 10.7314 11.3699C10.738 11.8304 10.4919 12.327 10.1144 12.6295ZM12.7619 11.9052C12.7619 11.9455 12.7566 11.9829 12.7231 12.0016L11.4461 12.778C11.4128 12.7981 11.3859 12.7808 11.3859 12.7405V12.4113C11.3859 12.3711 11.41 12.3498 11.4434 12.3296L12.7017 11.5774C12.7352 11.5574 12.762 11.5746 12.762 11.6149L12.7619 11.9052ZM13.6401 4.53113L8.86125 7.4825C8.26562 7.8305 7.8265 8.22138 7.82525 8.94025V14.8286C7.82525 15.2582 7.99925 15.5367 8.26562 15.6184C8.17814 15.6341 8.08951 15.6426 8.00062 15.6439C7.72075 15.6439 7.445 15.5676 7.20275 15.4242L2.15237 12.426C1.6585 12.1329 1.352 11.5854 1.352 10.9978V5.00087C1.352 4.41337 1.6585 3.86588 2.15237 3.57262L7.20425 0.57425C7.44576 0.431069 7.72124 0.35527 8.002 0.35475C8.28175 0.35475 8.5575 0.431 8.79975 0.57425L13.8516 3.57262C14.2679 3.82025 14.549 4.24725 14.6279 4.72788C14.4579 4.37038 14.0804 4.27413 13.6401 4.53113Z"
+                                fill="white"></path>
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_1913_615">
+                                <rect width="16" height="16" fill="white"
+                                ></rect>
+                            </clipPath>
+                        </defs>
+                    </svg>
+                    <code>anyquery gpt</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</Main>

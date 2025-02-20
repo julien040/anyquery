@@ -1,0 +1,41 @@
+---
+title: Connecting ChatGPT/Claude
+description: Chat with your applications using natural language
+---
+
+import { LinkCard } from '@astrojs/starlight/components';
+
+LLMs work best when given enough context to generate meaningful responses. Anyquery is a query engine for all your applications. By connecting it to ChatGPT/Claude, you can interact with your applications using natural language.
+
+For example, you can let ChatGPT to access your GitHub repositories.
+
+![5ire](/images/docs/llm/5ire-final.png)
+
+## Prerequisites
+
+Before you begin, ensure that you have the following:
+
+- A working installation of Anyquery (`v0.4.0`). Follow the [installation guide](/docs/#installation) if you haven't installed it yet.
+- A few integrations set up in Anyquery. Refer to each [integration guide](/integrations) for more information.
+
+## Connecting your chat interface to Anyquery
+
+Anyquery supports function calling and the Model Context Protocol (MCP) to connect to your chat interface. Refer to each [connection guide](/integrations#llm) in the documentation for more information.
+
+<LinkCard title="Connection guides" href="/docs/integrations#llm" description="Learn how to connect your chat interface to Anyquery." />
+
+## Usage
+
+Once connected, you can interact with your applications using natural language. For example, if you've set up the Spotify integration, you can ask ChatGPT to recommend a song for you.
+
+Here are a few examples:
+
+- \[Spotify\] **Recommend me a song according to my history.**
+- \[GitHub\] **Which issues are assigned to me?**
+- \[Reminders\] **Remind me to call John at 3 PM.**
+- \[Calendar\] **What's on my schedule for tomorrow? Will I be free at 2 PM?**
+- \[Browser\] **Take this PDF, and open the most important links in my browser.**
+- \[Email\] **Can you summarize the email from John?**
+- \[Files\] **Find the document I worked on last week. It's a PDF file with the title "Project Plan".**
+- \[Notion\] **Retrieve Franck's notes in my CRM database. I have a meeting with him tomorrow.**
+- \[Google Sheets\] **Update the sales report with the latest data.**

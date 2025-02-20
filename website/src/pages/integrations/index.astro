@@ -42,13 +42,16 @@ const integrations = await getCollection("integrations");
 
 // Get all the databases
 const databases = await getCollection("databases");
+
+// Get all the chats
+const chats = await getCollection("chats");
 ---
 
 <Main
     title="Integrations - Anyquery"
     footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned."
 >
-    <h1 class="text-3xl">Databases</h1>
+    <h1 class="text-3xl" id="databases">Databases</h1>
     <p class="break-words text-sm text-white/60 mt-1">
         Using Anyquery, you can connect to a variety of databases. Insert data,
         join tables across databases, and more (starting from version 0.3.0 in
@@ -78,7 +81,7 @@ const databases = await getCollection("databases");
                 ))
         }
     </div>
-    <h1 class="text-3xl mt-8">Plugins</h1>
+    <h1 class="text-3xl mt-8" id="plugins">Plugins</h1>
     <p class="break-words text-sm text-white/60 mt-1">
         Query data from various sources, including APIs and local applications.
     </p>
@@ -105,7 +108,7 @@ const databases = await getCollection("databases");
         }
     </div>
 
-    <h1 class="text-3xl mt-8">Libraries</h1>
+    <h1 class="text-3xl mt-8" id="libraries">Libraries</h1>
     <p class="break-words text-sm text-white/60 mt-1">
         Because Anyquery is based on SQLite, download and use SQLite libraries
         to extend the functionality of your queries.
@@ -136,7 +139,7 @@ const databases = await getCollection("databases");
         }
     </div>
 
-    <h1 class="text-3xl mt-8">Guides</h1>
+    <h1 class="text-3xl mt-8" id="guides">Guides</h1>
     <p class="break-words text-sm text-white/60 mt-1">
         Guides on reusing plugins for other integrations.
     </p>
@@ -157,6 +160,33 @@ const databases = await getCollection("databases");
                     <h2 class="text-lg mt-3">{integration.data.title}</h2>
                     <p class="break-words text-sm text-white/60">
                         {integration.data.description}
+                    </p>
+                </a>
+            ))
+        }
+    </div>
+    <h1 class="text-3xl mt-8" id="llm">LLMs</h1>
+    <p class="break-words text-sm text-white/60 mt-1">
+        Connect Anyquery to LLMs to chat with your data.
+    </p>
+
+    <div
+        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
+    >
+        {
+            chats.map((chat) => (
+                <a
+                    href={chat.data.url}
+                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                >
+                    <img
+                        src={chat.data.icon}
+                        alt={chat.data.name}
+                        class="w-10 h-10"
+                    />
+                    <h2 class="text-lg mt-3">{chat.data.name}</h2>
+                    <p class="break-words text-sm text-white/60">
+                        {chat.data.description}
                     </p>
                 </a>
             ))

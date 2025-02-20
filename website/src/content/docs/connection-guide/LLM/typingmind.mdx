@@ -1,0 +1,64 @@
+---
+title: TypingMind
+description: Connect TypingMind to Anyquery
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<img src="https://www.typingmind.com/logo.png" alt="TypingMind" width="96" />
+
+TypingMind is a chat interface for different LLM models. Using Anyquery, you can connect TypingMind to your local and online applications (such as Spotify, GitHub, Discord, etc.) and interact with them using natural language.
+
+## Prerequisites
+
+Before you begin, ensure that you have the following:
+
+- A working installation of Anyquery (`v0.4.0`). Follow the [installation guide](/docs/#installation) if you haven't installed it yet.
+- A few integrations set up in Anyquery. Refer to each [integration guide](/integrations) for more information.
+
+## Connect TypingMind to Anyquery
+
+<Steps>
+
+1. #### Start Anyquery
+
+    In a terminal, run the following command to start Anyquery:
+
+    ```bash title="Terminal"
+    anyquery gpt
+    ```
+
+    This command will start a tunnel to Anyquery and provide you a bearer token. You must then use this token to authenticate your requests to Anyquery.
+
+2. #### Install the TypingMind plugin
+
+    <Tabs>
+        <TabItem label="TypingMind">
+        To connect TypingMind to Anyquery, follow this link:
+            [https://redirect.anyquery.xyz/typingMind](https://redirect.anyquery.xyz/typingMind)
+        </TabItem>
+        <TabItem label="TypingMind with SetApp">
+        To connect TypingMind to Anyquery, follow this link:
+            [https://redirect.anyquery.xyz/typingMindSetApp](https://redirect.anyquery.xyz/typingMindSetApp)
+        </TabItem>
+    </Tabs>
+
+    and click on the `Import to TypingMind` button. This will install the Anyquery plugin in TypingMind.
+
+    ![TypingMind Plugin Installation](/images/docs/llm/typingmind-install.png)
+
+3. #### Configure the plugin
+
+    In the plugin settings, fill in the Anyquery ID returned by the `anyquery gpt` command and click `Save`.
+
+    ![TypingMind Plugin Settings](/images/docs/llm/typingmind-settings.png)
+
+
+</Steps>
+
+## Usage
+
+To use TypingMind with Anyquery, enable the plugin next to the model selection dropdown. The chat interface is now connected to Anyquery, and you can interact with your applications using natural language.
+
+![TypingMind Plugin Enabled](/images/docs/llm//typingmind-enable.png)

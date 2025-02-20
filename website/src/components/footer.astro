@@ -44,7 +44,7 @@ const { footnote } = Astro.props;
         </div>
     </div>
     <div
-        class="flex flex-row flex-wrap items-center justify-center text-[0.825rem] text-white/70 gap-4 md:gap-12"
+        class="flex flex-row flex-wrap items-start justify-center text-[0.825rem] text-white/70 gap-4 md:gap-12"
     >
         <div class="flex flex-col">
             <p class="text-white/50 mb-1">Guide</p>
@@ -57,10 +57,10 @@ const { footnote } = Astro.props;
                 class="hover:text-white/80 transition-all">Running a query</a
             >
             <a
-                href="/docs/usage/mysql-server/"
+                href="/docs/usage/connecting-llms"
                 class="hover:text-white/80 transition-all"
-                >MySQL compatibility</a
-            >
+                >Connecting LLMs
+            </a>
             <a
                 href="/docs/usage/plugins/"
                 class="hover:text-white/80 transition-all">Install plugin</a
@@ -77,8 +77,16 @@ const { footnote } = Astro.props;
         <div class="flex flex-col">
             <p class="text-white/50 mb-1">Connection guide</p>
             <a
-                href="/connection-guide/drizzle"
-                class="hover:text-white/80 transition-all">Drizzle</a
+                href="/connection-guide/llm/chatgpt/"
+                class="hover:text-white/80 transition-all">ChatGPT</a
+            >
+            <a
+                href="/connection-guide/llm/claude"
+                class="hover:text-white/80 transition-all">Claude</a
+            >
+            <a
+                href="/connection-guide/llm/librechat"
+                class="hover:text-white/80 transition-all">LibreChat</a
             >
             <a
                 href="/connection-guide/datasette"
@@ -87,18 +95,6 @@ const { footnote } = Astro.props;
             <a
                 href="/connection-guide/tableplus"
                 class="hover:text-white/80 transition-all">TablePlus</a
-            >
-            <a
-                href="/connection-guide/metabase"
-                class="hover:text-white/80 transition-all">Metabase</a
-            >
-            <a
-                href="/connection-guide/datagrip"
-                class="hover:text-white/80 transition-all">Datagrip</a
-            >
-            <a
-                href='/connection-guide/dbeaver"'
-                class="hover:text-white/80 transition-all">DBeaver</a
             >
         </div>
         <div class="flex flex-col">

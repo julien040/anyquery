@@ -1,0 +1,110 @@
+---
+title: 5ire
+description: Connect 5ire to Anyquery
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<img src="https://5ire.app/logo.png" alt="5ire" height="96" />
+
+5ire is a chat interface for different LLM models. It supports the Model Context Protocol (MCP) 
+and can be connected to Anyquery to interact with your local and online applications (such as Spotify, GitHub, Discord, etc.) using natural language.
+
+## Prerequisites
+
+Before you begin, ensure that you have the following:
+
+- A working installation of Anyquery (`v0.4.0`). Follow the [installation guide](/docs/#installation) if you haven't installed it yet.
+- A few integrations set up in Anyquery. Refer to each [integration guide](/integrations) for more information.
+
+
+## Connect 5ire to Anyquery
+
+To connect Anyquery to 5ire, you can use the Model Context Protocol (MCP).
+
+<Steps>
+
+1. #### Open 5ire
+
+    Open 5ire on your machine, and open "Tools" in the left sidebar.
+
+    <img src="/images/docs/llm/5ire-tools.png" alt="5ire Tools" width="240" />
+
+    Then, click on "Add" to add a new MCP server.
+
+    ![5ire Add MCP](/images/docs/llm/5ire-add.png)
+
+    Finally, copy the path to the configuration file.
+
+    ![5ire Config Path](/images/docs/llm/5ire-path.png)
+
+2. #### Locate where Anyquery is installed
+
+    Following your installation method, Anyquery can be installed in different locations. You can find the location by running the following command in your terminal:
+
+    <Tabs>
+        <TabItem label="MacOS">
+            ```bash title="Terminal"
+            which anyquery
+            ```
+        </TabItem>
+        <TabItem label="Windows">
+            ```bash title="Terminal"
+            where anyquery
+            ```
+        </TabItem>
+        <TabItem label="Linux">
+            ```bash title="Terminal"
+            which anyquery
+            ```
+        </TabItem>
+    </Tabs>
+
+    Copy the result of this command. You will need it in the next step.
+
+3. #### Update the 5ire configuration file
+
+    Open the 5ire configuration file you copied in step 1 with your favorite text editor.
+
+    It should look like this:
+
+    ```json
+    {
+        "servers": [
+            // The array can contain multiple servers
+        ]
+    }
+
+    ```
+
+    Add a new server to the array so that it looks like this:
+
+    ```json
+    {
+        "servers": [
+            // Leave the other servers as they are
+            ...
+            {
+                "key": "anyquery",
+                "args": ["mcp", "--stdio"],
+                "command": "/path/to/anyquery/that/you/copied/from/step-2",
+                "isActive": true
+            }
+        ]
+    }
+
+    ```
+
+4. #### Restart 5ire
+
+    Restart 5ire to apply the changes. You can now use Anyquery with 5ire.
+
+</Steps>
+
+
+## Usage
+
+Make sure Anyquery is enabled in the tools. You can now interact with your applications using natural language.
+
+![5ire with Anyquery](/images/docs/llm/5ire-final.png)

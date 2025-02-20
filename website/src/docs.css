@@ -1,9 +1,9 @@
-.sl-markdown-content ul {
+.sl-markdown-content ul:not([role="tablist"]) {
     list-style-type: disc;
     margin-left: 20px;
 }
 
-.sl-markdown-content ol {
+.sl-markdown-content ol:not(.sl-steps) {
     list-style-type: decimal;
     margin-left: 20px;
 }
@@ -62,7 +62,7 @@ p,
 li,
 table {
     letter-spacing: -0.12px;
-    font-size: 0.95rem;
+    font-size: 0.91rem;
 }
 h1,
 h2,
@@ -77,6 +77,22 @@ h6 {
 
 .sl-markdown-content h2 {
     margin-top: 0.8em !important;
+    font-size: 1.8rem;
+}
+
+.sl-markdown-content h3 {
+    margin-top: 0.8em !important;
+    font-size: 1.4rem;
+}
+
+.sl-markdown-content h4 {
+    margin-top: 0.8em !important;
+    font-size: 1.2rem;
+}
+
+.sl-markdown-content h5 {
+    margin-top: 0.8em !important;
+    font-size: 1.1rem;
 }
 
 .sl-markdown-content p,
