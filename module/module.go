@@ -8,6 +8,7 @@ import (
 	rand "math/rand/v2"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gammazero/deque"
@@ -33,16 +34,20 @@ type SQLiteModule struct {
 	PluginManifest  rpc.PluginManifest
 	ConnectionIndex int
 	TableIndex      int
-	client          *rpc.InternalClient
+	Table           *SQLiteTable
 	UserConfig      rpc.PluginConfig
 	Logger          hclog.Logger
 	ConnectionPool  *rpc.ConnectionPool
 	Stderr          io.Writer
 
+	// Metadata used to describe the table for LLMs
+	Metadata rpc.TableMetadata
+
 	// Internal
 	moduleInited bool
-	Table        *SQLiteTable
-	schema       string
+	client       *rpc.InternalClient
+
+	schema string
 }
 
 // SQLiteTable that holds the information needed for the BestIndex and Open methods
@@ -51,15 +56,21 @@ type SQLiteTable struct {
 	connectionIndex         int
 	nextCursor              int
 	tableIndex              int
-	schema                  rpc.DatabaseSchema
+	Schema                  rpc.DatabaseSchema
 	client                  *rpc.InternalClient
 	ConnectionPool          *rpc.ConnectionPool
 	insertBuffer            *deque.Deque[[]interface{}]
 	maxBufferInsert         uint
+	lastInsertTime          time.Time
+	insertFlushingMutex     sync.Mutex
 	updateBuffer            *deque.Deque[updateItem]
 	maxBufferUpdate         uint
+	lastUpdateTime          time.Time
+	updateFlushingMutex     sync.Mutex
 	deleteBuffer            *deque.Deque[interface{}]
 	maxBufferDelete         uint
+	lastDeleteTime          time.Time
+	deleteFlushingMutex     sync.Mutex
 	mapColPositionColPlugin map[int]int // Map the position of the column in SQLite to the position of the column in the rows returned by the plugin
 	logger                  hclog.Logger
 	partialUpdate           bool
@@ -166,16 +177,32 @@ func (m *SQLiteModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		m.ConnectionPool,
 		&deque.Deque[[]interface{}]{},
 		dbSchema.BufferInsert,
+		time.Time{},
+		sync.Mutex{},
 		&deque.Deque[updateItem]{},
 		dbSchema.BufferUpdate,
+		time.Time{},
+		sync.Mutex{},
 		&deque.Deque[interface{}]{},
 		dbSchema.BufferDelete,
+		time.Time{},
+		sync.Mutex{},
 		colMapper,
 		m.Logger,
 		dbSchema.PartialUpdate,
 	}
 	m.Table = table
 	m.moduleInited = true
+
+	// Create a ticker that flushes the buffers of inserts, updates and deletes
+	// after 20 seconds of inactivity
+	// The check is done every 5 seconds
+	ticker := time.NewTicker(5 * time.Second)
+	go func() {
+		for range ticker.C {
+			table.flushUnusedBuffers()
+		}
+	}()
 
 	return table, nil
 }
@@ -212,6 +239,19 @@ func createSQLiteSchema(arg rpc.DatabaseSchema) (string, error) {
 			schema.WriteString("BLOB")
 		case rpc.ColumnTypeFloat:
 			schema.WriteString("REAL")
+		case rpc.ColumnTypeBool:
+			schema.WriteString("BOOLEAN")
+		case rpc.ColumnTypeJSON:
+			schema.WriteString("TEXT")
+		case rpc.ColumnTypeDate:
+			schema.WriteString("DATE")
+		case rpc.ColumnTypeDateTime:
+			schema.WriteString("DATETIME")
+		case rpc.ColumnTypeTime:
+			schema.WriteString("TIME")
+		default:
+			return "", fmt.Errorf("unknown column type: %T (%v)", col.Type, col.Type)
+
 		}
 
 		// If the column is a parameter, we add the HIDDEN keyword
@@ -264,13 +304,13 @@ func (m *SQLiteModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// The first task of BestIndex is to check if the required parameters are present
 	// If not, we return sqlite3.ErrConstraint
-	present := make([]bool, len(t.schema.Columns))
+	present := make([]bool, len(t.Schema.Columns))
 	for _, c := range cst {
 		if c.Usable && c.Op == sqlite3.OpEQ {
 			present[c.Column] = true
 		}
 	}
-	for i, col := range t.schema.Columns {
+	for i, col := range t.Schema.Columns {
 		if col.IsRequired && !present[i] {
 			return nil, sqlite3.ErrConstraint
 		}
@@ -287,7 +327,7 @@ func (t *SQLiteTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoO
 	// Used is a boolean array that tells SQLite which constraints are used
 	// and that must be passed to the Filter method in the vals field
 	used := make([]bool, len(cst))
-	parseConstraintsFromSQLite(cst, ob, &constraints, used, t.schema)
+	parseConstraintsFromSQLite(cst, ob, &constraints, used, t.Schema)
 
 	// We store the constraints as JSON to be passed with IdxStr in IndexResult
 	marshal, err := json.Marshal(constraints)
@@ -332,10 +372,10 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 		t.connectionIndex,
 		t.tableIndex,
 		t.nextCursor,
-		t.schema,
+		t.Schema,
 		t.client,
 		false,
-		deque.New[[]interface{}](preAllocatedCapacity, minimumCapacityRingBuffer),
+		new(deque.Deque[[]interface{}]),
 		&t.nextCursor,
 		rpc.QueryConstraint{},
 		t.mapColPositionColPlugin,
@@ -346,6 +386,35 @@ func (t *SQLiteTable) Open() (sqlite3.VTabCursor, error) {
 	t.nextCursor++
 
 	return cursor, nil
+}
+
+// flushUnusedBuffers flushes the buffers of inserts, updates and deletes
+// if no query is running, the buffers are not empty, and no insert/update/delete occurred for a certain time
+func (t *SQLiteTable) flushUnusedBuffers() {
+	const flushTime = 20 * time.Second
+
+	// We check if a query is running
+	if t.lastInsertTime.Add(flushTime).Before(time.Now()) && t.insertBuffer.Len() != 0 {
+		err := t.flushInsert()
+		if err != nil {
+			t.logger.Error("could not flush the insert buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
+		}
+	}
+
+	if t.lastUpdateTime.Add(flushTime).Before(time.Now()) && t.updateBuffer.Len() != 0 {
+		err := t.flushUpdate()
+		if err != nil {
+			t.logger.Error("could not flush the update buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
+		}
+	}
+
+	if t.lastDeleteTime.Add(flushTime).Before(time.Now()) && t.deleteBuffer.Len() != 0 {
+		err := t.flushDelete()
+		if err != nil {
+			t.logger.Error("could not flush the delete buffer", "error", err, "table", t.tableIndex, "connection", t.connectionIndex, "plugin", t.PluginPath)
+		}
+	}
+
 }
 
 func (t *SQLiteTable) PartialUpdate() bool {
@@ -379,16 +448,17 @@ func (t *SQLiteTable) FlushBuffers() error {
 }
 
 func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
-	if t.schema.PrimaryKey == -1 {
+	if t.Schema.PrimaryKey == -1 {
 		return 0, errors.New("the table does not support INSERT because it has no primary key")
 	}
 
-	if !t.schema.HandlesInsert {
+	if !t.Schema.HandlesInsert {
 		return 0, errors.New("the table does not support INSERT")
 	}
 
 	// We add the row to the buffer
 	t.insertBuffer.PushBack(vals)
+	t.lastInsertTime = time.Now()
 
 	// If the buffer is full, we flush it
 	if uint(t.insertBuffer.Len()) >= t.maxBufferInsert {
@@ -407,16 +477,18 @@ func (t *SQLiteTable) Insert(id any, vals []any) (int64, error) {
 }
 
 func (t *SQLiteTable) Update(id any, vals []any) error {
-	if t.schema.PrimaryKey == -1 {
+	if t.Schema.PrimaryKey == -1 {
 		return errors.New("the table does not support UPDATE because it has no primary key")
 	}
 
-	if !t.schema.HandlesUpdate {
+	if !t.Schema.HandlesUpdate {
 		return errors.New("the table does not support UPDATE")
 	}
 
 	t.updateBuffer.PushBack(updateItem{id, vals})
+	t.lastUpdateTime = time.Now()
 
+	// If the buffer is full, we flush it
 	if uint(t.updateBuffer.Len()) >= t.maxBufferUpdate {
 		err := t.flushUpdate()
 		if err != nil {
@@ -428,15 +500,16 @@ func (t *SQLiteTable) Update(id any, vals []any) error {
 }
 
 func (t *SQLiteTable) Delete(id any) error {
-	if t.schema.PrimaryKey == -1 {
+	if t.Schema.PrimaryKey == -1 {
 		return errors.New("the table does not support DELETE because it has no primary key")
 	}
 
-	if !t.schema.HandlesDelete {
+	if !t.Schema.HandlesDelete {
 		return errors.New("the table does not support DELETE")
 	}
 
 	t.deleteBuffer.PushBack(id)
+	t.lastDeleteTime = time.Now()
 
 	if uint(t.deleteBuffer.Len()) >= t.maxBufferDelete {
 		err := t.flushDelete()
@@ -452,6 +525,8 @@ func (t *SQLiteTable) Delete(id any) error {
 // If the plugin rejects the inserts, the functions returns an error
 // and keeps the rows in the buffer for a later retry
 func (t *SQLiteTable) flushInsert() error {
+	t.insertFlushingMutex.Lock()
+	defer t.insertFlushingMutex.Unlock()
 	if t.insertBuffer.Len() == 0 {
 		return nil
 	}
@@ -476,6 +551,8 @@ func (t *SQLiteTable) flushInsert() error {
 // If the plugin rejects the updates, the functions returns an error
 // and keeps the rows in the buffer for a later retry
 func (t *SQLiteTable) flushUpdate() error {
+	t.updateFlushingMutex.Lock()
+	defer t.updateFlushingMutex.Unlock()
 	if t.updateBuffer.Len() == 0 {
 		return nil
 	}
@@ -504,6 +581,8 @@ func (t *SQLiteTable) flushUpdate() error {
 // If the plugin rejects the deletes, the functions returns an error
 // and keeps the rows in the buffer for a later retry
 func (t *SQLiteTable) flushDelete() error {
+	t.deleteFlushingMutex.Lock()
+	defer t.deleteFlushingMutex.Unlock()
 	if t.deleteBuffer.Len() == 0 {
 		return nil
 	}

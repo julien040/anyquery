@@ -217,8 +217,6 @@ SELECT
 	'UTF-8 Unicode' AS Description,
 	'BINARY' AS Default_collation,
 	4 AS Maxlen
-FROM
-	dual
 WHERE Charset LIKE ?`
 
 const showEnginesQuery = `
@@ -268,16 +266,12 @@ SELECT
 	'Note' AS Level,
 	0 AS Code,
 	'' AS Message
-FROM
-	dual
 WHERE FALSE`
 
 // emptyResultSet is an empty result set
 const showEmptyResultSet = `
 SELECT
 	'' AS "Empty"
-FROM
-	dual
 WHERE FALSE`
 
 // Run a query on the database

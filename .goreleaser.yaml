@@ -153,7 +153,7 @@ chocolateys:
       Anyquery is a query engine that allows you to query anything over SQL. It's built on top of SQLite.
 
     icon_url: https://anyquery.dev/favicon.png
-    copyright: 2024 Julien CAGNIART
+    copyright: 2025 Julien CAGNIART
     tags: "anyquery sql sqlite mysql query database api"
     package_source_url: https://github.com/julien040/anyquery
     release_notes: "See release notes at https://github.com/julien040/anyquery/releases"
@@ -240,7 +240,7 @@ winget:
     homepage: https://anyquery.dev
     license_url: https://github.com/julien040/anyquery/blob/main/LICENSE.md
     skip_upload: false
-    copyright: 2024 Julien CAGNIART
+    copyright: 2025 Julien CAGNIART
     copyright_url: https://github.com/julien040/anyquery/blob/main/LICENSE.md
     tags:
       - anyquery

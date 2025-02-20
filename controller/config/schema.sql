@@ -44,6 +44,8 @@ CREATE TABLE
         tablename TEXT NOT NULL DEFAULT '[]',
         -- IsSharedExtension specifies if the plugin must be load as an anyquery extension or a SQLite extension
         isSharedExtension INTEGER DEFAULT 0 NOT NULL,
+        -- Additional metadata for the tables
+        tableMetadata TEXT DEFAULT '{}' NOT NULL,
         FOREIGN KEY (registry) REFERENCES registry (name),
         PRIMARY KEY (registry, name)
     ) WITHOUT ROWID;
@@ -78,3 +80,13 @@ CREATE TABLE
         additionalMetadata TEXT DEFAULT '{}' NOT NULL, -- A JSON object of metadata
         PRIMARY KEY (connectionName)
     ) WITHOUT ROWID;
+
+CREATE TABLE
+    IF NOT EXISTS entity_attribute_value (
+        entity TEXT NOT NULL,
+        attribute TEXT NOT NULL,
+        value TEXT NOT NULL,
+        PRIMARY KEY (entity, attribute)
+    ) STRICT;
+
+-- entity_attribute_value is STRICT to ensure that the value is text

@@ -47,6 +47,10 @@ export default defineConfig({
                             link: "/docs/usage/managing-profiles",
                         },
                         {
+                            label: "Connecting LLMs (e.g. ChatGPT)",
+                            link: "/docs/usage/connecting-llms",
+                        },
+                        {
                             label: "Querying files",
                             link: "/docs/usage/querying-files",
                         },

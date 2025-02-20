@@ -26,10 +26,11 @@ INSERT INTO
         dev,
         author,
         tablename,
+        tableMetadata,
         isSharedExtension
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 -- name: AddProfile :exec
 INSERT INTO
@@ -170,7 +171,8 @@ SET
     checksumDir = ?,
     author = ?,
     tablename = ?,
-    isSharedExtension = ?
+    isSharedExtension = ?,
+    tableMetadata = ?
 WHERE
     name = ?
     AND registry = ?;
@@ -270,3 +272,42 @@ FROM
     connections
 WHERE
     urn = ?;
+
+/* -------------------------------------------------------------------------- */
+/*                           Entity Attribute Value                           */
+/* -------------------------------------------------------------------------- */
+-- name: GetEntityAttributeValue :one
+SELECT
+    value
+FROM
+    entity_attribute_value
+WHERE
+    entity = ?
+    AND attribute = ?;
+
+-- name: SetEntityAttributeValue :exec
+INSERT
+OR REPLACE INTO entity_attribute_value (entity, attribute, value)
+VALUES
+    (?, ?, ?);
+
+-- name: DeleteEntityAttributeValue :exec
+DELETE FROM entity_attribute_value
+WHERE
+    entity = ?
+    AND attribute = ?;
+
+-- name: GetEntityAttributes :many
+SELECT
+    attribute,
+    value
+FROM
+    entity_attribute_value
+WHERE
+    entity = ?;
+
+-- name: GetEntities :many
+SELECT DISTINCT
+    entity
+FROM
+    entity_attribute_value;

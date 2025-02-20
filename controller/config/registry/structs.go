@@ -1,5 +1,7 @@
 package registry
 
+import "github.com/julien040/anyquery/rpc"
+
 /****************************************************************************************************
  *        PLEASE REFER TO THE FILE SCHEMA_PLUGIN.JSON TO KNOW THE STRUCTURE OF THE REGISTRY.        *
  *           BUT TO SUM UP, THE REGISTRY IS A JSON FILE THAT CONTAINS A LIST OF PLUGINS.            *
@@ -25,11 +27,12 @@ type Plugin struct {
 }
 
 type PluginVersion struct {
-	Version                string                `json:"version"`
-	MinimumRequiredVersion string                `json:"minimum_required_version"`
-	Files                  map[string]PluginFile `json:"files"` // Platform -> File
-	UserConfig             []UserConfig          `json:"user_config"`
-	Tables                 []string              `json:"tables"`
+	Version                string                       `json:"version"`
+	MinimumRequiredVersion string                       `json:"minimum_required_version"`
+	Files                  map[string]PluginFile        `json:"files"` // Platform -> File
+	UserConfig             []UserConfig                 `json:"user_config"`
+	Tables                 []string                     `json:"tables"`
+	TablesMetadata         map[string]rpc.TableMetadata `json:"tables_metadata"` // Table name -> Table metadata
 }
 
 type PluginFile struct {

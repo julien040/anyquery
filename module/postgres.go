@@ -222,8 +222,12 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 			columnType = "DATETIME"
 			typeSupported = true
 			defaultValue = ""
-		case "text", "character", "character varying", "varchar", "char", "string", "array", "json", "jsonb":
+		case "text", "character", "character varying", "varchar", "char", "string", "jsonb":
 			columnType = "TEXT"
+			typeSupported = true
+			defaultValue = ""
+		case "json", "array":
+			columnType = "JSON"
 			typeSupported = true
 			defaultValue = ""
 		case "bytea":

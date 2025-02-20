@@ -1,0 +1,90 @@
+openapi: 3.1.0
+info:
+  title: Anyquery - A SQL database for your personal data
+  version: "1.0.0"
+servers:
+  - url: https://gpt.anyquery.xyz
+paths:
+  /{id}/describe-table:
+    post:
+      summary: Describes the schema of a SQL table
+      description: Returns the schema of a SQL table. Every table mentioned in the query must be described (to learn the schema, and the table capabilities) before executing a query.
+      operationId: describeTable
+      x-openai-isConsequential: false
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                table_name:
+                  type: string
+      responses:
+        '200':
+          description: Successful description
+        '400':
+          description: Table does not exist
+
+  /{id}/list-tables:
+    get:
+      summary: Lists available tables
+      description: Lists all the tables available. When the user requests data, or wants an action (insert/update/delete), call this endpoint to check if a table corresponds to the user's request.
+      operationId: listTables
+      x-openai-isConsequential: false
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          schema:
+            type: string
+      requestBody:
+        description: There is no request body for this operation
+        required: false
+        content: {}
+      responses:
+        '200':
+          description: Successful listing of the tables, and their descriptions
+  /{id}/execute-query:
+    post:
+      summary: Executes a query
+      description: Executes a query on the SQL database. The query can be a SELECT, INSERT, UPDATE or DELETE query. Refer to the schema of each table to learn about the columns, their types, and whether the table supports INSERT, UPDATE or DELETE operations.
+      operationId: executeQuery
+      x-openai-isConsequential: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                query:
+                  type: string
+      responses:
+        '200':
+          description: Query executed successfully. For a select query, the response will contain the result set in a markdown table format. For an execute query, the response will contain the number of rows affected.
+          content:
+            text/plain:
+              schema:
+                type: string
+        '500':
+          description: Error executing query. The response will contain the error message.
+          content:
+            text/plain:
+              schema:
+                type: string

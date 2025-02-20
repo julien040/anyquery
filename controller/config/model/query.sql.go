@@ -74,10 +74,11 @@ INSERT INTO
         dev,
         author,
         tablename,
+        tableMetadata,
         isSharedExtension
     )
 VALUES
-    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `
 
 type AddPluginParams struct {
@@ -93,6 +94,7 @@ type AddPluginParams struct {
 	Dev               int64
 	Author            sql.NullString
 	Tablename         string
+	Tablemetadata     string
 	Issharedextension int64
 }
 
@@ -110,6 +112,7 @@ func (q *Queries) AddPlugin(ctx context.Context, arg AddPluginParams) error {
 		arg.Dev,
 		arg.Author,
 		arg.Tablename,
+		arg.Tablemetadata,
 		arg.Issharedextension,
 	)
 	return err
@@ -191,6 +194,23 @@ WHERE
 
 func (q *Queries) DeleteConnection(ctx context.Context, connectionname string) error {
 	_, err := q.db.ExecContext(ctx, deleteConnection, connectionname)
+	return err
+}
+
+const deleteEntityAttributeValue = `-- name: DeleteEntityAttributeValue :exec
+DELETE FROM entity_attribute_value
+WHERE
+    entity = ?
+    AND attribute = ?
+`
+
+type DeleteEntityAttributeValueParams struct {
+	Entity    string
+	Attribute string
+}
+
+func (q *Queries) DeleteEntityAttributeValue(ctx context.Context, arg DeleteEntityAttributeValueParams) error {
+	_, err := q.db.ExecContext(ctx, deleteEntityAttributeValue, arg.Entity, arg.Attribute)
 	return err
 }
 
@@ -393,9 +413,104 @@ func (q *Queries) GetConnections(ctx context.Context) ([]Connection, error) {
 	return items, nil
 }
 
+const getEntities = `-- name: GetEntities :many
+SELECT DISTINCT
+    entity
+FROM
+    entity_attribute_value
+`
+
+func (q *Queries) GetEntities(ctx context.Context) ([]string, error) {
+	rows, err := q.db.QueryContext(ctx, getEntities)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []string
+	for rows.Next() {
+		var entity string
+		if err := rows.Scan(&entity); err != nil {
+			return nil, err
+		}
+		items = append(items, entity)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const getEntityAttributeValue = `-- name: GetEntityAttributeValue :one
+SELECT
+    value
+FROM
+    entity_attribute_value
+WHERE
+    entity = ?
+    AND attribute = ?
+`
+
+type GetEntityAttributeValueParams struct {
+	Entity    string
+	Attribute string
+}
+
+// --------------------------------------------------------------------------
+//
+//	Entity Attribute Value
+//
+// --------------------------------------------------------------------------
+func (q *Queries) GetEntityAttributeValue(ctx context.Context, arg GetEntityAttributeValueParams) (string, error) {
+	row := q.db.QueryRowContext(ctx, getEntityAttributeValue, arg.Entity, arg.Attribute)
+	var value string
+	err := row.Scan(&value)
+	return value, err
+}
+
+const getEntityAttributes = `-- name: GetEntityAttributes :many
+SELECT
+    attribute,
+    value
+FROM
+    entity_attribute_value
+WHERE
+    entity = ?
+`
+
+type GetEntityAttributesRow struct {
+	Attribute string
+	Value     string
+}
+
+func (q *Queries) GetEntityAttributes(ctx context.Context, entity string) ([]GetEntityAttributesRow, error) {
+	rows, err := q.db.QueryContext(ctx, getEntityAttributes, entity)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetEntityAttributesRow
+	for rows.Next() {
+		var i GetEntityAttributesRow
+		if err := rows.Scan(&i.Attribute, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPlugin = `-- name: GetPlugin :one
 SELECT
-    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
+    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension, tablemetadata
 FROM
     plugin_installed
 WHERE
@@ -425,13 +540,14 @@ func (q *Queries) GetPlugin(ctx context.Context, arg GetPluginParams) (PluginIns
 		&i.Author,
 		&i.Tablename,
 		&i.Issharedextension,
+		&i.Tablemetadata,
 	)
 	return i, err
 }
 
 const getPlugins = `-- name: GetPlugins :many
 SELECT
-    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
+    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension, tablemetadata
 FROM
     plugin_installed
 `
@@ -459,6 +575,7 @@ func (q *Queries) GetPlugins(ctx context.Context) ([]PluginInstalled, error) {
 			&i.Author,
 			&i.Tablename,
 			&i.Issharedextension,
+			&i.Tablemetadata,
 		); err != nil {
 			return nil, err
 		}
@@ -475,7 +592,7 @@ func (q *Queries) GetPlugins(ctx context.Context) ([]PluginInstalled, error) {
 
 const getPluginsOfRegistry = `-- name: GetPluginsOfRegistry :many
 SELECT
-    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension
+    name, description, path, executablepath, version, homepage, registry, config, checksumdir, dev, author, tablename, issharedextension, tablemetadata
 FROM
     plugin_installed
 WHERE
@@ -505,6 +622,7 @@ func (q *Queries) GetPluginsOfRegistry(ctx context.Context, registry string) ([]
 			&i.Author,
 			&i.Tablename,
 			&i.Issharedextension,
+			&i.Tablemetadata,
 		); err != nil {
 			return nil, err
 		}
@@ -728,6 +846,24 @@ func (q *Queries) GetRegistry(ctx context.Context, name string) (Registry, error
 	return i, err
 }
 
+const setEntityAttributeValue = `-- name: SetEntityAttributeValue :exec
+INSERT
+OR REPLACE INTO entity_attribute_value (entity, attribute, value)
+VALUES
+    (?, ?, ?)
+`
+
+type SetEntityAttributeValueParams struct {
+	Entity    string
+	Attribute string
+	Value     string
+}
+
+func (q *Queries) SetEntityAttributeValue(ctx context.Context, arg SetEntityAttributeValueParams) error {
+	_, err := q.db.ExecContext(ctx, setEntityAttributeValue, arg.Entity, arg.Attribute, arg.Value)
+	return err
+}
+
 const updateConnection = `-- name: UpdateConnection :exec
 UPDATE connections
 SET
@@ -769,7 +905,8 @@ SET
     checksumDir = ?,
     author = ?,
     tablename = ?,
-    isSharedExtension = ?
+    isSharedExtension = ?,
+    tableMetadata = ?
 WHERE
     name = ?
     AND registry = ?
@@ -785,6 +922,7 @@ type UpdatePluginParams struct {
 	Author            sql.NullString
 	Tablename         string
 	Issharedextension int64
+	Tablemetadata     string
 	Name              string
 	Registry          string
 }
@@ -800,6 +938,7 @@ func (q *Queries) UpdatePlugin(ctx context.Context, arg UpdatePluginParams) erro
 		arg.Author,
 		arg.Tablename,
 		arg.Issharedextension,
+		arg.Tablemetadata,
 		arg.Name,
 		arg.Registry,
 	)

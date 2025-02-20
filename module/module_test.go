@@ -360,7 +360,7 @@ func TestOpCode(t *testing.T) {
 
 func TestXBestIndexConstraintsValidation(t *testing.T) {
 	table := SQLiteTable{
-		schema: rpc.DatabaseSchema{
+		Schema: rpc.DatabaseSchema{
 			PrimaryKey: -1,
 			Columns: []rpc.DatabaseSchemaColumn{
 				{

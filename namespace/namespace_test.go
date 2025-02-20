@@ -44,7 +44,7 @@ func TestNamespace(t *testing.T) {
 
 	// Test the connection string
 	t.Run("The connection string is set correctly for in-memory DB", func(t *testing.T) {
-		require.Equal(t, "file:anyquery.db?cache=shared&mode=memory&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=ON",
+		require.Equal(t, "file:anyquery.db?_cache_size=-50000&mode=memory&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=ON",
 			namespace.connectionString, "The connection string should be correct")
 
 	})
@@ -56,7 +56,7 @@ func TestNamespace(t *testing.T) {
 			PageCacheSize: 1000,
 		})
 		require.NoError(t, err, "The namespace should be initialized")
-		require.Equal(t, "file:test.db?cache=shared&_cache_size=-1000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+		require.Equal(t, "file:test.db?_cache_size=-1000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
 			namespace.connectionString, "The connection string should be correct")
 	})
 	t.Run("The connection string is set correctly for a file DB with a custom connection string", func(t *testing.T) {
@@ -77,7 +77,7 @@ func TestNamespace(t *testing.T) {
 			ReadOnly: true,
 		})
 		require.NoError(t, err, "The namespace should be initialized")
-		require.Equal(t, "file:anyquery.db?cache=shared&mode=ro&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+		require.Equal(t, "file:anyquery.db?_cache_size=-50000&mode=ro&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
 			namespace.connectionString, "The connection string should be correct")
 	})
 
@@ -88,12 +88,12 @@ func TestNamespace(t *testing.T) {
 			InMemory: true,
 		})
 		require.NoError(t, err, "The namespace should be initialized")
-		require.Equal(t, "file:anyquery.db?cache=shared&mode=memory&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+		require.Equal(t, "file:anyquery.db?_cache_size=-50000&mode=memory&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
 			namespace.connectionString, "The connection string should be correct")
 	})
 
 	t.Run("The GetConnectionString method works", func(t *testing.T) {
-		require.Equal(t, "file:anyquery.db?cache=shared&mode=memory&_cache_size=-50000&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
+		require.Equal(t, "file:anyquery.db?_cache_size=-50000&mode=memory&_journal_mode=WAL&_synchronous=NORMAL&_foreign_keys=OFF",
 			namespace.GetConnectionString(), "The connection string should be correct")
 		require.Equal(t, namespace.connectionString, namespace.GetConnectionString(), "The connection string should be correct")
 	})

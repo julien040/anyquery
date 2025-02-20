@@ -3,6 +3,7 @@ package config
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 
 	_ "embed"
@@ -59,6 +60,12 @@ func OpenDatabaseConnection(path string, readOnly bool) (*sql.DB, *model.Queries
 	_, err = db.Exec(schema)
 	if err != nil {
 		return nil, nil, err
+	}
+
+	// Apply the migrations in migrations.go
+	err = applyMigrations(db)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to apply migrations: %w", err)
 	}
 
 	// We create the querier

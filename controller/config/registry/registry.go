@@ -21,7 +21,7 @@ var schema string
 
 var DefaultRegistryBasePath = "https://registry.anyquery.dev/"
 
-var anyqueryVersion = "0.0.1"
+var anyqueryVersion = "0.4.0"
 
 var anyqueryParsedVersion = semver.MustParse(anyqueryVersion)
 

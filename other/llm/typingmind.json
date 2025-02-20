@@ -1,0 +1,54 @@
+{
+    "uuid": "f9cf1595-8e54-45f4-8cb7-879bcc33b423",
+    "id": "call_anyquery",
+    "emoji": "🧩",
+    "title": "Anyquery",
+    "overviewMarkdown": "## Anyquery\n\nConnect your applications to LLMs.",
+    "openaiSpec": {
+        "name": "call_anyquery",
+        "description": "Make a call to Anyquery to retrieve data from the user's applications. You can call listTables, describeTable, and executeQuery.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "type": "string",
+                    "description": "The function to call. It can be listTables, describeTable, or executeQuery.",
+                    "enum": ["listTables", "describeTable", "executeQuery"],
+                    "default": "listTables"
+                },
+                "arg1": {
+                    "type": "string",
+                    "description": "The first argument of the function. If calling listTables, it should be empty. If calling describeTable, it should be the table name. If calling executeQuery, it should be the SQL query."
+                }
+            },
+            "required": ["function"]
+        }
+    },
+    "userSettings": [
+        {
+            "name": "anyquery_id",
+            "label": "Anyquery ID",
+            "description": "The Anyquery ID returned by \"anyquery gpt\" command",
+            "required": true,
+            "type": "password"
+        }
+    ],
+    "code": "async function call_anyquery(params, userSettings) {\n    const anyqueryID = params.anyqueryID;\n    if (!anyqueryID || !anyqueryID.length || anyqueryID.length < 2) {\n        throw new Error(\"The Anyquery ID must be set, and not empty.\");\n    }\n\n    // Get the params\n    const method = params.method;\n    const arg1 = params.arg1;\n    if (!method || !method.length || method.length < 2) {\n        throw new Error(\"The method must be set by the LLM\");\n    }\n\n    const endpoint = \"https://gpt-actions.anyquery.xyz/\";\n\n    let toCall, response;\n    switch (method) {\n        case \"listTables\":\n            toCall = endpoint + \"listTables\";\n            response = await fetch(toCall, {\n                method: \"GET\",\n                headers: {\n                    \"Content-Type\": \"application/json\",\n                    Authorization: \"Bearer \" + anyqueryID,\n                },\n            });\n\n            return await response.text();\n\n        case \"describeTable\":\n            toCall = endpoint + \"describeTable\";\n            response = await fetch(toCall, {\n                method: \"POST\",\n                headers: {\n                    \"Content-Type\": \"application/json\",\n                    Authorization: \"Bearer \" + anyqueryID,\n                },\n                body: JSON.stringify({\n                    tableName: arg1,\n                }),\n            });\n\n            return await response.text();\n\n        case \"executeQuery\":\n            toCall = endpoint + \"executeQuery\";\n            response = await fetch(toCall, {\n                method: \"POST\",\n                headers: {\n                    \"Content-Type\": \"application/json\",\n                    Authorization: \"Bearer \" + anyqueryID,\n                },\n                body: JSON.stringify({\n                    query: arg1,\n                }),\n            });\n\n            return await response.text();\n\n        default:\n            throw new Error(\"The method is not supported by Anyquery.\");\n    }\n}\n",
+    "iconURL": "https://anyquery.dev/images/logo.png",
+    "authenticationType": "AUTH_TYPE_API_KEY",
+    "implementationType": "javascript",
+    "oauthConfig": null,
+    "outputType": "respond_to_ai",
+    "dynamicContextEndpoints": [
+        {
+            "id": "d840568f-f36e-47ee-9abf-f8811fb2a3ad",
+            "name": "Retrieving/updating data for the user’s application (e.g. Spotify, GitHub, Todoist, Apple Notes, etc.)",
+            "url": "",
+            "method": "GET",
+            "cacheRefreshPolicy": "REFRESH_NEVER",
+            "cacheDurationHours": 1,
+            "source": "static",
+            "staticContent": "Anyquery is a SQL query engine for personal data. Using SELECT, INSERT, UPDATE, and DELETE, it can query and update data from various apps and SaaS used by its users (such as GitHub, Spotify, Notion, etc.). It runs on the local computer of the user, and you can access it using a few methods.\n\nWhen a user requests some data, check if Anyquery can fulfill this need. Moreover, when the user requests a modification on an app, check if Anyquery has a table to do this update.\n\nYou have access to three methods:\n- listTables\n- describeTable\n- executeQuery\n\nlistTables allows you to list all the SQL tables of Anyquery. When a user requests some data (e.g., check my emails) or wants you to update something (e.g., remind me to buy milk, add a new contact, etc.), run this method to check if a table fits the user's request.\n\nFor each table that fits the user's request, run a describeTable for the table. It will help you learn more about the schema and the required parameters for the table. Each field will have a description to help you constructing the query.\n\nOnce you have run listTables, and describeTable for each table of your query, you can run executeQuery. The SQL dialect is SQLite.\nYou must always follow the order listTables => describeTable => executeQuery. You cannot run a method before running the one that precedes it.\n\nWhen asked about your capabilities, make a call to listTables and summarize what you can do.\n\nAnyquery uses the concept of table parameters like in SQLite. When you describeTable, you might come across fields that are specified as parameter, or required parameters.\nRequired parameters must be passed in the table argument for SELECT queries (`SELECT * FROM table(arg1, ..., argn)`, in the WHERE condition for UPDATE/DELETE, and in `VALUES` for INSERTs.\nFor example, for the table github_repositories_from_user, you'll run `SELECT * FROM github_repositories_from_user('torvalds');` because the column user is set as a required parameter.\n\nThe omission of a required parameter will result in the `no query solution` error. If this error appears, double-check the parameters of the queried tables.\n\nWhen you run describeTable, you might come across examples where the table name differs from the one you passed in the parameters of describeTable. You must still use the table name in the parameters.\n\nYou may uses JOIN, WHERE conditions, LIMIT clauses to reduce the amount of data sent.\n\nWhen a user requests data and the filtered column is not a parameter, use `lower` on both sides of the `=` to make a non-case-sensitive comparison. (e.g. `SELECT * FROM myTable WHERE lower(lang) = lower('userValue');`)\nUse the `CONCAT` function to concat strings. Do not use `||`.\n\nSome columns might be returned as a JSON object or a JSON array. To extract a field of a JSON object, use the `->>` operator, and pass the JSON path (e.g. `SELECT col1 ->> ' $.myField.mySubField'`).\nFor a JSON array, you may also use the `->>` operator. You can also create a new table with one row per element of the JSON array using the `json_each` table (e.g.  `SELECT j.value, a.* FROM myTable a, json_each(a.jsonArrayField)`); Finally, you can filter by the value of a JSON array using the `json_has` function (e.g. SELECT * FROM myTable WHERE json_has(jsonArrayField, 5) -- Returns rows where the JSON array jsonArrayField contains 5;`).\n\nTypes handled by Anyquery are:  \n-  Text (a string)  \n-  Int  \n-  Float  \n-  Byte (returned as their hex representation)  \n-  DateTime (RFC3339)  \n-  Date (YYYY-MM-DD)  \n-  Time (HH:MM:SS)  \n-  JSON (can be an object or an array)\n\nTo reduce the amount of data transferred, please specify the column name in the SELECT statements. Avoid using the `*` wildcard for the columns as much as possible.\n\nYou have access to all the functions of the SQLite standard library such as the math functions, date functions, json functions, etc.\n\nTo handle datetime, use the `datetime(time-value, modifier, modifier, ...)` of SQLite. If no `time-value` is specified, it defaults to the current time. It supports several modifiers ± (e.g. `+ 7 years`,`- 2 months`,`+ 4 days`,`- 3 hours`,`+ 7 minutes`, `+ 32 seconds`.\n\nColumn names and table names with backticks. For example, SELECT `Équipe` FROM `my_table`;\n\nTo install Anyquery, the user must follow the tutorial at https://anyquery.dev/docs/#installation.\n\nBy default, Anyquery does not have any integrations. The user must visit https://anyquery.dev/integrations to find some integrations they might like and follow the instructions to add them.\n\nNEVER PROVIDE INSTALLATION or SETUP INSTRUCTIONS. Redirect the user to the documentation\n\nAccording to the privacy policy, the data transits between the user's local computer, Anyquery's HTTP tunneling service, and ChatGPT. Anyquery does not save this data or log it. The app ID is secret and must be handled as such."
+        }
+    ]
+}

@@ -252,6 +252,24 @@ func (h *handler) runQuery(connectionID uint32, query string, args ...interface{
 
 }
 
+var prefixExec = []string{
+	"CREATE VIRTUAL TABLE",
+	"CREATE TABLE",
+	"CREATE INDEX",
+	"CREATE TRIGGER",
+	"CREATE VIEW",
+	"ATTACH DATABASE",
+	"DETACH DATABASE",
+	"ALTER TABLE",
+	"DROP TABLE",
+	"DROP INDEX",
+	"DROP TRIGGER",
+	"DROP VIEW",
+	"INSERT INTO",
+	"UPDATE",
+	"DELETE",
+}
+
 // Run a SQL query to the h.DB connection, bypasing the MySQL compatibility layer,
 // convert the result to a sqltypes.Result and return it
 func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any) (*sqltypes.Result, error) {
@@ -276,12 +294,16 @@ func (h *handler) runSimpleQuery(connectionID uint32, query string, args ...any)
 	case sqlparser.StmtSelect, sqlparser.StmtExplain, sqlparser.StmtShow:
 		runWithQuery = true
 	case sqlparser.StmtUnknown:
-		if strings.HasPrefix(query, "CREATE VIRTUAL TABLE") {
-			runWithQuery = false
-		} else {
-			// Like PRAGMA
-			runWithQuery = true
+		// We need to check the prefix of the query
+		// to determine whether it should be run with Query or Exec
+		runWithQuery = true
+		for _, prefix := range prefixExec {
+			if strings.HasPrefix(strings.ToUpper(query), prefix) {
+				runWithQuery = false
+				break
+			}
 		}
+
 	default:
 		// Like INSERT, UPDATE, DELETE, CREATE TABLE
 		runWithQuery = false
@@ -443,18 +465,22 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 		} else {
 			// If typeName is not empty, we can use it
 			switch strings.ToUpper(typeName) {
-			case "INTEGER", "INT", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED BIG INT", "INT2", "INT8":
+			case "INTEGER", "INT", "TINYINT", "SMALLINT", "MEDIUMINT", "BIGINT", "UNSIGNED BIG INT", "INT2", "INT8", "YEAR":
 				fieldType = querypb.Type_INT64
-			case "TEXT", "VARCHAR", "CHAR", "CLOB", "NCHAR", "NVARCHAR", "VARCHAR(255)", "TINYTEXT", "MEDIUMTEXT", "LONGTEXT", "UNKNOWN", "JSON", "ENUM", "SET":
+			case "TEXT", "VARCHAR", "CHAR", "CLOB", "NCHAR", "NVARCHAR", "VARCHAR(255)", "TINYTEXT", "MEDIUMTEXT", "LONGTEXT", "UNKNOWN", "ENUM", "SET":
 				fieldType = querypb.Type_VARCHAR
 			case "REAL", "real", "FLOAT", "float", "DOUBLE PRECISION", "DOUBLE", "NUMERIC", "DECIMAL":
 				fieldType = querypb.Type_FLOAT64
 			case "BLOB", "BINARY", "VARBINARY", "TINYBLOB", "MEDIUMBLOB", "LONGBLOB":
 				fieldType = querypb.Type_VARBINARY
-			case "DATETIME", "DATE", "TIME", "TIMESTAMP", "YEAR":
-				fieldType = querypb.Type_VARCHAR
+			case "DATETIME", "DATE":
+				fieldType = querypb.Type_DATETIME
+			case "TIME", "TIMESTAMP":
+				fieldType = querypb.Type_TIMESTAMP
 			case "BOOLEAN", "BOOL":
 				fieldType = querypb.Type_INT64
+			case "JSON":
+				fieldType = querypb.Type_JSON
 			default:
 				fieldType = querypb.Type_NULL_TYPE
 

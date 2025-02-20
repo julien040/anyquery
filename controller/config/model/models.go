@@ -21,6 +21,12 @@ type Connection struct {
 	Additionalmetadata string
 }
 
+type EntityAttributeValue struct {
+	Entity    string
+	Attribute string
+	Value     string
+}
+
 type PluginInstalled struct {
 	Name              string
 	Description       sql.NullString
@@ -35,6 +41,7 @@ type PluginInstalled struct {
 	Author            sql.NullString
 	Tablename         string
 	Issharedextension int64
+	Tablemetadata     string
 }
 
 type Profile struct {

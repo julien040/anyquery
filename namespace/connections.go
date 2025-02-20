@@ -89,7 +89,7 @@ func filterTables(tables []sqlTable, filter string, log hclog.Logger) (filteredT
 
 // Fetch the list of tables from the database
 // and return a list of exec statement to run so that the tables are imported in Anyquery
-func RegisterExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+func registerExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
 	statements = []string{}
 	args = [][]driver.Value{}
 
@@ -160,7 +160,7 @@ func RegisterExternalPostgreSQL(params LoadDatabaseConnectionParams, logger hclo
 
 // Fetch the list of tables from the database
 // and return a list of exec statement to run so that the tables are imported in Anyquery
-func RegisterExternalMySQL(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+func registerExternalMySQL(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
 	statements = []string{}
 	args = [][]driver.Value{}
 
@@ -240,7 +240,7 @@ func RegisterExternalMySQL(params LoadDatabaseConnectionParams, logger hclog.Log
 
 // Fetch the list of tables from the database
 // and return a list of exec statement to run so that the tables are imported in Anyquery
-func RegisterExternalSQLite(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+func registerExternalSQLite(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
 	statements = []string{fmt.Sprintf("ATTACH DATABASE ? AS ?")}
 	args = [][]driver.Value{{params.ConnectionString, params.SchemaName}}
 

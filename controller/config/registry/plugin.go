@@ -63,6 +63,7 @@ func FindPluginVersionCandidate(plugin Plugin) (PluginFile, PluginVersion, error
 
 		return PluginFile{}, PluginVersion{}, fmt.Errorf("no compatible version found for plugin %s", plugin.Name)
 	}
+
 	return *candidateFile, *candidateVersion, nil
 }
 
@@ -118,6 +119,12 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) (stri
 	if err != nil {
 		return "", err
 	}
+
+	metadataJSON, err := json.Marshal(version.TablesMetadata)
+	if err != nil {
+		return "", err
+	}
+
 	return path, queries.AddPlugin(context.Background(), model.AddPluginParams{
 		Name:     plugin,
 		Registry: registry,
@@ -140,6 +147,7 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) (stri
 		Issharedextension: isSharedExtension,
 		Config:            string(configJSON),
 		Tablename:         string(tablesJSON),
+		Tablemetadata:     string(metadataJSON),
 		Checksumdir:       sql.NullString{},
 	})
 }
@@ -324,6 +332,12 @@ func UpdatePlugin(queries *model.Queries, registry string, plugin string) error 
 	if err != nil {
 		return err
 	}
+
+	tableMetadata, err := json.Marshal(version.TablesMetadata)
+	if err != nil {
+		return err
+	}
+
 	err = queries.UpdatePlugin(context.Background(), model.UpdatePluginParams{
 		Name:     plugin,
 		Registry: registry,
@@ -345,6 +359,7 @@ func UpdatePlugin(queries *model.Queries, registry string, plugin string) error 
 			Valid:  true,
 		},
 		Issharedextension: int64(ternary.If(pluginInfoRegistry.Type == "sharedObject", 1, 0)),
+		Tablemetadata:     string(tableMetadata),
 	})
 	return err
 }

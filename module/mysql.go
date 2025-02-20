@@ -357,7 +357,7 @@ func (m *MySQLModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 			typeSupported = true
 			defaultValue = ""
 		case "json", "jsonb":
-			columnType = "TEXT"
+			columnType = "JSON"
 			typeSupported = true
 			defaultValue = ""
 		case "boolean": // MySQL does not have a boolean type but just in case

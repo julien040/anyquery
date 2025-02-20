@@ -121,7 +121,7 @@ func (t *ParquetTable) Open() (sqlite3.VTabCursor, error) {
 	return &ParquetCursor{
 		column:    t.column,
 		reader:    reader,
-		rowBuffer: deque.New[map[string]interface{}](),
+		rowBuffer: new(deque.Deque[map[string]interface{}]),
 	}, nil
 }
 

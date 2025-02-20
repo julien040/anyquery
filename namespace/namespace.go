@@ -132,22 +132,22 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 		connectionStringBuilder.WriteString(config.Path)
 
 		// Set shared cache to true
-		connectionStringBuilder.WriteString("?cache=shared")
+		//connectionStringBuilder.WriteString("?cache=shared")
+
+		// Set the page cache size
+		connectionStringBuilder.WriteString("?_cache_size=")
+		if config.PageCacheSize > 0 {
+			// To indicate a value in KB, we have to return a negative value
+			connectionStringBuilder.WriteString(strconv.Itoa((-1) * config.PageCacheSize))
+		} else {
+			connectionStringBuilder.WriteString("-50000")
+		}
 
 		// Open the database in memory if needed
 		if config.InMemory {
 			connectionStringBuilder.WriteString("&mode=memory")
 		} else if config.ReadOnly {
 			connectionStringBuilder.WriteString("&mode=ro")
-		}
-
-		// Set the page cache size
-		connectionStringBuilder.WriteString("&_cache_size=")
-		if config.PageCacheSize > 0 {
-			// To indicate a value in KB, we have to return a negative value
-			connectionStringBuilder.WriteString(strconv.Itoa((-1) * config.PageCacheSize))
-		} else {
-			connectionStringBuilder.WriteString("-50000")
 		}
 
 		// Set the journal mode to WAL and synchronous to NORMAL
@@ -237,6 +237,17 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 	// Load the plugin
 	for index, table := range manifest.Tables {
 		n.logger.Debug("registering table", "table", table, "plugin", manifest.Name, "connection", connectionID)
+		// Try to find the table metadata
+		// To do so, we'll use manifest.TablesMetadata
+		// But the map key are the table names without the plugin and profile prefix
+
+		tableMetadata := rpc.TableMetadata{}
+
+		if metadata, ok := manifest.TablesMetadata[table]; ok {
+			tableMetadata.Description = metadata.Description
+			tableMetadata.Examples = metadata.Examples
+		}
+
 		plugin := &module.SQLiteModule{
 			ConnectionPool:  n.pool,
 			ConnectionIndex: connectionID,
@@ -245,6 +256,7 @@ func (n *Namespace) LoadAnyqueryPlugin(path string, manifest rpc.PluginManifest,
 			TableIndex:      index,
 			UserConfig:      userConfig,
 			Logger:          n.logger,
+			Metadata:        tableMetadata,
 		}
 		n.LoadGoPlugin(plugin, table)
 		if n.anyqueryPlugins == nil {
@@ -420,14 +432,19 @@ func getManifestFromRow(row model.PluginInstalled) (rpc.PluginManifest, error) {
 			return manifest, fmt.Errorf("could not unmarshal the tables: %w", err)
 		}
 
+		// TODO
+		var tablesMetadata map[string]rpc.TableMetadata
+		err = json.Unmarshal([]byte(row.Tablemetadata), &tablesMetadata)
+
 		manifest = rpc.PluginManifest{
 			Name:        row.Name,
 			Version:     row.Version,
 			Description: row.Description.String,
 			// We remove the first and last character (the brackets)
-			Tables:     tables,
-			Author:     row.Author.String,
-			UserConfig: nil, // We leave it nil because it's not its job to fill it
+			Tables:         tables,
+			Author:         row.Author.String,
+			UserConfig:     nil, // We leave it nil because it's not its job to fill it
+			TablesMetadata: tablesMetadata,
 		}
 
 	}
@@ -453,7 +470,7 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 	logger.Debug("opening the database from the namespace", "path", path)
 	db, queries, err := config.OpenDatabaseConnection(path, true)
 	if err != nil {
-		logger.Error("could not open the database", "error", err)
+		logger.Error("could not open the config database", "error", err)
 		return err
 	}
 	defer db.Close()
@@ -533,14 +550,20 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 			prefix += plugin.Name + "_"
 
 			for index, table := range localManifest.Tables {
-
 				fullName := prefix + table
 				// We check if the table is not an alias
 				alias, err := queries.GetAlias(ctx, fullName)
-				if err != nil { // If the alias is not found, we use the full name
-					localManifest.Tables[index] = fullName
-				} else {
+				nameToSet := fullName
+				if err == nil && alias.Alias != "" {
 					localManifest.Tables[index] = alias.Alias
+				}
+				// We set the table name
+				localManifest.Tables[index] = nameToSet
+
+				// We modify the table metadata key if needed
+				if metadata, ok := manifest.TablesMetadata[table]; ok {
+					localManifest.TablesMetadata[nameToSet] = metadata
+					delete(localManifest.TablesMetadata, table)
 				}
 			}
 
@@ -777,11 +800,11 @@ func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) er
 	var err error
 	switch args.DatabaseType {
 	case "PostgreSQL":
-		execStatements, execArgs, err = RegisterExternalPostgreSQL(args, n.logger)
+		execStatements, execArgs, err = registerExternalPostgreSQL(args, n.logger)
 	case "MySQL":
-		execStatements, execArgs, err = RegisterExternalMySQL(args, n.logger)
+		execStatements, execArgs, err = registerExternalMySQL(args, n.logger)
 	case "SQLite":
-		execStatements, execArgs, err = RegisterExternalSQLite(args, n.logger)
+		execStatements, execArgs, err = registerExternalSQLite(args, n.logger)
 	}
 	if err != nil {
 		return fmt.Errorf("could not fetch the tables from the external database %s(connection name: %s): %w", args.DatabaseType, args.SchemaName, err)
@@ -792,4 +815,88 @@ func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) er
 	n.execArgs = append(n.execArgs, execArgs...)
 
 	return nil
+}
+
+type TableMetadata struct {
+	// The name of the table
+	Name string
+	// The description of the table (from the manifest side)
+	Description string
+
+	// The description generated by the plugin.
+	// It might contains additional informations
+	// from a SaaS API for example
+	PluginDescription string
+
+	// The examples of the table
+	Examples []string
+
+	// The columns of the table
+	// Only populated on a DescribeTable call
+	Columns []rpc.DatabaseSchemaColumn
+
+	// Whether the table supports the INSERT statement
+	Insert bool
+
+	// Whether the table supports the UPDATE statement
+	Update bool
+
+	// Whether the table supports the DELETE statement
+	Delete bool
+}
+
+// List all registered anyquery plugins
+func (n *Namespace) ListPluginsTables() []TableMetadata {
+	tables := make([]TableMetadata, 0, len(n.anyqueryPlugins))
+	for table, plugin := range n.anyqueryPlugins {
+		tables = append(tables, TableMetadata{
+			Name:        table,
+			Description: plugin.Metadata.Description,
+			Examples:    plugin.Metadata.Examples,
+		})
+	}
+
+	// Sort the tables by name
+	slices.SortStableFunc(tables, func(i, j TableMetadata) int {
+		return strings.Compare(i.Name, j.Name)
+	})
+	return tables
+}
+
+// Describe a table from an anyquery plugin
+//
+// To ensure the columns are populated, the plugin must be loaded.
+// Therefore, make a call to PRAGMA table_info(table_name) to ensure the plugin is loaded
+func (n *Namespace) DescribeTable(tableName string) (TableMetadata, error) {
+	// Check if the table exists
+	plugin, ok := n.anyqueryPlugins[tableName]
+	if !ok {
+		return TableMetadata{}, fmt.Errorf("the table %s does not exist", tableName)
+	}
+
+	res := TableMetadata{
+		Name:        tableName,
+		Description: plugin.Metadata.Description,
+		Examples:    plugin.Metadata.Examples,
+	}
+
+	// Copy the columns if the table is loaded
+	if plugin.Table == nil {
+		return res, nil
+	}
+
+	newCol := make([]rpc.DatabaseSchemaColumn, len(plugin.Table.Schema.Columns))
+	copy(newCol, plugin.Table.Schema.Columns)
+	res.Columns = newCol
+
+	// Add the plugin description
+	res.PluginDescription = plugin.Table.Schema.Description
+
+	// Add the insert, update and delete support
+	res.Insert = plugin.Table.Schema.HandlesInsert
+	res.Update = plugin.Table.Schema.HandlesUpdate
+	res.Delete = plugin.Table.Schema.HandlesDelete
+
+	return res, nil
+
 }

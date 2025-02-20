@@ -239,7 +239,7 @@ license = "UNLICENSED"
 repository = ""
 homepage = ""
 type = "anyquery"
-minimumAnyqueryVersion = "0.0.1"
+minimumAnyqueryVersion = "0.4.0"
 
 tables = ["{{.TableName}}"]
 
