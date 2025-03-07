@@ -59,7 +59,9 @@ anyquery -d ":memory:"
 * [anyquery alias](../anyquery_alias)	 - Manage the aliases
 * [anyquery completion](../anyquery_completion)	 - Generate the autocompletion script for the specified shell
 * [anyquery connection](../anyquery_connection)	 - Manage connections to other databases
+* [anyquery gpt](../anyquery_gpt)	 - Open an HTTP server so that ChatGPT can do function calls
 * [anyquery install](../anyquery_install)	 - Search and install a plugin
+* [anyquery mcp](../anyquery_mcp)	 - Start the Model Context Protocol (MCP) server
 * [anyquery plugins](../anyquery_plugins)	 - Print the plugins installed on the system
 * [anyquery profiles](../anyquery_profiles)	 - Print the profiles installed on the system
 * [anyquery query](../anyquery_query)	 - Run a SQL query

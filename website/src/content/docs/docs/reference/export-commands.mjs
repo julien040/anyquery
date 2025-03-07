@@ -4,12 +4,13 @@ import { $ } from "bun";
 import { readdir } from "node:fs/promises";
 
 // Export the commands
-try {
+/* try {
     await $`anyquery tool generate-doc Commands`;
 } catch (error) {
     // In case it's a build machine, anyquery might not be installed
-    await $`../../../../../../main.out tool generate-doc Commands`;
-}
+    
+} */
+await $`../../../../../../main.out tool generate-doc Commands`;
 
 // For each file, take the lop level h2 header, and add the frontmatter
 // with the title equaling to the header text
