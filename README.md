@@ -10,37 +10,30 @@
 [![Dynamic JSON Badge](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fregistry.anyquery.dev%2Fv0%2Fquery%2F&query=%24.queries_count&style=flat&label=Queries%20from%20the%20hub&cacheSeconds=3600&link=https%3A%2F%2Fanyquery.dev%2Fqueries)](https://anyquery.dev/queries)
 [![Go Reference](https://pkg.go.dev/badge/github.com/julien040/anyquery@v0.1.3/namespace.svg)](https://pkg.go.dev/github.com/julien040/anyquery/namespace)
 
-Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [files](https://anyquery.dev/docs/usage/querying-files/), [databases](https://anyquery.dev/docs/database), and [apps](https://anyquery.dev/integrations) (e.g. Apple Notes, Notion, Chrome, Todoist, etc.). It's built on top of [SQLite](https://www.sqlite.org) and uses [plugins](https://anyquery.dev/integrations) to extend its functionality.
+Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [JSON](https://anyquery.dev/docs/usage/querying-files/#json), [CSV](https://anyquery.dev/docs/usage/querying-files/#csv), [Parquet](https://anyquery.dev/docs/usage/querying-files/#parquet), SQLite, [Airtable bases](https://anyquery.dev/integrations/airtable/), [Google Sheets](https://anyquery.dev/integrations/google_sheets/), [Notion databases](https://anyquery.dev/integrations/notion/), and [log files](https://anyquery.dev/docs/usage/querying-log/) using [Grok](https://www.elastic.co/guide/en/elasticsearch/reference/current/grok.html), among others. It also supports running SQL queries on [remote files](https://anyquery.dev/docs/usage/querying-files/#remote-files) (HTTP, S3, GCS), local apps ([Apple Notes](https://anyquery.dev/integrations/notes/), [Apple Reminders](https://anyquery.dev/integrations/reminders/), [Google Chrome Tabs](https://anyquery.dev/integrations/chrome/), etc.), and databases ([MySQL](https://anyquery.dev/docs/database/mysql/) and [PostgreSQL](https://anyquery.dev/docs/database/postgresql/)). It's built on top of [SQLite](https://www.sqlite.org) and uses [plugins](https://anyquery.dev/integrations/) to extend its functionality.
 
-It can also connect to [LLMs](https://anyquery.dev/llm) (e.g. ChatGPT, Claude, Cursor, TypingMind, etc.) to allow them to access your data.
-
-Finally, it can act as a [MySQL server](https://anyquery.dev/docs/usage/mysql-server/), allowing you to run SQL queries from your favorite MySQL-compatible client (e.g. [TablePlus](https://anyquery.dev/connection-guide/tableplus/), [Metabase](https://anyquery.dev/connection-guide/metabase/), etc.).
+Moreover, it can act as a [MySQL server](https://anyquery.dev/docs/usage/mysql-server/), allowing you to run SQL queries from your favorite MySQL-compatible client (e.g. [Looker Studio](https://anyquery.dev/connection-guide/looker-studio/), [DBeaver](https://anyquery.dev/connection-guide/dbeaver/), [TablePlus](https://anyquery.dev/connection-guide/tableplus/), [Metabase](https://anyquery.dev/connection-guide/metabase/), etc.).
 
 ![Anyquery header](https://anyquery.dev/images/release-header.png)
 
 ## Usage
 
-### Connecting LLM
-
-LLMs can connect to Anyquery using the [Model Context Protocol (MCP)](https://anyquery.dev/docs/reference/commands/anyquery_mcp). This protocol provides context for LLMs that support it. You can start the MCP server with the following command:
-
-```bash
-# To be started by the LLM client
-anyquery mcp
-# To connect using an HTTP and SSE tunnel
-anyquery mcp --tunnel
-```
-
-You can also connect to clients that supports function calling (e.g. ChatGPT, TypingMind). Refer to each [connection guide](https://anyquery.dev/integrations#llm) in the documentation for more information.
-
-![5ire example](https://anyquery.dev/images/docs/llm/5ire-final.png)
-
-### Running SQL queries
-
 The [documentation](https://anyquery.dev/docs/usage/running-queries) provides detailed instructions on how to run queries with Anyquery.
 But let's see a quick example. Type `anyquery` in your terminal to open the shell mode. Then, run the following query:
 
-![Anyquery SQL examples](https://anyquery.dev/images/anyquery_examples.sql.png)
+```sql
+-- List all repositories of asg017 related to SQLite
+SELECT full_name, stargazers_count, pushed_at FROM github_repositories_from_user('asg017') WHERE name LIKE '%sqlite%';
+
+-- Count rows of a remote 75MB CSV file
+SELECT count(*) FROM read_csv('https://raw.githubusercontent.com/datadesk/california-coronavirus-data/master/latimes-place-totals.csv', header=true);
+
+-- Insert into a Notion database all repositories of nalgeon related to SQLite
+INSERT INTO notion_database(repo, stars, last_push) SELECT full_name, stargazers_count, pushed_at FROM github_repositories_from_user('nalgeon') WHERE description LIKE '%sqlite%';
+
+-- Close all tabs of the datasette documentation
+DELETE FROM chrome_tabs WHERE url LIKE '%datasette%';
+```
 
 You can also launch the MySQL server with `anyquery server` and connect to it with your favorite MySQL-compatible client.
 
