@@ -15,7 +15,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          description: The Anyquery ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches (using the anyquery gpt command).
           schema:
             type: string
       requestBody:
@@ -43,7 +43,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          description: The Anyquery ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches (using the anyquery gpt command).
           schema:
             type: string
       requestBody:
@@ -63,7 +63,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: The app ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches.
+          description: The Anyquery ID given by the user. This ID is used to identify the user's database. It is unique, and printed out to the user when the app launches (using the anyquery gpt command).
           schema:
             type: string
       requestBody:

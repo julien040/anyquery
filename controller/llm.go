@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -15,10 +16,12 @@ import (
 	"time"
 
 	"github.com/adrg/xdg"
+	"github.com/briandowns/spinner"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/namespace"
 	"github.com/julien040/anyquery/other/sqlparser"
-	"github.com/julien040/anyquery/other/tunnel/client"
+	ws_tunnel "github.com/julien040/anyquery/other/websocket_tunnel/client"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mark3labs/mcp-go/mcp"
 	"github.com/mark3labs/mcp-go/server"
@@ -33,14 +36,260 @@ type executeQueryBody struct {
 	Query string `json:"query"`
 }
 
-func Gpt(cmd *cobra.Command, args []string) error {
+var boxedStyle = lipgloss.NewStyle().Bold(false).Width(60).Foreground(lipgloss.Color("#f1f1f1")).Background(lipgloss.Color("#6f42c1")).Padding(1, 2, 1, 2).MarginTop(1).MarginBottom(1)
 
-	// Find an open port the tunnel can listen on
-	port, err := findOpenPort()
-	if err != nil {
-		return fmt.Errorf("failed to find an open port: %w", err)
+func listTablesLLM(namespaceInstance *namespace.Namespace, db *sql.DB, w io.Writer) error {
+	plugins := namespaceInstance.ListPluginsTables()
+	w.Write([]byte("List of tables:\n"))
+	for _, tables := range plugins {
+		if tables.Description == "" {
+			tables.Description = "No description"
+		}
+		w.Write([]byte(fmt.Sprintf("`%s` -- %s\n", tables.Name, tables.Description)))
 	}
 
+	// For each attached database, list the tables
+	attachedDatabases := []string{}
+	rows, err := db.Query("SELECT name from pragma_database_list")
+	if err != nil {
+		return fmt.Errorf("failed to get attached databases: %w", err)
+	}
+
+	for rows.Next() {
+		var dbName string
+		if err := rows.Scan(&dbName); err != nil {
+			return fmt.Errorf("failed to get attached databases: %w", err)
+		}
+
+		attachedDatabases = append(attachedDatabases, dbName)
+	}
+
+	if rows.Err() != nil {
+		return fmt.Errorf("failed to get attached databases: %w", rows.Err())
+	}
+
+	rows.Close()
+
+	for _, dbName := range attachedDatabases {
+		rows, err := db.Query(fmt.Sprintf("SELECT name FROM %s.sqlite_master WHERE type='table'", dbName))
+		if err != nil {
+			return fmt.Errorf("failed to get table info: %w", err)
+		}
+
+		for rows.Next() {
+			var tableName string
+			if err := rows.Scan(&tableName); err != nil {
+				return fmt.Errorf("failed to get table info: %w", err)
+			}
+
+			w.Write([]byte(fmt.Sprintf("`%s.%s` -- No description\n", dbName, tableName)))
+		}
+
+		if rows.Err() != nil {
+			return fmt.Errorf("failed to get table info: %w", rows.Err())
+		}
+
+		rows.Close()
+	}
+
+	return nil
+}
+
+func describeTableLLM(namespaceInstance *namespace.Namespace, tableName string, db *sql.DB, w io.Writer) error {
+	schema := "main"
+
+	splitted := strings.SplitN(tableName, ".", 2)
+	if len(splitted) == 2 {
+		schema = strings.Trim(splitted[0], "`\" ")
+		tableName = strings.Trim(splitted[1], "`\" ")
+	} else {
+		tableName = strings.Trim(tableName, "`\" ")
+	}
+
+	if strings.Contains(schema, ";") || strings.Contains(tableName, ";") || strings.Contains(schema, "`") || strings.Contains(tableName, "`") {
+		return fmt.Errorf("invalid table name")
+	}
+
+	// Get the table description
+	rows, err := db.Query(fmt.Sprintf("SELECT name, type FROM  `%s`.pragma_table_info(?);", schema), tableName)
+	if err != nil {
+		return fmt.Errorf("failed to get table info: %w", err)
+	}
+
+	columns := []rpc.DatabaseSchemaColumn{}
+
+	columnCount := 0
+	for rows.Next() {
+		columnCount++
+		column := rpc.DatabaseSchemaColumn{}
+		var columnType string
+		if err := rows.Scan(&column.Name, &columnType); err != nil {
+			return fmt.Errorf("failed to get column info: %w", err)
+		}
+
+		switch {
+		case strings.Contains(columnType, "INT"):
+			column.Type = rpc.ColumnTypeInt
+		case strings.Contains(columnType, "TEXT"), strings.Contains(columnType, "CHAR"),
+			strings.Contains(columnType, "CLOB"):
+			column.Type = rpc.ColumnTypeString
+		case strings.Contains(columnType, "REAL"), strings.Contains(columnType, "FLOA"),
+			strings.Contains(columnType, "DOUB"):
+			column.Type = rpc.ColumnTypeFloat
+		case strings.Contains(columnType, "BLOB"), strings.Contains(columnType, "BINARY"):
+			column.Type = rpc.ColumnTypeBlob
+		case strings.Contains(columnType, "BOOL"):
+			column.Type = rpc.ColumnTypeBool
+		case strings.Contains(columnType, "DATETIME"):
+			column.Type = rpc.ColumnTypeDateTime
+		case strings.Contains(columnType, "TIME"):
+			column.Type = rpc.ColumnTypeTime
+		case strings.Contains(columnType, "DATE"):
+			column.Type = rpc.ColumnTypeDate
+		case strings.Contains(columnType, "JSON"):
+			column.Type = rpc.ColumnTypeJSON
+		default:
+			column.Type = rpc.ColumnTypeString
+		}
+
+		columns = append(columns, column)
+	}
+	if rows.Err() != nil {
+		return fmt.Errorf("failed to get column info for table %s: %w", tableName, rows.Err())
+	}
+
+	if columnCount == 0 {
+		return fmt.Errorf("table not found")
+	}
+
+	// Get the table description
+	desc, err := namespaceInstance.DescribeTable(tableName)
+	if err != nil {
+		desc = namespace.TableMetadata{
+			Name:    tableName,
+			Columns: columns,
+			Insert:  true,
+			Update:  true,
+			Delete:  true,
+		}
+	}
+
+	writeTableDescription(w, desc)
+	return nil
+}
+
+func executeQueryLLM(
+	db *sql.DB,
+	query string,
+	w io.Writer,
+) error {
+	stmt, _, err := namespace.GetQueryType(query)
+	if err != nil { // If we can't determine the query type, we assume it's a SELECT
+		stmt = sqlparser.StmtSelect
+	}
+
+	if stmt == sqlparser.StmtSelect {
+		// Make a context that'll cancel the query after 40 seconds
+		ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
+		defer cancel()
+
+		rows, err := db.QueryContext(ctx, query)
+		if err != nil {
+			return fmt.Errorf("failed to run the query: %w", err)
+		}
+
+		defer rows.Close()
+
+		columns, err := rows.Columns()
+		if err != nil {
+			return fmt.Errorf("failed to get the columns: %w", err)
+		}
+
+		// Write the columns, and table data as a markdown table
+		w.Write([]byte("|"))
+		for _, column := range columns {
+			w.Write([]byte(" "))
+			w.Write([]byte(column))
+			w.Write([]byte(" |"))
+		}
+		w.Write([]byte("\n|"))
+		for _, column := range columns {
+			w.Write([]byte(" "))
+			for i := 0; i < len(column); i++ {
+				w.Write([]byte("-"))
+			}
+			w.Write([]byte(" |"))
+		}
+		w.Write([]byte("\n"))
+
+		for rows.Next() {
+			values := make([]interface{}, len(columns))
+			for i := range values {
+				values[i] = new(interface{})
+			}
+
+			if err := rows.Scan(values...); err != nil {
+				return fmt.Errorf("failed to scan the row: %w", err)
+			}
+
+			w.Write([]byte("|"))
+			for _, value := range values {
+				w.Write([]byte(" "))
+				unknown, ok := value.(*interface{})
+				if ok && unknown != nil && *unknown != nil {
+					switch parsed := (*unknown).(type) {
+					case []byte:
+						w.Write([]byte(fmt.Sprintf("%x", parsed)))
+					case string:
+						w.Write([]byte(fmt.Sprintf("%s", parsed)))
+					case int64:
+						w.Write([]byte(strconv.FormatInt(parsed, 10)))
+					case float64:
+						w.Write([]byte(strconv.FormatFloat(parsed, 'f', -1, 64)))
+					case bool:
+						if parsed {
+							w.Write([]byte("true"))
+						} else {
+							w.Write([]byte("false"))
+						}
+					case time.Time:
+						w.Write([]byte(parsed.Format(time.RFC3339)))
+
+					default:
+						w.Write([]byte(fmt.Sprintf("%v", *unknown)))
+					}
+
+				} else {
+					w.Write([]byte("NULL"))
+				}
+
+				w.Write([]byte(" |"))
+			}
+			w.Write([]byte("\n"))
+		}
+
+		if rows.Err() != nil {
+			return fmt.Errorf("failed to iterate over the rows %w", rows.Err())
+		}
+
+	} else {
+		res, err := db.Exec(query)
+		if err != nil {
+			return fmt.Errorf("failed to execute the query: %w", err)
+		}
+
+		rowsAffected, err := res.RowsAffected()
+		if err != nil {
+			return fmt.Errorf("failed to get the number of rows affected: %w", err)
+		}
+
+		w.Write([]byte(fmt.Sprintf("Query executed, %d rows affected", rowsAffected)))
+	}
+
+	return nil
+}
+
+func Gpt(cmd *cobra.Command, args []string) error {
 	// Open the configuration database
 	cdb, queries, err := requestDatabase(cmd.Flags(), false)
 	if err != nil {
@@ -50,17 +299,15 @@ func Gpt(cmd *cobra.Command, args []string) error {
 
 	host, _ := cmd.Flags().GetString("host")
 	portUser, _ := cmd.Flags().GetInt("port")
-	bindingAdress := fmt.Sprintf("127.0.0.1:%d", port)
 	tunnelEnabled := true
 	if host != "" && portUser != 0 {
-		bindingAdress = fmt.Sprintf("%s:%d", host, portUser)
 		tunnelEnabled = false
 	}
-	var tunnel *client.Tunnel
+	var tunnel *ws_tunnel.Tunnel
 
 	// Get the tunnel from the database
 	if tunnelEnabled {
-		tunnel, err = getTunnel(queries, port)
+		tunnel, err = getWsTunnel(queries)
 		if err != nil {
 			return fmt.Errorf("failed to get the HTTP tunnel: %w", err)
 		}
@@ -74,179 +321,128 @@ func Gpt(cmd *cobra.Command, args []string) error {
 
 	defer db.Close()
 
-	// Create an HTTP server
-	server := http.NewServeMux()
-	server.HandleFunc("/list-tables", func(w http.ResponseWriter, r *http.Request) {
+	// Connect to the websocket server if tunnel is enabled
+	if tunnelEnabled {
+		// Connect to the websocket server
+		fmt.Println("Connecting to the websocket server...")
+		if err := tunnel.Connect(); err != nil {
+			return fmt.Errorf("failed to connect to the websocket server: %w", err)
+		}
+		fmt.Println("Connected to the websocket server")
+
+		fmt.Println(boxedStyle.Render("Anyquery is now running. When asked, pass", tunnel.ID, "as the anyquery ID to your LLM client (e.g. ChatGPT, TypingMind, etc.)\n\nID:", tunnel.ID, "\nThe tunnel will expire at", tunnel.ExpiresAt[:10], "UTC"))
+
+		s := spinner.New(spinner.CharSets[31], 100*time.Millisecond)
+		s.Prefix = "Waiting for requests "
+		s.Start()
+		defer s.Stop()
+
+		updateSpinner := func(str string) {
+			s.Prefix = str
+			s.Restart()
+		}
+
+		for {
+			req, err := tunnel.WaitRequest()
+			if err != nil {
+				return fmt.Errorf("failed to wait for websocket request. Check your internet connection: %w", err)
+			}
+			textRes := strings.Builder{}
+			res := ws_tunnel.Response{
+				RequestID: req.RequestID,
+			}
+
+			// Handle the request
+			switch req.Method {
+			case "list-tables":
+				updateSpinner("Listing tables ")
+				err := listTablesLLM(namespaceInstance, db, &textRes)
+				if err != nil {
+					res.Error = err.Error()
+				}
+			case "describe-table":
+				updateSpinner("Describing table ")
+				if len(req.Args) != 1 {
+					res.Error = "missing table name"
+				} else if _, ok := req.Args[0].(string); !ok {
+					res.Error = "invalid table name"
+				} else {
+					err := describeTableLLM(namespaceInstance, req.Args[0].(string), db, &textRes)
+					if err != nil {
+						res.Error = err.Error()
+					}
+				}
+			case "execute-query":
+				updateSpinner("Executing query ")
+				if len(req.Args) != 1 {
+					res.Error = "missing query"
+					continue
+				}
+				if _, ok := req.Args[0].(string); !ok {
+					res.Error = "invalid query"
+					continue
+				}
+
+				err := executeQueryLLM(db, req.Args[0].(string), &textRes)
+				if err != nil {
+					res.Error = err.Error()
+				}
+			default:
+				res.Error = "unknown method. Supported methods are: list-tables, describe-table, execute-query. Perhaps you need to update Anyquery?"
+			}
+
+			// Send the response
+			updateSpinner("Sending response ")
+			res.Result = textRes.String()
+			if err := tunnel.SendResponse(res); err != nil {
+				return fmt.Errorf("failed to send response to the client: %w", err)
+			}
+			updateSpinner("Waiting for requests ")
+
+		}
+	}
+
+	// Create an HTTP server if tunnel is disabled
+	mux := http.NewServeMux()
+	mux.HandleFunc("/list-tables", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		// List the plugins
-		plugins := namespaceInstance.ListPluginsTables()
-		w.Write([]byte("List of tables:\n"))
-		for _, tables := range plugins {
-			if tables.Description == "" {
-				tables.Description = "No description"
-			}
-			w.Write([]byte(fmt.Sprintf("`%s` -- %s\n", tables.Name, tables.Description)))
-		}
 
-		// For each attached database, list the tables
-		attachedDatabases := []string{}
-		rows, err := db.Query("SELECT name from pragma_database_list")
+		err := listTablesLLM(namespaceInstance, db, w)
 		if err != nil {
-			http.Error(w, "Failed to get attached databases", http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		for rows.Next() {
-			var dbName string
-			if err := rows.Scan(&dbName); err != nil {
-				http.Error(w, "Failed to get attached databases", http.StatusInternalServerError)
-				return
-			}
-
-			attachedDatabases = append(attachedDatabases, dbName)
-		}
-
-		if rows.Err() != nil {
-			http.Error(w, rows.Err().Error(), http.StatusInternalServerError)
-			return
-		}
-
-		rows.Close()
-
-		for _, dbName := range attachedDatabases {
-			rows, err := db.Query(fmt.Sprintf("SELECT name FROM %s.sqlite_master WHERE type='table'", dbName))
-			if err != nil {
-				http.Error(w, "Failed to get table info", http.StatusInternalServerError)
-			}
-
-			for rows.Next() {
-				var tableName string
-				if err := rows.Scan(&tableName); err != nil {
-					http.Error(w, "Failed to get table info", http.StatusInternalServerError)
-					return
-				}
-
-				w.Write([]byte(fmt.Sprintf("`%s.%s` -- No description\n", dbName, tableName)))
-			}
-
-			if rows.Err() != nil {
-				http.Error(w, rows.Err().Error(), http.StatusInternalServerError)
-				return
-			}
-
-			rows.Close()
 		}
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Cache-Control", "private, max-age=600")
 	})
-	server.HandleFunc("/describe-table", func(w http.ResponseWriter, r *http.Request) {
+
+	mux.HandleFunc("/describe-table", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
-		// Get the table name from the request
-		body := describeTableBody{}
 
-		// Decode the request body
+		body := describeTableBody{}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode the JSON body: %v", err), http.StatusBadRequest)
 			return
 		}
 
-		tableName := body.TableName
-		schema := "main"
-
-		splitted := strings.SplitN(tableName, ".", 2)
-		if len(splitted) == 2 {
-			schema = strings.Trim(splitted[0], "`\" ")
-			tableName = strings.Trim(splitted[1], "`\" ")
-		} else {
-			tableName = strings.Trim(tableName, "`\" ")
-		}
-
-		if strings.Contains(schema, ";") || strings.Contains(tableName, ";") || strings.Contains(schema, "`") || strings.Contains(tableName, "`") {
-			http.Error(w, "Invalid table name", http.StatusBadRequest)
-			return
-		}
-
-		// Get the table description
-		rows, err := db.Query(fmt.Sprintf("SELECT name, type FROM  `%s`.pragma_table_info(?);", schema), tableName)
+		err := describeTableLLM(namespaceInstance, body.TableName, db, w)
 		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to get table info: %v", err), http.StatusInternalServerError)
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		columns := []rpc.DatabaseSchemaColumn{}
-
-		columnCount := 0
-		for rows.Next() {
-			columnCount++
-			column := rpc.DatabaseSchemaColumn{}
-			var columnType string
-			if err := rows.Scan(&column.Name, &columnType); err != nil {
-				http.Error(w, fmt.Sprintf("Failed to get column info: %v", err), http.StatusInternalServerError)
-				return
-			}
-
-			switch {
-			case strings.Contains(columnType, "INT"):
-				column.Type = rpc.ColumnTypeInt
-			case strings.Contains(columnType, "TEXT"), strings.Contains(columnType, "CHAR"),
-				strings.Contains(columnType, "CLOB"):
-				column.Type = rpc.ColumnTypeString
-			case strings.Contains(columnType, "REAL"), strings.Contains(columnType, "FLOA"),
-				strings.Contains(columnType, "DOUB"):
-				column.Type = rpc.ColumnTypeFloat
-			case strings.Contains(columnType, "BLOB"), strings.Contains(columnType, "BINARY"):
-				column.Type = rpc.ColumnTypeBlob
-			case strings.Contains(columnType, "BOOL"):
-				column.Type = rpc.ColumnTypeBool
-			case strings.Contains(columnType, "DATETIME"):
-				column.Type = rpc.ColumnTypeDateTime
-			case strings.Contains(columnType, "TIME"):
-				column.Type = rpc.ColumnTypeTime
-			case strings.Contains(columnType, "DATE"):
-				column.Type = rpc.ColumnTypeDate
-			case strings.Contains(columnType, "JSON"):
-				column.Type = rpc.ColumnTypeJSON
-			default:
-				column.Type = rpc.ColumnTypeString
-			}
-
-			columns = append(columns, column)
-		}
-		if rows.Err() != nil {
-			http.Error(w, fmt.Sprintf("Failed to get column info for table %s: %v", tableName, rows.Err()), http.StatusInternalServerError)
-			return
-		}
-
-		if columnCount == 0 {
-			http.Error(w, "Table not found", http.StatusBadRequest)
-			return
-		}
-
-		// Get the table description
-		desc, err := namespaceInstance.DescribeTable(tableName)
-		if err != nil {
-			desc = namespace.TableMetadata{
-				Name:    tableName,
-				Columns: columns,
-				Insert:  true,
-				Update:  true,
-				Delete:  true,
-			}
 		}
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.Header().Set("Cache-Control", "private, max-age=600")
-
-		writeTableDescription(w, desc)
 	})
-	server.HandleFunc("/execute-query", func(w http.ResponseWriter, r *http.Request) {
+
+	mux.HandleFunc("/execute-query", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 			return
@@ -258,143 +454,26 @@ func Gpt(cmd *cobra.Command, args []string) error {
 			return
 		}
 
-		// Execute the query
-		stmt, _, err := namespace.GetQueryType(body.Query)
-		if err != nil { // If we can't determine the query type, we assume it's a SELECT
-			stmt = sqlparser.StmtSelect
+		err := executeQueryLLM(db, body.Query, w)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
-		if stmt == sqlparser.StmtSelect {
-
-			// Make a context that'll cancel the query after 40 seconds
-			ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
-			defer cancel()
-
-			rows, err := db.QueryContext(ctx, body.Query)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to run the query: %v", err), http.StatusInternalServerError)
-				return
-			}
-
-			defer rows.Close()
-
-			columns, err := rows.Columns()
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to get the columns: %v", err), http.StatusInternalServerError)
-				return
-			}
-
-			// Write the columns, and table data as a markdown table
-			w.Write([]byte("|"))
-			for _, column := range columns {
-				w.Write([]byte(" "))
-				w.Write([]byte(column))
-				w.Write([]byte(" |"))
-			}
-			w.Write([]byte("\n|"))
-			for _, column := range columns {
-				w.Write([]byte(" "))
-				for i := 0; i < len(column); i++ {
-					w.Write([]byte("-"))
-				}
-				w.Write([]byte(" |"))
-			}
-			w.Write([]byte("\n"))
-
-			for rows.Next() {
-				values := make([]interface{}, len(columns))
-				for i := range values {
-					values[i] = new(interface{})
-				}
-
-				if err := rows.Scan(values...); err != nil {
-					http.Error(w, fmt.Sprintf("Failed to scan the row: %v", err), http.StatusInternalServerError)
-					return
-				}
-
-				w.Write([]byte("|"))
-				for _, value := range values {
-					w.Write([]byte(" "))
-					unknown, ok := value.(*interface{})
-					if ok && unknown != nil && *unknown != nil {
-						switch parsed := (*unknown).(type) {
-						case []byte:
-							w.Write([]byte(fmt.Sprintf("%x", parsed)))
-						case string:
-							w.Write([]byte(fmt.Sprintf("%s", parsed)))
-						case int64:
-							w.Write([]byte(strconv.FormatInt(parsed, 10)))
-						case float64:
-							w.Write([]byte(strconv.FormatFloat(parsed, 'f', -1, 64)))
-						case bool:
-							if parsed {
-								w.Write([]byte("true"))
-							} else {
-								w.Write([]byte("false"))
-							}
-						case time.Time:
-							w.Write([]byte(parsed.Format(time.RFC3339)))
-
-						default:
-							w.Write([]byte(fmt.Sprintf("%v", *unknown)))
-						}
-
-					} else {
-						w.Write([]byte("NULL"))
-					}
-
-					w.Write([]byte(" |"))
-				}
-				w.Write([]byte("\n"))
-			}
-
-			if rows.Err() != nil {
-				http.Error(w, fmt.Sprintf("Failed to iterate over the rows %v", rows.Err()), http.StatusInternalServerError)
-			}
-
-		} else {
-			res, err := db.Exec(body.Query)
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to execute the query: %v", err), http.StatusInternalServerError)
-				return
-			}
-
-			rowsAffected, err := res.RowsAffected()
-			if err != nil {
-				http.Error(w, fmt.Sprintf("Failed to get the number of rows affected: %v", err), http.StatusInternalServerError)
-				return
-			}
-
-			w.Write([]byte(fmt.Sprintf("Query executed, %d rows affected", rowsAffected)))
-		}
+		w.Header().Set("Content-Type", "text/plain")
+		w.Header().Set("Cache-Control", "private, max-age=600")
 	})
 
-	// Start the tunnel in a separate goroutine
-	if tunnelEnabled && tunnel != nil {
-		go func() {
-			if err := tunnel.Connect(); err != nil {
-				fmt.Printf("failed to connect to the tunnel: %v\n", err)
-			}
-		}()
-	}
-
-	// Start the server
-	if tunnel != nil {
-		fmt.Printf("\n\nYour Anyquery ID is %s\n This is your bearer token that you must set in chatgpt.com (or similar tools)\n\n\n", tunnel.ID)
-	} else {
-		fmt.Printf("Local server listening on %s\n", bindingAdress)
-		fmt.Printf("Your Anyquery ID is not available because the tunnel is disabled. Don't set the --host and --port flags to enable the tunnel\n")
-		fmt.Println("Endpoints:")
-		fmt.Println("GET /list-tables - List all the tables available")
-		fmt.Println("POST /describe-table - Describe a table. Pass the table name in the body as a JSON object with the key 'table_name'")
-		fmt.Println("POST /execute-query - Execute a query. Pass the query in the body as a JSON object with the key 'query'. Returns a markdown table for SELECT queries, and the number of rows affected for other queries")
-	}
-	if err := http.ListenAndServe(bindingAdress, server); err != nil {
-		if tunnel != nil {
-			tunnel.Close()
-		}
+	// Start the HTTP server
+	err = http.ListenAndServe(fmt.Sprintf("%s:%d", host, portUser), mux)
+	if err != nil {
 		return fmt.Errorf("failed to start the HTTP server: %w", err)
 	}
+	fmt.Printf("Local server listening on %s:%d\n", host, portUser)
+	fmt.Printf("Methods:")
+	fmt.Println("GET /list-tables - List all the tables available")
+	fmt.Println("POST /describe-table - Describe a table. Pass the table name in the body as a JSON object with the key 'table_name'")
+	fmt.Println("POST /execute-query - Execute a query. Pass the query in the body as a JSON object with the key 'query'. Returns a markdown table for SELECT queries, and the number of rows affected for other queries")
 
 	return nil
 }
@@ -481,13 +560,13 @@ func findOpenPort() (int, error) {
 // or request a new one if it doesn't exist, or if the existing one is expired
 //
 // This tunnel will forward the HTTP requests from the GPTs to the local CLI
-func getTunnel(configDB *model.Queries, localPort int) (*client.Tunnel, error) {
+func getWsTunnel(configDB *model.Queries) (*ws_tunnel.Tunnel, error) {
 	// The data for the tunnel is available in entity-attribute-value table
 	// The tunnel is identified by the entity "tunnel"
 	// The attributes are "id", "auth_token" and "expires_at"
 
 	// Get the tunnel from the database
-	var id, authToken, expiresAt string
+	var id, authToken, expiresAt, serverURL string
 	attributes, err := configDB.GetEntityAttributes(context.Background(), "tunnel")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get tunnel attributes from config database: %w", err)
@@ -501,6 +580,8 @@ func getTunnel(configDB *model.Queries, localPort int) (*client.Tunnel, error) {
 			authToken = attr.Value
 		case "expires_at":
 			expiresAt = attr.Value
+		case "server_url":
+			serverURL = attr.Value
 		}
 	}
 
@@ -508,14 +589,19 @@ func getTunnel(configDB *model.Queries, localPort int) (*client.Tunnel, error) {
 	// This is to prevent the tunnel from expiring while we are connecting to it
 	currentTime := time.Now().Add(time.Minute).Format(time.RFC3339)
 
-	if (id != "" && authToken != "" && expiresAt != "") && currentTime < expiresAt {
+	if (id != "" && authToken != "" && expiresAt != "" && serverURL != "") && currentTime < expiresAt {
 		// The tunnel exists and is not expired
-		return client.NewTunnel(id, authToken, "127.0.0.1", localPort), nil
+		return &ws_tunnel.Tunnel{
+			ID:        id,
+			AuthToken: authToken,
+			ServerURL: serverURL,
+			ExpiresAt: expiresAt,
+		}, nil
 	}
 
 	// The tunnel does not exist or is expired
 	// Request a new tunnel
-	tunnel, err := client.RequestTunnel()
+	tunnel, err := ws_tunnel.RequestTunnel()
 	if err != nil {
 		return nil, fmt.Errorf("failed to request a new tunnel from the API: %w", err)
 	}
@@ -546,16 +632,27 @@ func getTunnel(configDB *model.Queries, localPort int) (*client.Tunnel, error) {
 		Value:     tunnel.ExpiresAt,
 	})
 
+	err = configDB.SetEntityAttributeValue(context.Background(), model.SetEntityAttributeValueParams{
+		Entity:    "tunnel",
+		Attribute: "server_url",
+		Value:     tunnel.ServerURL,
+	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to save the tunnel expiration date to the config database: %w", err)
 	}
 
-	return client.NewTunnel(tunnel.ID, tunnel.AuthToken, "127.0.0.1", localPort), nil
+	return &ws_tunnel.Tunnel{
+		ID:        tunnel.ID,
+		AuthToken: tunnel.AuthToken,
+		ServerURL: tunnel.ServerURL,
+		ExpiresAt: tunnel.ExpiresAt,
+	}, nil
 }
 
 func Mcp(cmd *cobra.Command, args []string) error {
 	// Open the configuration database
-	cdb, queries, err := requestDatabase(cmd.Flags(), false)
+	cdb, _, err := requestDatabase(cmd.Flags(), false)
 	if err != nil {
 		return fmt.Errorf("could not open the database: %w", err)
 	}
@@ -597,53 +694,9 @@ func Mcp(cmd *cobra.Command, args []string) error {
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		response := strings.Builder{}
-
-		// List the plugins
-		plugins := namespaceInstance.ListPluginsTables()
-		response.WriteString("List of tables:\n")
-		for _, tables := range plugins {
-			if tables.Description == "" {
-				tables.Description = "No description"
-			}
-			response.WriteString(fmt.Sprintf("`%s` -- %s\n", tables.Name, tables.Description))
-		}
-
-		// For each attached database, list the tables
-		attachedDatabases := []string{}
-		rows, err := db.Query("SELECT name from pragma_database_list")
+		err := listTablesLLM(namespaceInstance, db, &response)
 		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("failed to get attached databases from query: %v", err)), nil
-		}
-
-		for rows.Next() {
-			var dbName string
-			if err := rows.Scan(&dbName); err != nil {
-				rows.Close()
-				return mcp.NewToolResultError(fmt.Sprintf("failed to get attached databases while scanning: %v", err)), nil
-			}
-			attachedDatabases = append(attachedDatabases, dbName)
-		}
-
-		if rows.Err() != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("failed to get attached databases after iteration: %v", rows.Err())), nil
-		}
-
-		rows.Close()
-		for _, dbName := range attachedDatabases {
-			rows, err := db.Query(fmt.Sprintf("SELECT name FROM %s.sqlite_master WHERE type='table'", dbName))
-			if err != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("failed to get table info: %v", err)), nil
-			}
-
-			for rows.Next() {
-				var tableName string
-				if err := rows.Scan(&tableName); err != nil {
-					rows.Close()
-					return mcp.NewToolResultError(fmt.Sprintf("failed to get table info while iterating: %v", err)), nil
-				}
-
-				response.WriteString(fmt.Sprintf("`%s.%s` -- No description\n", dbName, tableName))
-			}
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to list tables: %v", err)), nil
 		}
 
 		return mcp.NewToolResultText(response.String()), nil
@@ -665,80 +718,11 @@ func Mcp(cmd *cobra.Command, args []string) error {
 			return mcp.NewToolResultError("tableName must be a string"), nil
 		}
 
-		schema := "main"
-		splitted := strings.SplitN(tableName, ".", 2)
-		if len(splitted) == 2 {
-			schema = strings.Trim(splitted[0], "`\" ")
-			tableName = strings.Trim(splitted[1], "`\" ")
-		} else {
-			tableName = strings.Trim(tableName, "`\" ")
-		}
-
-		if strings.Contains(schema, ";") || strings.Contains(tableName, ";") || strings.Contains(schema, "`") || strings.Contains(tableName, "`") {
-			return mcp.NewToolResultError("Invalid table name"), nil
-		}
-
-		rows, err := db.Query(fmt.Sprintf("SELECT name, type FROM  `%s`.pragma_table_info(?);", schema), tableName)
-		if err != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("Failed to get table info: %v", err)), nil
-		}
-
-		columns := []rpc.DatabaseSchemaColumn{}
-		for rows.Next() {
-			column := rpc.DatabaseSchemaColumn{}
-			var columnType string
-			if err := rows.Scan(&column.Name, &columnType); err != nil {
-				rows.Close()
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to get column info: %v", err)), nil
-			}
-
-			switch {
-			case strings.Contains(columnType, "INT"):
-				column.Type = rpc.ColumnTypeInt
-			case strings.Contains(columnType, "TEXT"), strings.Contains(columnType, "CHAR"), strings.Contains(columnType, "CLOB"):
-				column.Type = rpc.ColumnTypeString
-			case strings.Contains(columnType, "REAL"), strings.Contains(columnType, "FLOA"), strings.Contains(columnType, "DOUB"):
-				column.Type = rpc.ColumnTypeFloat
-			case strings.Contains(columnType, "BLOB"), strings.Contains(columnType, "BINARY"):
-				column.Type = rpc.ColumnTypeBlob
-			case strings.Contains(columnType, "BOOL"):
-				column.Type = rpc.ColumnTypeBool
-			case strings.Contains(columnType, "DATETIME"):
-				column.Type = rpc.ColumnTypeDateTime
-			case strings.Contains(columnType, "TIME"):
-				column.Type = rpc.ColumnTypeTime
-			case strings.Contains(columnType, "DATE"):
-				column.Type = rpc.ColumnTypeDate
-			case strings.Contains(columnType, "JSON"):
-				column.Type = rpc.ColumnTypeJSON
-			default:
-				column.Type = rpc.ColumnTypeString
-			}
-
-			columns = append(columns, column)
-		}
-
-		if rows.Err() != nil {
-			return mcp.NewToolResultError(fmt.Sprintf("Failed to get column info for table %s: %v", tableName, rows.Err())), nil
-		}
-
-		if len(columns) == 0 {
-			return mcp.NewToolResultError("Table not found"), nil
-		}
-
-		desc, err := namespaceInstance.DescribeTable(tableName)
-		if err != nil {
-			desc = namespace.TableMetadata{
-				Name:    tableName,
-				Columns: columns,
-				Insert:  true,
-				Update:  true,
-				Delete:  true,
-			}
-		}
-
 		response := strings.Builder{}
-		writeTableDescription(&response, desc)
+		err := describeTableLLM(namespaceInstance, tableName, db, &response)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to describe table: %v", err)), nil
+		}
 
 		return mcp.NewToolResultText(response.String()), nil
 	})
@@ -794,6 +778,11 @@ You have access to all the functions of the SQLite standard library such as the 
 
 To handle datetime, use the "datetime(time-value, modifier, modifier, ...)" of SQLite. If no "time-value" is specified, it defaults to the current time. It supports several modifiers ± (e.g. "+ 7 years","- 2 months","+ 4 days","- 3 hours","+ 7 minutes", "+ 32 seconds".
 
+Column names and table names with backticks. For example, SELECT `+"`"+`Équipe`+"`"+` FROM `+"`"+`my_table`+"`"+`;
+
+To install Anyquery, the user must follow the tutorial at https://anyquery.dev/docs/#installation.
+
+By default, Anyquery does not have any integrations. The user must visit https://anyquery.dev/integrations to find some integrations they might like and follow the instructions to add them.
 `),
 		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
@@ -810,108 +799,9 @@ To handle datetime, use the "datetime(time-value, modifier, modifier, ...)" of S
 
 		w := strings.Builder{}
 
-		stmt, _, err := namespace.GetQueryType(query)
-		if err != nil { // If we can't determine the query type, we assume it's a SELECT
-			stmt = sqlparser.StmtSelect
-		}
-
-		if stmt == sqlparser.StmtSelect {
-
-			// Make a context that'll cancel the query after 40 seconds
-			ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
-			defer cancel()
-
-			rows, err := db.QueryContext(ctx, query)
-			if err != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to run the query: %v", err)), nil
-			}
-
-			defer rows.Close()
-
-			columns, err := rows.Columns()
-			if err != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to get the columns: %v", err)), nil
-			}
-
-			// Write the columns, and table data as a markdown table
-			w.Write([]byte("|"))
-			for _, column := range columns {
-				w.Write([]byte(" "))
-				w.Write([]byte(column))
-				w.Write([]byte(" |"))
-			}
-			w.Write([]byte("\n|"))
-			for _, column := range columns {
-				w.Write([]byte(" "))
-				for i := 0; i < len(column); i++ {
-					w.Write([]byte("-"))
-				}
-				w.Write([]byte(" |"))
-			}
-			w.Write([]byte("\n"))
-
-			for rows.Next() {
-				values := make([]interface{}, len(columns))
-				for i := range values {
-					values[i] = new(interface{})
-				}
-
-				if err := rows.Scan(values...); err != nil {
-					return mcp.NewToolResultError(fmt.Sprintf("Failed to scan the row: %v", err)), nil
-				}
-
-				w.Write([]byte("|"))
-				for _, value := range values {
-					w.Write([]byte(" "))
-					unknown, ok := value.(*interface{})
-					if ok && unknown != nil && *unknown != nil {
-						switch parsed := (*unknown).(type) {
-						case []byte:
-							w.Write([]byte(fmt.Sprintf("%x", parsed)))
-						case string:
-							w.Write([]byte(fmt.Sprintf("%s", parsed)))
-						case int64:
-							w.Write([]byte(strconv.FormatInt(parsed, 10)))
-						case float64:
-							w.Write([]byte(strconv.FormatFloat(parsed, 'f', -1, 64)))
-						case bool:
-							if parsed {
-								w.Write([]byte("true"))
-							} else {
-								w.Write([]byte("false"))
-							}
-						case time.Time:
-							w.Write([]byte(parsed.Format(time.RFC3339)))
-
-						default:
-							w.Write([]byte(fmt.Sprintf("%v", *unknown)))
-						}
-
-					} else {
-						w.Write([]byte("NULL"))
-					}
-
-					w.Write([]byte(" |"))
-				}
-				w.Write([]byte("\n"))
-			}
-
-			if rows.Err() != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to iterate over the rows %v", rows.Err())), nil
-			}
-
-		} else {
-			res, err := db.Exec(query)
-			if err != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to execute the query: %v", err)), nil
-			}
-
-			rowsAffected, err := res.RowsAffected()
-			if err != nil {
-				return mcp.NewToolResultError(fmt.Sprintf("Failed to get the number of rows affected: %v", err)), nil
-			}
-
-			w.Write([]byte(fmt.Sprintf("Query executed, %d rows affected", rowsAffected)))
+		err := executeQueryLLM(db, query, &w)
+		if err != nil {
+			return mcp.NewToolResultError(fmt.Sprintf("Failed to execute the query: %v", err)), nil
 		}
 
 		return mcp.NewToolResultText(w.String()), nil
@@ -919,54 +809,103 @@ To handle datetime, use the "datetime(time-value, modifier, modifier, ...)" of S
 
 	// Start the server
 	useStdio, _ := cmd.Flags().GetBool("stdio")
+	tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
 
 	if useStdio {
 		return server.ServeStdio(s)
-	} else {
-		tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
-		bindAddr := "127.0.0.1:8070"
-		baseURL := "http://" + bindAddr
+	} else if tunnelEnabled {
+		// Get the tunnel from the database
+		/* tunnel, err := getWsTunnel(queries)
+		if err != nil {
+			return fmt.Errorf("failed to get the HTTP tunnel: %w", err)
+		}
 
-		if tunnelEnabled {
-			// Find an open port the tunnel can listen on
-			port, err := findOpenPort()
+		// Start the tunnel in a separate goroutine
+		if err := tunnel.Connect(); err != nil {
+			fmt.Printf("failed to connect to the tunnel: %v\n", err)
+		}
+
+		// Catch the signals to gracefully close the server
+		signalChanSSE := make(chan os.Signal, 1)
+		signal.Notify(signalChanSSE, os.Interrupt)
+		go func() {
+			<-signalChanSSE
+			tunnel.Close()
+		}()
+
+		// Handle the requests
+		for {
+			req, err := tunnel.WaitRequest()
 			if err != nil {
-				return fmt.Errorf("failed to find an open port: %w", err)
+				return fmt.Errorf("failed to wait for websocket request: %w", err)
 			}
 
-			// Get the tunnel from the database
-			tunnel, err := getTunnel(queries, port)
-			if err != nil {
-				return fmt.Errorf("failed to get the HTTP tunnel: %w", err)
-			}
+			fmt.Printf("Received request: %s\n", req.Method)
 
-			// Start the tunnel in a separate goroutine
-			go func() {
-				if err := tunnel.Connect(); err != nil {
-					fmt.Printf("failed to connect to the tunnel: %v\n", err)
+			var response strings.Builder
+			switch req.Method {
+			case "listTables":
+				err := listTablesLLM(namespaceInstance, db, &response)
+				if err != nil {
+					return fmt.Errorf("failed to list tables: %w", err)
 				}
-			}()
-
-			bindAddr = fmt.Sprintf("127.0.0.1:%d", port)
-			baseURL = "https://mcp.anyquery.xyz/" + tunnel.ID
-		} else {
-			// Check if a domain is set
-			domain, _ := cmd.Flags().GetString("domain")
-			if domain != "" {
-				baseURL = "https://" + domain
+			case "describeTable":
+				if len(req.Args) != 1 {
+					response.WriteString("Missing table name")
+				} else if tableName, ok := req.Args[0].(string); !ok {
+					response.WriteString("Invalid table name")
+				} else {
+					err := describeTableLLM(namespaceInstance, tableName, db, &response)
+					if err != nil {
+						return fmt.Errorf("failed to describe table: %w", err)
+					}
+				}
+			case "executeQuery":
+				if len(req.Args) != 1 {
+					response.WriteString("Missing query")
+				} else if query, ok := req.Args[0].(string); !ok {
+					response.WriteString("Invalid query")
+				} else {
+					err := executeQueryLLM(db, query, &response)
+					if err != nil {
+						return fmt.Errorf("failed to execute query: %w", err)
+					}
+				}
+			default:
+				response.WriteString("Unknown method. Supported methods are: listTables, describeTable, executeQuery. Perhaps you need to update Anyquery?")
 			}
 
-			host, _ := cmd.Flags().GetString("host")
-			port, _ := cmd.Flags().GetInt("port")
-			if host != "" {
-				bindAddr = fmt.Sprintf("%s:%d", host, port)
-				baseURL = "http://" + bindAddr
+			res := ws_tunnel.Response{
+				RequestID: req.RequestID,
+				Result:    response.String(),
 			}
+
+			if err := tunnel.SendResponse(res); err != nil {
+				return fmt.Errorf("failed to send response to the client: %w", err)
+			}
+		} */
+
+		return fmt.Errorf("tunnel is not supported. If this feature is needed, please open an issue on the GitHub repository.")
+
+	} else {
+		var baseURL string
+		bindAddr := "127.0.0.1:7000"
+		// Check if a domain is set
+		domain, _ := cmd.Flags().GetString("domain")
+		if domain != "" {
+			baseURL = "https://" + domain
+		}
+
+		host, _ := cmd.Flags().GetString("host")
+		port, _ := cmd.Flags().GetInt("port")
+		if host != "" {
+			bindAddr = fmt.Sprintf("%s:%d", host, port)
+			baseURL = "http://" + bindAddr
 		}
 
 		fmt.Printf("Model context protocol server listening on %s/sse\n", baseURL)
 
-		sse := server.NewSSEServer(s, baseURL)
+		sse := server.NewSSEServer(s, server.WithBaseURL(baseURL))
 		// Catch the signals to gracefully close the server
 		signalChanSSE := make(chan os.Signal, 1)
 		signal.Notify(signalChanSSE, os.Interrupt)

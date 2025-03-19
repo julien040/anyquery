@@ -14,6 +14,7 @@ components:
       type: http
       scheme: bearer
       description: The Anyquery ID returned by the anyquery gpt command
+  schemas: {}
 paths:
   /describe-table:
     post:

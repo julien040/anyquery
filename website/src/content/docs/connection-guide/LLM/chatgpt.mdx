@@ -33,20 +33,24 @@ Before you begin, ensure that you have the following:
 
     ```txt title="Terminal" "Your Anyquery ID is ikabcjde"
     julien@MacBook-Air-Julien anyquery % anyquery gpt
-
-
-    Your Anyquery ID is ikabcjde. This is your bearer token that you must set in chatgpt.com
-
-
-    2025-02-10 21:29:12.293 [I] [client/service.go:295] try to connect to server...
-    2025-02-10 21:29:12.453 [I] [client/service.go:287] [cc07e04c16c1e59f] login to server success, get run id [cc07e04c16c1e59f]
-    2025-02-10 21:29:12.454 [I] [proxy/proxy_manager.go:173] [cc07e04c16c1e59f] proxy added: [ikabcjde]
-    2025-02-10 21:29:12.494 [I] [client/control.go:168] [cc07e04c16c1e59f] [ikabcjde] start proxy success
+    Connecting to the websocket server...
+    Connected to the websocket server
+                                                                
+                                                                
+    Anyquery is now running. When asked, pass ikabcjde as     
+    the anyquery ID to your LLM client (e.g. ChatGPT,         
+    TypingMind, etc.)                                         
+                                                                
+    ID: ikabcjde                                              
+    The tunnel will expire at 2025-05-07 UTC                  
+                                                                
+                                                                
+    Waiting for requests <---<<
     ```
 
 2. ### Set up ChatGPT
 
-    Go to the [Anyquery custom GPT](https://redirect.anyquery.xyz/chatgpt) page and enter your Anyquery ID. Click **Connect** to authenticate your requests to ChatGPT.
+    Go to the [Anyquery custom GPT](https://redirect.anyquery.xyz/chatgpt) page and start chatting. When prompted about the Anyquery ID, enter the ID provided in the terminal.
 
     <LinkCard href="https://redirect.anyquery.xyz/chatgpt" title="Anyquery custom GPT" description="Connect ChatGPT to Anyquery" />
 

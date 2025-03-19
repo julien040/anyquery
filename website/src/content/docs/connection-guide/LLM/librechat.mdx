@@ -108,23 +108,7 @@ Anyquery can also connect to LibreChat using the Model Context Protocol (MCP).
 
 <Steps>
 
-1. #### Start Anyquery
-
-    In a terminal, run the following command to start Anyquery:
-
-    ```bash title="Terminal"
-    anyquery mcp --tunnel
-    ````
-
-    This command will start a tunnel to Anyquery and provide you an HTTPS URL. You must then use this URL and pass it to LibreChat.
-
-    ```txt title="Terminal" "Model context protocol server listening on https://mcp.anyquery.xyz/ikabcjde/sse"
-    julien@MacBook-Air-Julien anyquery % anyquery mcp --tunnel
-    Model context protocol server listening on https://mcp.anyquery.xyz/ikabcjde/sse
-    2025-02-12 15:54:14.332 [I] [client/service.go:295] try to connect to server...
-    ```
-
-2. #### Set up LibreChat
+1. #### Set up LibreChat
 
     Open the `librechat.yaml` configuration file, and add the following configuration:
 
@@ -132,8 +116,10 @@ Anyquery can also connect to LibreChat using the Model Context Protocol (MCP).
     version: 1.2.1
 
     mcpServers:
-        anyquery: # Replace the URL with the one you received from Anyquery
-            url: https://mcp.anyquery.xyz/ikabcjde/sse
+        anyquery:
+            command: anyquery
+            args:
+                - mcp
 
     # Rest of your configuration
     ```

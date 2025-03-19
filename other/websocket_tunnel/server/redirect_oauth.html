@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Anyquery GPT auth</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@400..700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <style>
+            body {
+                font-family: "Inter", sans-serif;
+                font-optical-sizing: auto;
+
+                display: flex;
+                align-items: center;
+                height: 100vh;
+                background-color: #e3e3e3;
+                flex-direction: column;
+                padding: 24px;
+                padding-top: 96px;
+            }
+            h1,
+            h2 {
+                font-weight: 700;
+                letter-spacing: -0.04em;
+                margin: 0;
+            }
+            p,
+            a,
+            li,
+            ul {
+                font-weight: 500;
+                letter-spacing: -0.02em;
+                margin: 0;
+            }
+
+            input {
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                padding: 14px;
+            }
+
+            #submit {
+                display: flex;
+                background-color: #0070f3;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                text-decoration: none;
+                width: fit-content;
+                font-size: 14px;
+                font-weight: 500;
+                transition: background-color 0.2s;
+            }
+            #submit:hover {
+                background-color: #005cc5;
+            }
+        </style>
+        <a href="https://anyquery.dev">
+            <img
+                src="https://anyquery.dev/images/logo-wide.svg"
+                alt="Anyquery Logo"
+                style="width: 200px; height: auto"
+            />
+        </a>
+
+        <div style="display: flex; flex-direction: column">
+            <h1 style="margin-top: 20px">Anyquery authentication</h1>
+            <p style="margin-top: 6px; color: #00000064; font-size: 14px">
+                What is the Anyquery ID returned by the
+                <span style="font-family: monospace">`anyquery gpt`</span>
+                command?
+            </p>
+            <input
+                type="text"
+                id="anyquery-id"
+                style="margin-top: 16px; width: 100%"
+                oninput="
+                // Get from the URL the redirect_uri, and state
+                const urlParams = new URLSearchParams(window.location.search);
+                const redirect_uri = urlParams.get('redirect_uri');
+                const state = urlParams.get('state');
+
+                // Set the href of the submit button to the redirect_uri with the code as the anyquery ID
+                const href = redirect_uri + '?code=' + encodeURIComponent(this.value) + '&state=' + encodeURIComponent(state);
+
+                document.getElementById('submit').href = href;
+            "
+            />
+            <a href="#" id="submit" style="margin-top: 8px"> Submit </a>
+        </div>
+    </body>
+</html>

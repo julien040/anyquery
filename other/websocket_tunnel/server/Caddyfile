@@ -1,0 +1,63 @@
+gpt.anyquery.xyz, mcp.anyquery.xyz, tunnel.anyquery.xyz, eu-central-1-websocket.anyquery.xyz {
+	header +Access-Control-Allow-Origin "*"
+	header +Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header +Access-Control-Allow-Headers "Authorization, Content-Type"
+	header +Access-Control-Allow-Credentials "true"
+	header +Allow "GET, POST, OPTIONS"
+
+	@cors {
+		method OPTIONS
+	}
+
+	handle @cors {
+		respond "OK" 200
+	}
+
+	reverse_proxy {
+		to http://127.0.0.1:5566
+        stream_timeout 12h
+
+	}
+}
+
+gpt-actions.anyquery.xyz {
+    header +Access-Control-Allow-Origin "*"
+	header +Access-Control-Allow-Methods "GET, POST, OPTIONS"
+	header +Access-Control-Allow-Headers "Authorization, Content-Type"
+	header +Access-Control-Allow-Credentials "true"
+	header +Allow "GET, POST, OPTIONS"
+
+	@cors {
+		method OPTIONS
+	}
+
+	handle @cors {
+		respond "OK" 200
+	}
+
+    # Extract the bearer token from the Authorization header
+    # and move it to /<bearer_token>/rest_of_the_path
+
+    @extract_bearer {
+        header_regexp Authorization ^Bearer\s+(?P<token>.+)$
+    }
+
+    handle @extract_bearer {
+        reverse_proxy {
+            # Add the bearer token to the path
+            rewrite /{http.regexp.extract_bearer.token}{http.request.uri}
+            to http://127.0.0.1:5566
+        }
+    }
+}
+
+anyquery.xyz {
+	redir / https://anyquery.dev 302
+}
+
+# Temporary redirect for the different integrations
+redirect.anyquery.xyz {
+	redir /chatgpt https://chatgpt.com/g/g-67990f2b94688191a9f8a37f7f646274-anyquery 302
+	redir /typingMindSetApp https://setapp.typingcloud.com/plugins/p-01JMC1TQF9BBKYW8G2M1CVC0RF 302
+	redir /typingMind https://typingmind.com/plugins/p-01JMC1TQF9BBKYW8G2M1CVC0RF 302
+}
