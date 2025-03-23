@@ -78,6 +78,22 @@ func TestArgumentParsing(t *testing.T) {
 		require.Equal(t, "true", useHeaderStr)
 	})
 
+	t.Run("Argument is escaped with backticks", func(t *testing.T) {
+		fileName = ""
+		useHeaderStr = ""
+		parseArgs(args, []string{`file=` + "`example.csv`", `header=` + "`true`"})
+		require.Equal(t, "example.csv", fileName)
+		require.Equal(t, "true", useHeaderStr)
+	})
+
+	t.Run("Name and arg is escaped with backticks", func(t *testing.T) {
+		fileName = ""
+		useHeaderStr = ""
+		parseArgs(args, []string{"`file`=`example.csv`", "`header`=\"true\""})
+		require.Equal(t, "example.csv", fileName)
+		require.Equal(t, "true", useHeaderStr)
+	})
+
 }
 
 func TestColumnNameRewriter(t *testing.T) {

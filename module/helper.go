@@ -107,7 +107,7 @@ type argParam struct {
 	value *string
 }
 
-var argRegExp *regexp.Regexp = regexp.MustCompile(`^\s*['"]?([^= '"]+?)['"]?\s*=\s*['"]?(.*?)['"]?\s*$`)
+var argRegExp *regexp.Regexp = regexp.MustCompile("^\\s*['\"`]?([^= '\"`]+?)['\"`]?\\s*=\\s*['\"`]?(.*?)['\"`]?\\s*$")
 
 func parseArgs(params []argParam, args []string) {
 	// It's quadratic but the number of arguments is small
