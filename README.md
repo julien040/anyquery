@@ -61,7 +61,7 @@ The [documentation](https://anyquery.dev/docs/#installation) provides detailed i
 ### Homebrew
 
 ```zsh
-brew install julien040/anyquery/anyquery
+brew install anyquery
 ```
 <!-- 
 ### Snap
