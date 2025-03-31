@@ -1,0 +1,46 @@
+build out='./bin/server': 
+	just tailwind
+	just sqlc
+	just build-server {{out}}
+
+GOFILES := `echo ./*.go`
+
+build-server out='./bin/server':
+	just generate-template
+	@echo "Building Go server..."
+	go build -o {{out}} {{GOFILES}}
+
+	@echo "Go server build complete."
+
+
+run:
+	just build-server
+	@echo "Running Go server..."
+	./bin/server
+
+
+tailwind-watch:
+	npx @tailwindcss/cli -i ./styles.css  -o ./public/styles.css --watch
+
+tailwind:
+	npx @tailwindcss/cli -i ./styles.css  -o ./public/styles.css
+	@echo "Tailwind CSS build complete."
+
+
+format-template:
+	templ fmt templates
+
+generate-template:
+	templ generate templates
+	@echo "Template generation complete."
+
+generate-template-watch:
+	templ generate --watch templates
+
+[working-directory: 'queries']
+sqlc:
+	sqlc generate
+	
+	
+
+
