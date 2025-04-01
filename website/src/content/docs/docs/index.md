@@ -61,7 +61,7 @@ sudo snap install anyquery
 ### MacOS (Homebrew)
 
 ```bash
-brew install julien040/anyquery/anyquery
+brew install anyquery
 ```
 
 ### Windows (Scoop)
