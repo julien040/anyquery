@@ -503,20 +503,20 @@ func middlewareFileQuery(queryData *QueryData) bool {
 	}
 
 	// Walk the AST and replace the table functions
-	sqlparser.Rewrite(stmt, nil, func(cursor *sqlparser.Cursor) bool {
-		// Get the table function
+	// with a CREATE VIRTUAL TABLE statement
+	rewrite := func(cursor *sqlparser.Cursor) bool {
+		// Get the table name
 		tableFunction, ok := cursor.Node().(sqlparser.TableName)
 		if !ok {
 			return true
 		}
 
 		loweredName := strings.ToLower(tableFunction.Name.String())
-		// Check if the table function is a file module
+
 		if !strings.HasPrefix(loweredName, "read_") {
 			return true
 		}
 
-		// Replace the table function with a random one
 		tableName := generateRandomString(16)
 		preExecBuilder := strings.Builder{}
 		preExecBuilder.WriteString("CREATE VIRTUAL TABLE ")
@@ -525,11 +525,9 @@ func middlewareFileQuery(queryData *QueryData) bool {
 		if reader, ok := supportedTableFunctions[loweredName]; ok {
 			preExecBuilder.WriteString(reader)
 		} else {
-			// If the user writes read_foo, and we don't have a reader for foo
-			// we skip the table function
 			return true
 		}
-		// Add the arguments if any
+
 		if len(tableFunction.Args) > 0 {
 			preExecBuilder.WriteString("(")
 			for i, arg := range tableFunction.Args {
@@ -543,17 +541,22 @@ func middlewareFileQuery(queryData *QueryData) bool {
 
 		preExecBuilder.WriteString(";")
 
-		// Add the pre-execution statement
 		queryData.PreExec = append(queryData.PreExec, preExecBuilder.String())
 
-		// Add a post-execution statement to drop the table
 		queryData.PostExec = append(queryData.PostExec, "DROP TABLE "+tableName+";")
 
-		// Replace the table function with the new table name
 		cursor.Replace(sqlparser.NewTableName(tableName))
 
 		return true
-	})
+	}
+	sqlparser.Rewrite(stmt, nil, rewrite)
+
+	// In case it is a CREATE TABLE statement, we need to rewrite the select statement
+	if createTable, ok := stmt.(*sqlparser.CreateTable); ok {
+		if createTable.Select != nil {
+			sqlparser.Rewrite(createTable.Select, nil, rewrite)
+		}
+	}
 
 	// Deparse the query
 	queryData.SQLQuery = sqlparser.String(stmt)

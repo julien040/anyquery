@@ -4994,6 +4994,10 @@ table_factor:
   {
     $$ = $1
   }
+| derived_table
+  {
+    $$ = &AliasedTableExpr{Expr: $1}
+  }
 | derived_table as_opt table_id column_list_opt
   {
     $$ = &AliasedTableExpr{Expr:$1, As: $3, Columns: $4}
