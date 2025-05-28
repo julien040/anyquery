@@ -350,7 +350,6 @@ const numberRowsToAnalyze = 10
 // Convert the rows of a SQL query to a sqltypes.Result
 // understandable by the Vitess library
 func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
-
 	// Get the columns of the rows
 	cols, err := rows.ColumnTypes()
 	if err != nil {
@@ -408,6 +407,10 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 					rowToInsert[i] = sqltypes.NewInt64(0)
 				}
 			case time.Time:
+				if val.IsZero() {
+					rowToInsert[i] = sqltypes.NULL
+					continue
+				}
 				rowToInsert[i] = sqltypes.NewVarChar(val.Format(time.RFC3339))
 			case nil:
 				rowToInsert[i] = sqltypes.NULL

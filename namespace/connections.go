@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ClickHouse/clickhouse-go/v2"
 	mysql "github.com/go-sql-driver/mysql"
 	"github.com/google/cel-go/cel"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jackc/pgx/v5"
+	"github.com/samber/lo"
 )
 
 type sqlTable struct {
@@ -82,6 +84,85 @@ func filterTables(tables []sqlTable, filter string, log hclog.Logger) (filteredT
 			log.Warn("The CEL expression did not return a boolean value", "value", out.Value(), "table", table)
 		}
 
+	}
+
+	return
+}
+
+func registerExternalClickHouse(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+	statements = []string{}
+	args = [][]driver.Value{}
+
+	// Create the connection
+	opts, err := clickhouse.ParseDSN(params.ConnectionString)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not parse the connection string: %w", err)
+	}
+
+	conn := clickhouse.OpenDB(opts)
+	defer conn.Close()
+
+	query := "SELECT database, name, engine FROM system.tables"
+	rows, err := conn.QueryContext(context.Background(), query)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not get the list of tables: %w", err)
+	}
+	defer rows.Close()
+
+	tables := []sqlTable{}
+	for rows.Next() {
+		table := sqlTable{}
+		err = rows.Scan(&table.Schema, &table.TableName, &table.TableType)
+		if err != nil {
+			return nil, nil, fmt.Errorf("could not scan the row: %w", err)
+		}
+
+		// We add the table to the list
+		tables = append(tables, table)
+	}
+	if rows.Err() != nil {
+		return nil, nil, fmt.Errorf("could not get the list of tables: %w", rows.Err())
+	}
+
+	// Remove all the INFORMATION_SCHEMA tables (and leave the information_schema tables without the uppercase)
+	// That's because ClickHouse has two schemas: information_schema and INFORMATION_SCHEMA
+	// And SQLite does not handle well two tables with the same name in different cases
+	// So we filter out the INFORMATION_SCHEMA tables
+	tablesWithoutINFORMATION_SCHEMA := lo.Filter(tables, func(table sqlTable, _ int) bool {
+		return table.Schema != "INFORMATION_SCHEMA"
+	})
+
+	// Filter the tables
+	filteredTables, err := filterTables(tablesWithoutINFORMATION_SCHEMA, params.Filter, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not filter the tables: %w", err)
+	}
+
+	// Create the statements
+	// First, we attach a schema to the connection. This is just an in-memory database to have a schema name
+	statements = append(statements, "ATTACH DATABASE ? AS ?")
+	args = append(args, []driver.Value{fmt.Sprintf("file:%s?mode=memory&cache=shared", params.SchemaName), params.SchemaName})
+
+	for _, table := range filteredTables {
+		// Compute the table name
+		tableName := strings.Builder{}
+		tableName.WriteString(params.SchemaName)
+		tableName.WriteString(".")
+		if table.Schema != "default" {
+			tableName.WriteString(fmt.Sprintf("%s_", table.Schema))
+		}
+		tableName.WriteString(table.TableName)
+
+		// The table name remote side
+		chTableName := strings.Builder{}
+		chTableName.WriteString(table.Schema)
+		chTableName.WriteString(".")
+
+		chTableName.WriteString(table.TableName)
+
+		// Create the virtual table and its mapping
+		statements = append(statements, fmt.Sprintf("CREATE VIRTUAL TABLE IF NOT EXISTS %s USING clickhouse_reader('%s', '%s')", tableName.String(), params.ConnectionString, chTableName.String()))
+		args = append(args, []driver.Value{})
 	}
 
 	return
