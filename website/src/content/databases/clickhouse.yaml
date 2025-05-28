@@ -1,0 +1,4 @@
+name: ClickHouse
+url: /docs/database/clickhouse
+icon: /icons/clickhouse.svg
+description: Query data from ClickHouse databases.
