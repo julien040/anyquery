@@ -708,7 +708,8 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		param, ok := request.Params.Arguments["tableName"]
+		args := request.GetArguments()
+		param, ok := args["tableName"]
 		if !ok {
 			return mcp.NewToolResultError("Missing tableName parameter"), nil
 		}
@@ -787,7 +788,8 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Get the table name from the request
-		param, ok := request.Params.Arguments["query"]
+		args := request.GetArguments()
+		param, ok := args["query"]
 		if !ok {
 			return mcp.NewToolResultError("Missing query parameter"), nil
 		}
