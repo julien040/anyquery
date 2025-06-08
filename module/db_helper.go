@@ -122,6 +122,109 @@ func constructSQLQuery(
 	return
 }
 
+// Same as constructSQLQuery, but omit columns that are not queried
+func efficientConstructSQLQuery(
+	cst []sqlite3.InfoConstraint,
+	ob []sqlite3.InfoOrderBy,
+	columns []databaseColumn,
+	table string,
+	colUsed uint64,
+
+) (query *sqlbuilder.SelectBuilder, limit int, offset int, used []bool) {
+
+	// Initialize the SQL query builder
+	query = sqlbuilder.NewSelectBuilder()
+	// Add all the columns to the query
+	cols := []string{}
+	for i, col := range columns {
+		if colUsed&(1<<i) == 0 && i < 62 { // colUsed is a bitmask, and the 63rd bit is reserved to say, it means more columns are used
+			// If the column is not used, we skip it
+			continue
+		}
+		cols = append(cols, col.Realname)
+	}
+
+	query.Select(cols...).From(table)
+
+	// Add the constraints (where, limit, offset)
+	limit = -1
+	offset = -1
+
+	used = make([]bool, len(cst))
+
+	andConditions := []string{}
+	j := 0
+	for i, c := range cst {
+		// If the constraint is not usable, we skip it
+		if !c.Usable {
+			continue
+		}
+		// Note the LIMIT and OFFSET constraints indexes in the constraints
+		if c.Op == sqlite3.OpLIMIT {
+			limit = j
+			used[i] = true
+			j++
+			continue
+		} else if c.Op == sqlite3.OpOFFSET {
+			offset = j
+			used[i] = true
+			j++
+			continue
+		}
+
+		// If we don't have information about the column, we skip it
+		if c.Column < 0 || c.Column >= len(columns) {
+			continue
+		}
+
+		// If the column is not supported, we skip it
+		colInfo := columns[c.Column]
+		if !colInfo.Supported {
+			continue
+		}
+
+		switch c.Op {
+		case sqlite3.OpEQ:
+			andConditions = append(andConditions, query.Equal(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpGT:
+			andConditions = append(andConditions, query.GreaterThan(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpGE:
+			andConditions = append(andConditions, query.GreaterEqualThan(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpLT:
+			andConditions = append(andConditions, query.LessThan(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpLE:
+			andConditions = append(andConditions, query.LessEqualThan(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpLIKE:
+			andConditions = append(andConditions, query.Like(colInfo.Realname, colInfo.DefaultValue))
+		case sqlite3.OpGLOB:
+			// Not supported
+			continue
+		case sqlite3.OpREGEXP:
+			// Not supported
+			continue
+		case sqlite3.OpLIMIT:
+			limit = int(c.Column)
+		case sqlite3.OpOFFSET:
+			offset = int(c.Column)
+		}
+		used[i] = true
+		j++
+	}
+
+	query.Where(andConditions...)
+
+	// Add the order by
+	for _, o := range ob {
+		if o.Desc {
+			query.OrderBy(columns[o.Column].Realname + " DESC")
+		} else {
+			query.OrderBy(columns[o.Column].Realname + " ASC")
+		}
+	}
+
+	return
+}
+
 type SQLQueryToExecute struct {
 	// The SQL query to execute
 	Query string
@@ -134,6 +237,9 @@ type SQLQueryToExecute struct {
 
 	// The index in the constraints for the offset (-1 if not present)
 	OffsetIndex int
+
+	// The columns used in the query
+	ColumnsUsed uint64
 }
 
 func castInt(value interface{}) int64 {

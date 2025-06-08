@@ -374,6 +374,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("postgres_reader", &module.PostgresModule{})
 			conn.CreateModule("mysql_reader", &module.MySQLModule{})
 			conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
+			conn.CreateModule("oracledb_reader", &module.OracleDBModule{})
 
 			// Run the exec statements
 			for i, statement := range n.execStatements {
