@@ -18,7 +18,6 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elk-language/go-prompt"
-	"github.com/julien040/anyquery/namespace"
 	"golang.org/x/term"
 )
 
@@ -127,10 +126,7 @@ type shell struct {
 
 	// Where to output the result
 	OutputFile     string
-	OutputFileDesc *os.File
-
-	// The namespace to use
-	Namespace *namespace.Namespace
+	OutputFileDesc io.Writer
 
 	// The history of the shell
 	History []string
@@ -208,41 +204,45 @@ func (p *shell) Run(rawQuery string, args ...interface{}) bool {
 		}
 		s.Stop()
 
-		// Where the output will be written for this loop
-		tempOutput := os.Stdout
+		var tempOutput io.Writer = p.OutputFileDesc
 		/* tempOutputMustClose := false */
 
 		// If the output file is specified, we write the result to it
 		// and save it for later execution in p.OutputFileDesc
 		// We also set it to tempOutput to write the result to it
 		confPath := p.Config.GetString("outputFile", "")
-		if confPath == "" || confPath == "stdout" {
-			p.OutputFileDesc = os.Stdout
-			p.OutputFile = "stdout"
-		} else {
-			// We check if the file is already open
-			// If not, open it
-			if p.OutputFile != confPath {
-				if p.OutputFileDesc != nil && p.OutputFileDesc != os.Stdout {
-					p.OutputFileDesc.Close()
-				}
-				file, err := os.OpenFile(confPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
-				if err != nil {
-					queryData = QueryData{
-						Message:    fmt.Sprintf("Error opening file %s: %s", confPath, err.Error()),
-						StatusCode: 2,
-					}
-				} else {
-					p.OutputFileDesc = file
-					p.OutputFile = confPath
-				}
+		doNotModifyOutput := p.Config.GetBool("doNotModifyOutput", false)
+		if !doNotModifyOutput {
+			// Where the output will be written for this loop
+			if confPath == "" || confPath == "stdout" {
+				p.OutputFileDesc = os.Stdout
+				p.OutputFile = "stdout"
 			} else {
-				// If the file is already open, we seek to the end
-				// just to be sure to append the result
-				p.OutputFileDesc.Seek(0, 2)
+				// We check if the file is already open
+				// If not, open it
+				if p.OutputFile != confPath {
+					// Close previous file if it's a file and not stdout
+					if fileDesc, ok := p.OutputFileDesc.(*os.File); ok && fileDesc != os.Stdout {
+						fileDesc.Close()
+					}
+					file, err := os.OpenFile(confPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+					if err != nil {
+						queryData = QueryData{
+							Message:    fmt.Sprintf("Error opening file %s: %s", confPath, err.Error()),
+							StatusCode: 2,
+						}
+					} else {
+						p.OutputFileDesc = file
+						p.OutputFile = confPath
+					}
+				} else if fileDesc, ok := p.OutputFileDesc.(*os.File); ok && fileDesc != os.Stdout {
+					// If the file is already open and it's a file (not stdout), we seek to the end
+					// just to be sure to append the result
+					fileDesc.Seek(0, 2)
+				}
 			}
+			tempOutput = p.OutputFileDesc
 		}
-		tempOutput = p.OutputFileDesc
 
 		// We check also if the output must be displayed only once somewhere
 		/* if p.Config.GetString("onceOutputFile", "") != "" {

@@ -59,7 +59,7 @@ func middlewareDotCommand(queryData *QueryData) bool {
 		return true
 
 	case "help":
-		queryData.Message = "Documentation available at https://docs.anyquery.dev"
+		queryData.Message = "Documentation available at https://anyquery.dev/docs/usage/running-queries#commands"
 		queryData.StatusCode = 0
 
 	case "indexes", "index":
