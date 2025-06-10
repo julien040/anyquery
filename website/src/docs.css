@@ -57,19 +57,19 @@ h6 {
     font-family: "Inter", sans-serif;
 }
 
-a,
-p,
-li,
-table {
+.sl-markdown-content a,
+.sl-markdown-content p,
+.sl-markdown-content li,
+.sl-markdown-content table {
     letter-spacing: -0.12px;
     font-size: 0.91rem;
 }
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3,
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
     font-family: "Inter", sans-serif;
     letter-spacing: -0.9px;
     font-weight: 600;
