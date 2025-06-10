@@ -1,4 +1,4 @@
-@reference "styles/global.css";
+@reference "./styles/global.css";
 h1 {
     font-size: 2rem;
     font-weight: 600;
