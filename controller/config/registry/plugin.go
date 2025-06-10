@@ -1,14 +1,20 @@
 package registry
 
 import (
+	"archive/zip"
+	"bytes"
 	"context"
+	"crypto/sha256"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"math/rand/v2"
-	urlParser "net/url"
+	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -16,8 +22,6 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/go-ternary"
-
-	getter "github.com/hashicorp/go-getter"
 )
 
 // Find the highest version of a plugin that is compatible with the current version of Anyquery
@@ -99,6 +103,7 @@ func InstallPlugin(queries *model.Queries, registry string, plugin string) (stri
 	if err != nil {
 		return "", err
 	}
+
 	// Download the file
 	err = downloadZipToPath(file.URL, path, file.Hash)
 	if err != nil {
@@ -214,22 +219,68 @@ func ListInstallablePluginsForPlatform(queries *model.Queries, platform string) 
 }
 
 func downloadZipToPath(url string, path string, checksum string) error {
-	parsed, err := urlParser.Parse(url)
+	resp, err := http.Get(url)
 	if err != nil {
 		return err
 	}
-	values := parsed.Query()
-	values.Set("checksum", "sha256:"+checksum)
-	parsed.RawQuery = values.Encode()
-
-	client := &getter.Client{
-		Src:  parsed.String(),
-		Dst:  path,
-		Dir:  true,
-		Mode: getter.ClientModeDir,
-		Ctx:  context.Background(),
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download plugin: status %s", resp.Status)
 	}
-	return client.Get()
+
+	// Read into buffer while computing SHA256
+	var buf bytes.Buffer
+	hasher := sha256.New()
+	reader := io.TeeReader(resp.Body, hasher)
+	if _, err := io.Copy(&buf, reader); err != nil {
+		return err
+	}
+
+	// Verify checksum
+	sum := hex.EncodeToString(hasher.Sum(nil))
+	if sum != checksum {
+		return fmt.Errorf("checksum mismatch: expected %s, got %s", checksum, sum)
+	}
+
+	// Unzip into the target path
+	zr, err := zip.NewReader(bytes.NewReader(buf.Bytes()), int64(buf.Len()))
+	if err != nil {
+		return fmt.Errorf("failed to read zip: %v", err)
+	}
+	for _, file := range zr.File {
+		dstPath := filepath.Join(path, file.Name)
+		// Prevent path traversal
+		if !strings.HasPrefix(dstPath, filepath.Clean(path)+string(os.PathSeparator)) {
+			return fmt.Errorf("illegal file path: %s", dstPath)
+		}
+		if file.FileInfo().IsDir() {
+			if err := os.MkdirAll(dstPath, file.Mode()); err != nil {
+				return err
+			}
+			continue
+		}
+		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+			return err
+		}
+		out, err := os.OpenFile(dstPath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, file.Mode())
+		if err != nil {
+			return err
+		}
+		rc, err := file.Open()
+		if err != nil {
+			out.Close()
+			return err
+		}
+		if _, err := io.Copy(out, rc); err != nil {
+			rc.Close()
+			out.Close()
+			return err
+		}
+		rc.Close()
+		out.Close()
+	}
+
+	return nil
 }
 
 const letters = "abcdefghijklmnopqrstuvwxyz1234567890"

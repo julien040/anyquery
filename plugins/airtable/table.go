@@ -364,6 +364,13 @@ func (t *airtableCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}
 			if col, ok := t.cols[name]; ok {
 				// Unmarshal the value
 				row[col.index] = unmarshal(value, col.colType)
+
+				// Make sure the value is supported (not an []interface{}, or map[string]interface{})
+				if _, ok := row[col.index].([]interface{}); ok {
+					row[col.index] = serializeJSON(row[col.index])
+				} else if _, ok := row[col.index].(map[string]interface{}); ok {
+					row[col.index] = serializeJSON(row[col.index])
+				}
 			}
 		}
 

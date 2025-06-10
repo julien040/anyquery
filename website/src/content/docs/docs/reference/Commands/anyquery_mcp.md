@@ -9,8 +9,6 @@ Start the Model Context Protocol (MCP) server
 
 Start the Model Context Protocol (MCP) server. It is used to provide context for LLM that supports it. 
 Pass the --stdio flag to use standard input/output for communication. By default, it will bind locally to localhost:8070 (modify it with the --host, --port and --domain flags).
-You can also expose the tunnel to the internet by using the --tunnel flag (useful when the LLM is on a remote server).
-
 
 ```bash
 anyquery mcp [flags]

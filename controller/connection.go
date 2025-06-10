@@ -120,9 +120,19 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	} else {
+		/* urlExample := "username:password@tcp(host:1234)/database"
+		switch databaseType {
+		case "PostgreSQL":
+			urlExample = "postgresql://user:password@host:port/database"
+		case "SQLite":
+			urlExample = "file:/path/to/database.db?mode=ro"
+		case "ClickHouse":
+			urlExample = "clickhouse://user:password@host:port/database"
+		} */
 		fields = append(fields, huh.NewInput().
 			Title("Connection string (URL)").
-			Description("The connection string to the database. For example, for MySQL, it's 'username:password@tcp(host:1234)/database'").
+			Description(fmt.Sprintf("The connection string to the database. For example, for MySQL, it should be in the format `username:password@tcp(host:port)/database`.\n"+
+				"Refer to https://anyquery.dev/docs/database/ for more information on the connection string format.")).
 			Validate(validateConnectionURL).
 			Value(&connectionString))
 	}

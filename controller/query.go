@@ -153,7 +153,6 @@ func Query(cmd *cobra.Command, args []string) error {
 			"mysql":         true,
 			"slash-command": true,
 		},
-		Namespace:      namespace,
 		OutputFile:     "stdout",
 		OutputFileDesc: os.Stdout,
 	}
@@ -190,7 +189,7 @@ func Query(cmd *cobra.Command, args []string) error {
 
 	// Check if the output file is a tty
 	// If not, we set the output mode to plain
-	if !term.IsTerminal(int(shell.OutputFileDesc.Fd())) {
+	if file, ok := shell.OutputFileDesc.(*os.File); !ok || !term.IsTerminal(int(file.Fd())) {
 		shell.Config["outputMode"] = "plain"
 	}
 

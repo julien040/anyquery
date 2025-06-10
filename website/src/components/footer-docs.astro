@@ -1,6 +1,5 @@
 ---
 import Logo from "./logo.astro";
-
 const { footnote } = Astro.props;
 ---
 
@@ -8,18 +7,16 @@ const { footnote } = Astro.props;
     class="flex flex-col sm:flex-row items-center sm:justify-between p-7 bg-transparent rounded-[14px] shadow-glow gap-8 sm:gap-4"
 >
     <div
-        class="text-[color:var(--sl-color-text)] flex flex-col items-center text-center sm:items-start sm:text-left"
+        class="text-(--sl-color-text) flex flex-col items-center text-center sm:items-start sm:text-left"
     >
         <Logo />
-        <p class="mt-1 text-xs">
+        <p class="!mt-1 text-xs">
             Copyright © 2025 · <a class="text-xs" href="https://julienc.me"
                 >Julien Cagniart</a
             > · <br />
             All rights reserved
         </p>
-        <div
-            class="flex-row flex mt-6 gap-4 text-[color:var(--sl-color-gray-3)]"
-        >
+        <div class="flex-row flex !mt-4 gap-4 text-(--sl-color-gray-3)">
             <a href="https://github.com/julien040/anyquery/">
                 <svg
                     class="w-5 h-5"

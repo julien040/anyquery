@@ -142,9 +142,9 @@ func (h *handler) ConnectionClosed(c *mysql.Conn) {
 
 }
 
-func (h *handler) ComPrepare(c *mysql.Conn, query string, bindVars map[string]*querypb.BindVariable) ([]*querypb.Field, error) {
+func (h *handler) ComPrepare(c *mysql.Conn, query string) ([]*querypb.Field, uint16, error) {
 	h.Logger.Debug("Prepare query", "query", query, "connectionID", c.ConnectionID, "username", c.User)
-	return nil, nil
+	return nil, 0, nil
 }
 
 func (h *handler) ComStmtExecute(c *mysql.Conn, f *mysql.PrepareData, callback func(*sqltypes.Result) error) error {
@@ -223,6 +223,10 @@ func (h *handler) ComQuery(c *mysql.Conn, query string, callback func(*sqltypes.
 
 	return callback(res)
 
+}
+
+func (h *handler) ComQueryMulti(c *mysql.Conn, sql string, callback func(qr sqltypes.QueryResponse, more bool, firstPacket bool) error) error {
+	return fmt.Errorf("multi queries are not supported. Open an issue if you need this feature")
 }
 
 func (h *handler) ComRegisterReplica(c *mysql.Conn, replicaHost string, replicaPort uint16, replicaUser string, replicaPassword string) error {
@@ -350,7 +354,6 @@ const numberRowsToAnalyze = 10
 // Convert the rows of a SQL query to a sqltypes.Result
 // understandable by the Vitess library
 func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
-
 	// Get the columns of the rows
 	cols, err := rows.ColumnTypes()
 	if err != nil {
@@ -408,6 +411,10 @@ func convertSQLRowsToSQLResult(rows *sql.Rows) (*sqltypes.Result, error) {
 					rowToInsert[i] = sqltypes.NewInt64(0)
 				}
 			case time.Time:
+				if val.IsZero() {
+					rowToInsert[i] = sqltypes.NULL
+					continue
+				}
 				rowToInsert[i] = sqltypes.NewVarChar(val.Format(time.RFC3339))
 			case nil:
 				rowToInsert[i] = sqltypes.NULL

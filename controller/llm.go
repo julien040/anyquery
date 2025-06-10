@@ -11,7 +11,6 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -20,7 +19,6 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/namespace"
-	"github.com/julien040/anyquery/other/sqlparser"
 	ws_tunnel "github.com/julien040/anyquery/other/websocket_tunnel/client"
 	"github.com/julien040/anyquery/rpc"
 	"github.com/mark3labs/mcp-go/mcp"
@@ -183,108 +181,22 @@ func executeQueryLLM(
 	query string,
 	w io.Writer,
 ) error {
-	stmt, _, err := namespace.GetQueryType(query)
-	if err != nil { // If we can't determine the query type, we assume it's a SELECT
-		stmt = sqlparser.StmtSelect
+	sh := shell{
+		DB:             db,
+		OutputFileDesc: w,
+		Middlewares: []middleware{
+			middlewareMySQL,
+			middlewareFileQuery,
+			middlewareQuery,
+		},
+		Config: middlewareConfiguration{
+			"mysql":             true,
+			"doNotModifyOutput": true, // Do not modify the output, just keep w
+		},
 	}
 
-	if stmt == sqlparser.StmtSelect {
-		// Make a context that'll cancel the query after 40 seconds
-		ctx, cancel := context.WithTimeout(context.Background(), 40*time.Second)
-		defer cancel()
-
-		rows, err := db.QueryContext(ctx, query)
-		if err != nil {
-			return fmt.Errorf("failed to run the query: %w", err)
-		}
-
-		defer rows.Close()
-
-		columns, err := rows.Columns()
-		if err != nil {
-			return fmt.Errorf("failed to get the columns: %w", err)
-		}
-
-		// Write the columns, and table data as a markdown table
-		w.Write([]byte("|"))
-		for _, column := range columns {
-			w.Write([]byte(" "))
-			w.Write([]byte(column))
-			w.Write([]byte(" |"))
-		}
-		w.Write([]byte("\n|"))
-		for _, column := range columns {
-			w.Write([]byte(" "))
-			for i := 0; i < len(column); i++ {
-				w.Write([]byte("-"))
-			}
-			w.Write([]byte(" |"))
-		}
-		w.Write([]byte("\n"))
-
-		for rows.Next() {
-			values := make([]interface{}, len(columns))
-			for i := range values {
-				values[i] = new(interface{})
-			}
-
-			if err := rows.Scan(values...); err != nil {
-				return fmt.Errorf("failed to scan the row: %w", err)
-			}
-
-			w.Write([]byte("|"))
-			for _, value := range values {
-				w.Write([]byte(" "))
-				unknown, ok := value.(*interface{})
-				if ok && unknown != nil && *unknown != nil {
-					switch parsed := (*unknown).(type) {
-					case []byte:
-						w.Write([]byte(fmt.Sprintf("%x", parsed)))
-					case string:
-						w.Write([]byte(fmt.Sprintf("%s", parsed)))
-					case int64:
-						w.Write([]byte(strconv.FormatInt(parsed, 10)))
-					case float64:
-						w.Write([]byte(strconv.FormatFloat(parsed, 'f', -1, 64)))
-					case bool:
-						if parsed {
-							w.Write([]byte("true"))
-						} else {
-							w.Write([]byte("false"))
-						}
-					case time.Time:
-						w.Write([]byte(parsed.Format(time.RFC3339)))
-
-					default:
-						w.Write([]byte(fmt.Sprintf("%v", *unknown)))
-					}
-
-				} else {
-					w.Write([]byte("NULL"))
-				}
-
-				w.Write([]byte(" |"))
-			}
-			w.Write([]byte("\n"))
-		}
-
-		if rows.Err() != nil {
-			return fmt.Errorf("failed to iterate over the rows %w", rows.Err())
-		}
-
-	} else {
-		res, err := db.Exec(query)
-		if err != nil {
-			return fmt.Errorf("failed to execute the query: %w", err)
-		}
-
-		rowsAffected, err := res.RowsAffected()
-		if err != nil {
-			return fmt.Errorf("failed to get the number of rows affected: %w", err)
-		}
-
-		w.Write([]byte(fmt.Sprintf("Query executed, %d rows affected", rowsAffected)))
-	}
+	// Run the query
+	sh.Run(query)
 
 	return nil
 }
@@ -708,7 +620,8 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
-		param, ok := request.Params.Arguments["tableName"]
+		args := request.GetArguments()
+		param, ok := args["tableName"]
 		if !ok {
 			return mcp.NewToolResultError("Missing tableName parameter"), nil
 		}
@@ -787,7 +700,8 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		// Get the table name from the request
-		param, ok := request.Params.Arguments["query"]
+		args := request.GetArguments()
+		param, ok := args["query"]
 		if !ok {
 			return mcp.NewToolResultError("Missing query parameter"), nil
 		}

@@ -1,6 +1,8 @@
 package module
 
 import (
+	"fmt"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/mattn/go-sqlite3"
 )
@@ -174,4 +176,49 @@ func castFloat(value interface{}) float64 {
 	}
 
 	return 0
+}
+
+type NullUint64 struct {
+	Value uint64
+	Valid bool // Valid is true if Value is not NULL
+}
+
+func (n *NullUint64) Scan(value interface{}) error {
+	if value == nil {
+		n.Valid = false
+		return nil
+	}
+
+	switch v := value.(type) {
+	case uint64:
+		n.Value = v
+		n.Valid = true
+	case uint32:
+		n.Value = uint64(v)
+		n.Valid = true
+	case uint16:
+		n.Value = uint64(v)
+		n.Valid = true
+	case uint8:
+		n.Value = uint64(v)
+		n.Valid = true
+	case int:
+		n.Value = uint64(v)
+		n.Valid = true
+	case int8:
+		n.Value = uint64(v)
+		n.Valid = true
+	case int16:
+		n.Value = uint64(v)
+		n.Valid = true
+	case int32:
+		n.Value = uint64(v)
+		n.Valid = true
+	case int64:
+		n.Value = uint64(v)
+		n.Valid = true
+	default:
+		return fmt.Errorf("unsupported type for NullUint64: %T", value)
+	}
+	return nil
 }
