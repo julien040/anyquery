@@ -86,9 +86,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
     </h2>
     <div class="flex flex-wrap gap-2">
         {
-            pluginsWithQueries
-                .entries()
-                .toArray()
+            Array.from(pluginsWithQueries)
                 .sort((a, b) => a[0].localeCompare(b[0]))
                 .map(([pluginName, _]) => {
                     const plugin = pluginsMapper[pluginName];

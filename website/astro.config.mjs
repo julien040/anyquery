@@ -16,14 +16,13 @@ export default defineConfig({
           title: "Anyquery",
           credits: false,
           favicon: "/favicon.png",
-          customCss: ["./src/docs.css", "./src/styles/global.css"],
+          customCss: ["./src/docs.css"],
           logo: {
               src: "./public/images/logo.png",
               alt: "Anyquery logo",
           },
 
           components: {
-              Footer: "./src/components/footer-docs.astro",
           },
           description:
               "Anyquery allows you to run SQL queries on pretty much any data source, including REST APIs, local files, SQL databases, and more.",
