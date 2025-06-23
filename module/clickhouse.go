@@ -17,8 +17,6 @@ import (
 	"github.com/mattn/go-sqlite3"
 )
 
-var clickhouseSuffix = "/* Query sent by Anyquery */"
-
 var fetchClickHouseSchemaSQLQuery = `
 SELECT DISTINCT
 	lower(table_schema),
