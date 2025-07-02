@@ -12,6 +12,7 @@ import (
 	"github.com/google/cel-go/cel"
 	"github.com/hashicorp/go-hclog"
 	"github.com/jackc/pgx/v5"
+	"github.com/julien040/anyquery/other/duckdb"
 	"github.com/samber/lo"
 )
 
@@ -321,9 +322,77 @@ func registerExternalMySQL(params LoadDatabaseConnectionParams, logger hclog.Log
 
 // Fetch the list of tables from the database
 // and return a list of exec statement to run so that the tables are imported in Anyquery
-func registerExternalSQLite(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
-	statements = []string{fmt.Sprintf("ATTACH DATABASE ? AS ?")}
+func registerExternalSQLite(params LoadDatabaseConnectionParams, _ hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+	statements = []string{"ATTACH DATABASE ? AS ?"}
 	args = [][]driver.Value{{params.ConnectionString, params.SchemaName}}
+
+	return
+}
+
+func registerExternalDuckDB(params LoadDatabaseConnectionParams, logger hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+	statements = []string{}
+	args = [][]driver.Value{}
+
+	// Request all the tables
+	rows, errChan := duckdb.RunDuckDBQuery(params.ConnectionString, "SELECT table_schema, table_name, table_type, FROM information_schema.tables;")
+	if len(errChan) > 0 {
+		rowErr := <-errChan
+		if rowErr != nil {
+			return nil, nil, fmt.Errorf("could not get the list of tables: %w", rowErr)
+		}
+	}
+	tables := []sqlTable{}
+	for row := range rows {
+		table := sqlTable{}
+		ok := true
+		table.Schema, ok = row["table_schema"].(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("could not get the table schema from the row: %v", row)
+		}
+		table.TableName, ok = row["table_name"].(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("could not get the table name from the row:	 %v", row)
+		}
+		table.TableType, ok = row["table_type"].(string)
+		if !ok {
+			return nil, nil, fmt.Errorf("could not get the table type from the row: %v", row)
+		}
+		// We add the table to the list
+		tables = append(tables, table)
+	}
+
+	// Filter the tables
+	filteredTables, err := filterTables(tables, params.Filter, logger)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not filter the tables: %w", err)
+	}
+
+	// Create the statements
+	// First, we attach a schema to the connection. This is just an in-memory database
+	statements = append(statements, "ATTACH DATABASE ? AS ?")
+	args = append(args, []driver.Value{fmt.Sprintf("file:%s?mode=memory&cache=shared", params.SchemaName), params.SchemaName})
+	for _, table := range filteredTables {
+		// Compute the table name
+		tableName := strings.Builder{}
+		tableName.WriteString(params.SchemaName)
+		tableName.WriteString(".")
+		if table.Schema != "main" {
+			tableName.WriteString(fmt.Sprintf("%s_", table.Schema))
+		}
+		tableName.WriteString(table.TableName)
+
+		// The table name remote side
+		duckDBTableName := strings.Builder{}
+		if table.Schema != "main" {
+			duckDBTableName.WriteString(table.Schema)
+			duckDBTableName.WriteString(".")
+		}
+		duckDBTableName.WriteString(table.TableName)
+
+		// Create the virtual table and its mapping
+		statements = append(statements, fmt.Sprintf("CREATE VIRTUAL TABLE IF NOT EXISTS %s USING duckdb_reader(dsn='%s', table='%s')", tableName.String(), params.ConnectionString, duckDBTableName.String()))
+		args = append(args, []driver.Value{})
+	}
 
 	return
 }

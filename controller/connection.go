@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"slices"
 	"strings"
@@ -101,7 +102,7 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 	if len(args) > 1 {
 		databaseType = args[1]
 		if !slices.Contains(namespace.SupportedConnections, databaseType) {
-			return fmt.Errorf("unsupported connection type %s. Make sure it's one of %s. Also ensure Anyquery is up to date.", databaseType, strings.Join(namespace.SupportedConnections, ", "))
+			return fmt.Errorf("unsupported connection type %s. Make sure it's one of %s. Also ensure Anyquery is up to date", databaseType, strings.Join(namespace.SupportedConnections, ", "))
 		}
 	} else {
 		options := make([]huh.Option[string], len(namespace.SupportedConnections))
@@ -120,21 +121,37 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 			return err
 		}
 	} else {
-		/* urlExample := "username:password@tcp(host:1234)/database"
-		switch databaseType {
-		case "PostgreSQL":
-			urlExample = "postgresql://user:password@host:port/database"
-		case "SQLite":
-			urlExample = "file:/path/to/database.db?mode=ro"
-		case "ClickHouse":
-			urlExample = "clickhouse://user:password@host:port/database"
-		} */
+
 		fields = append(fields, huh.NewInput().
-			Title("Connection string (URL)").
-			Description(fmt.Sprintf("The connection string to the database. For example, for MySQL, it should be in the format `username:password@tcp(host:port)/database`.\n"+
-				"Refer to https://anyquery.dev/docs/database/ for more information on the connection string format.")).
+			TitleFunc(func() string {
+				if databaseType == "SQLite" || databaseType == "DuckDB" {
+					return "Database file path"
+				}
+				return "Connection string (URL)"
+			}, &databaseType).
+			DescriptionFunc(func() string {
+				urlExample := "username:password@tcp(host:1234)/database"
+				prefixConnectionString := "connection string for MySQL (see https://anyquery.dev/docs/database/mysql/#connection)"
+				switch databaseType {
+				case "PostgreSQL":
+					urlExample = "postgresql://user:password@host:port/database"
+					prefixConnectionString = "connection string for PostgreSQL (see https://anyquery.dev/docs/database/postgresql/#connection)"
+				case "SQLite":
+					urlExample = "file:/path/to/database.db?mode=ro"
+					prefixConnectionString = "path to the SQLite database file (see https://anyquery.dev/docs/database/sqlite)"
+				case "ClickHouse":
+					urlExample = "clickhouse://user:password@host:port/database"
+					prefixConnectionString = "connection string for ClickHouse (see https://anyquery.dev/docs/database/clickhouse/#connection)"
+				case "DuckDB":
+					urlExample = "/path/to/database.duckdb"
+					prefixConnectionString = "path to the DuckDB database file (see https://anyquery.dev/docs/database/duckdb/)"
+				}
+
+				return fmt.Sprintf("The %s. For example: `%s`.", prefixConnectionString, urlExample)
+			}, &databaseType).
 			Validate(validateConnectionURL).
-			Value(&connectionString))
+			Value(&connectionString),
+		)
 	}
 	if len(args) > 3 {
 		filter = args[3]
@@ -155,6 +172,10 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 		}
 		grp := huh.NewGroup(fields...).Title("Connection information").Description("Let's add a new database connection to Anyquery")
 		err := huh.NewForm(grp).Run()
+		if err == huh.ErrUserAborted {
+			fmt.Println("👋 Bye (no connection added)")
+			return nil
+		}
 		if err != nil {
 			return fmt.Errorf("could not ask for the connection information: %w", err)
 		}
@@ -162,6 +183,19 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 
 	if filter == "" {
 		filter = "true" // Default filter to import all tables
+	}
+
+	// In case the user adds a connection using DuckDB, if the path is relative, we make it absolute
+	// If the user changes the CWD, Anyquery will still be able to find the DuckDB database file
+	if databaseType == "DuckDB" {
+		if !filepath.IsAbs(connectionString) {
+			// Make the path absolute
+			absPath, err := filepath.Abs(connectionString)
+			if err != nil {
+				return fmt.Errorf("could not make the path to the DuckDB database absolute: %w. Make sure the path is valid", err)
+			}
+			connectionString = absPath
+		}
 	}
 
 	// Add the connection

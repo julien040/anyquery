@@ -1,0 +1,4 @@
+name: DuckDB
+url: /docs/database/duckdb
+icon: /icons/duckdb.png
+description: Query data from a DuckDB database.
