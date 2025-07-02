@@ -374,6 +374,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("postgres_reader", &module.PostgresModule{})
 			conn.CreateModule("mysql_reader", &module.MySQLModule{})
 			conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
+			conn.CreateModule("duckdb_reader", &module.DuckDBModule{})
 
 			// Run the exec statements
 			for i, statement := range n.execStatements {
@@ -761,7 +762,7 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 }
 
 // The list of external connections supported by Anyquery
-var SupportedConnections = []string{"MySQL", "PostgreSQL", "SQLite", "ClickHouse"}
+var SupportedConnections = []string{"MySQL", "PostgreSQL", "SQLite", "ClickHouse", "DuckDB"}
 
 // A struct to hold all the informations required to import tables from an external database
 type LoadDatabaseConnectionParams struct {
@@ -793,7 +794,7 @@ type LoadDatabaseConnectionParams struct {
 func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) error {
 	// Check if the database type is supported
 	if !slices.Contains(SupportedConnections, args.DatabaseType) {
-		return fmt.Errorf("unsupported connection type %s. Make sure it's one of %s. Also ensure Anyquery is up to date.", args.DatabaseType, strings.Join(SupportedConnections, ", "))
+		return fmt.Errorf("unsupported connection type %s. Make sure it's one of %s. Also ensure Anyquery is up to date", args.DatabaseType, strings.Join(SupportedConnections, ", "))
 	}
 
 	execStatements := []string{}
@@ -808,6 +809,8 @@ func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) er
 		execStatements, execArgs, err = registerExternalSQLite(args, n.logger)
 	case "ClickHouse":
 		execStatements, execArgs, err = registerExternalClickHouse(args, n.logger)
+	case "DuckDB":
+		execStatements, execArgs, err = registerExternalDuckDB(args, n.logger)
 	}
 	if err != nil {
 		return fmt.Errorf("could not fetch the tables from the external database %s(connection name: %s): %w", args.DatabaseType, args.SchemaName, err)

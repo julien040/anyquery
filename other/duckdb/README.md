@@ -1,8 +1,6 @@
 # DuckDB Golang Driver
 
-DuckDB is an in-process SQL OLAP database. While an [official Go driver](https://github.com/marcboeker/go-duckdb) for DuckDB exists, it adds more than 30MB to the binary size. This driver is a minimal wrapper around the DuckDB CLI.
-
-To use this driver, you need to have the DuckDB CLI installed on your system. You can download it from the [DuckDB releases page](https://duckdb.org/docs/installation/).
+DuckDB is an in-process SQL OLAP database. While an [official Go driver](https://github.com/marcboeker/go-duckdb) for DuckDB exists, it adds more than 30MB to the binary size. This package exposes a function to run a SQL query against a DuckDB database.
 
 ## Usage
 
@@ -16,19 +14,30 @@ Then, you can open a DuckDB database using the `database/sql` package:
 
 ```go
 package main
-import (
-    _ "github.com/julien040/anyquery/other/duckdb"
-    "database/sql"
-)
 
 func main() {
-    db, err := sql.Open("duckdb", "path/to/your/database.duckdb")
-    if err != nil {
-        panic(err)
+    rows, errChan := duckdb.RunDuckDBQuery("my.db", "SELECT * FROM my_table")
+    for {
+        select {
+            case row, ok := <-rows:
+                if !ok {
+                    // Handle end of rows
+                    break
+                }
+                // Process the row
+                val, ok := row["my_column"] // val can be one of float64, int64, string, []byte, []interface{}, map[string]interface{}, nil
+            case err, ok := <-errChan:
+                if err != nil {
+                    // Handle error
+                    break
+                }
+                if !ok {
+                    // The query is done, but there might rows still in the channel
+                    continue
+                }   
+        }
     }
 
-    defer db.Close()
-}
 ```
 
 ## License

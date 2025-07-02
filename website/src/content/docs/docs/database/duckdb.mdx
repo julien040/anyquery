@@ -1,0 +1,55 @@
+---
+title: DuckDB
+description: Learn how to connect a DuckDB database to Anyquery.
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+![DuckDB](/icons/duckdb.png)
+
+DuckDB is a columnar SQL OLAP database. It is designed for analytical queries and is optimized for performance. Anyquery provides a way to connect to a DuckDB database and run queries on it, benefiting from its speed.
+
+## Getting started
+
+<Aside type='caution'>
+  To work, the DuckDB CLI must be installed and available in your `PATH`. You can install it from the [DuckDB website](https://duckdb.org/docs/installation/).
+</Aside>
+
+To connect a DuckDB database to Anyquery, you need to provide the path to the DuckDB database file. Open a shell, and run the following command:
+
+```bash
+anyquery connection add
+```
+
+The CLI will ask you for:
+
+- a connection name (the schema name to reference the DuckDB database)
+- the type of the connection (DuckDB)
+- the path to the DuckDB database file (e.g., `/path/to/database.duckdb`). The path can be relative (Anyquery will later save it as absolute) or absolute.
+- a filter. It is a CEL script that filters the tables and views to import. For example, to import only the tables that start with `my_`, you can use the following filter: `table.name.startsWith("my_")`. If you don't want to filter the tables, you can leave this field empty. Refer to the [CEL syntax documentation](cel-script) for more information.
+
+Press enter to add the connection. On the next startup, Anyquery will fetch the list of tables and views from the database and import them automatically.
+
+Congratulations 🎉! You can now run queries on the tables and views from the DuckDB database. The table name will follow this format `connection_name.[schema_name]_table_name` (e.g. `myduckdb.information_schema_tables`)
+
+```sql
+-- Join a table from DuckDB with a table from an API
+SELECT * 
+FROM duckdb.my_table m
+JOIN github_stargazers_from_repository('julien040/anyquery') g
+ON m.id = g.login
+```
+
+## Additional information
+
+### Functions
+
+When querying a DuckDB database, functions aren't passed to DuckDB. Instead, they are executed in the SQLite database. It might often result in a performance hit. To avoid this, you can create a view in DuckDB that computes the function and then query the view in Anyquery.
+
+### Performance
+
+DuckDB is designed for high performance. While this integration tries to transfer the least amount of data possible, any query that requires a join or a WHERE invoquing a function will result in all the rows transferred to Anyquery, which can be slow. To mitigate this, you can create views in DuckDB that pre-compute the necessary data and then query those views in Anyquery.
+
+### Insert/Update/Delete support
+
+Anyquery cannot insert, update, or delete data in a DuckDB database. For any of these operations, you need to use a DuckDB client. If you want to import Anyquery data into a DuckDB database, you can [export a query result into a JSON file](/docs/usage/exporting-results#json) and then use the DuckDB CLI [to import the JSON file](https://duckdb.org/docs/stable/data/json/loading_json#loading-with-the-copy-statement-using-format-json).
