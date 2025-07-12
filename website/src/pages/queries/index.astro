@@ -21,6 +21,9 @@ for (const query of remoteQueries.queries) {
     }
 }
 
+// Get an array of plugin names that have queries
+const pluginNamesWithQueries = Array.from(pluginsWithQueries).sort();
+
 const allQueries = remoteQueries;
 ---
 
@@ -86,27 +89,21 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
     </h2>
     <div class="flex flex-wrap gap-2">
         {
-            Array.from(pluginsWithQueries)
-                .sort((a, b) => a[0].localeCompare(b[0]))
-                .map(([pluginName, _]) => {
-                    const plugin = pluginsMapper[pluginName];
-                    if (!plugin) {
-                        return;
-                    }
-                    return (
-                        <a
-                            class="flex items-center text-xs bg-white/10 px-4 py-2 rounded-md"
-                            href={`/queries/plugin/${plugin.name}`}
-                        >
-                            <img
-                                class="h-4 w-4 mr-2"
-                                src={plugin.icon}
-                                alt=""
-                            />
-                            {plugin.display_name}
-                        </a>
-                    );
-                })
+            pluginNamesWithQueries.map((pluginName) => {
+                const plugin = pluginsMapper[pluginName];
+                if (!plugin) {
+                    return;
+                }
+                return (
+                    <a
+                        class="flex items-center text-xs bg-white/10 px-4 py-2 rounded-md"
+                        href={`/queries/plugin/${plugin.name}`}
+                    >
+                        <img class="h-4 w-4 mr-2" src={plugin.icon} alt="" />
+                        {plugin.display_name}
+                    </a>
+                );
+            })
         }
     </div>
     <a
