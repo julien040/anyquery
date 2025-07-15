@@ -18,11 +18,11 @@ type ParquetModule struct {
 
 type ParquetTable struct {
 	mmap   mmap.MMap
-	column map[int]string
+	column map[int]parquetColumn
 }
 
 type ParquetCursor struct {
-	column    map[int]string
+	column    map[int]parquetColumn
 	reader    *parquet.GenericReader[any]
 	rowBuffer *deque.Deque[map[string]interface{}]
 	rowID     int64
@@ -32,6 +32,12 @@ type ParquetCursor struct {
 
 	// If the parquet file is exhausted, yet we didn't return all the rows to the user
 	noMoreRows bool
+}
+
+type parquetColumn struct {
+	Name      string
+	Type      string
+	SubFields map[string]parquetColumn
 }
 
 const rowToRequestPerBatch = 16
@@ -69,7 +75,7 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 	}
 
 	// Open the file
-	mmap := mmap.MMap{}
+	var mmap mmap.MMap
 	var err error
 
 	mmap, err = openMmapedFile(fileName)
@@ -82,7 +88,7 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 	// Read the parquet file
 	reader := parquet.NewGenericReader[any](byteReader)
 
-	column := make(map[int]string)
+	column := make(map[int]parquetColumn)
 
 	sqlSchema := strings.Builder{}
 	sqlSchema.WriteString("CREATE TABLE parquet (")
@@ -106,9 +112,28 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 		default:
 			sqlSchema.WriteString("TEXT")
 		}
+
 		// Save the column name
-		column[i] = field.Name()
+		col := parquetColumn{
+			Name: field.Name(),
+			Type: field.Type().String(),
+		}
+
+		// Get subfields if the field is a group
+		if field.Type().String() == "group" {
+			col.SubFields = make(map[string]parquetColumn)
+			for _, subField := range field.Fields() {
+				col.SubFields[subField.Name()] = parquetColumn{
+					Name: subField.Name(),
+					Type: subField.Type().String(),
+				}
+			}
+		}
+
+		// Save the column in the map
+		column[i] = col
 	}
+
 	sqlSchema.WriteString(");")
 	c.DeclareVTab(sqlSchema.String())
 
@@ -118,6 +143,7 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 func (t *ParquetTable) Open() (sqlite3.VTabCursor, error) {
 	// Create a new reader
 	reader := parquet.NewGenericReader[any](bytes.NewReader(t.mmap))
+
 	return &ParquetCursor{
 		column:    t.column,
 		reader:    reader,
@@ -195,7 +221,7 @@ func (t *ParquetCursor) Column(context *sqlite3.SQLiteContext, col int) error {
 		context.ResultNull()
 		return nil
 	}
-	val, ok := t.rowBuffer.Front()[colName]
+	val, ok := t.rowBuffer.Front()[colName.Name]
 	if !ok {
 		context.ResultNull()
 		return nil
@@ -225,10 +251,36 @@ func (t *ParquetCursor) Column(context *sqlite3.SQLiteContext, col int) error {
 	case float64:
 		context.ResultDouble(valParsed)
 	case string:
-		context.ResultText(valParsed)
+		// parquet-go returns BYTE_ARRAY as string resulting in UTF-8 issues
+		// When we detect a column that has a BYTE_ARRAY type, we will convert it to a byte slice
+		if colName.Type == "BYTE_ARRAY" || colName.Type == "FIXED_LEN_BYTE_ARRAY" {
+			// Convert the string to a byte slice
+			context.ResultBlob([]byte(valParsed))
+		} else {
+			context.ResultText(valParsed)
+		}
 	case []byte:
 		context.ResultBlob(valParsed)
 	case map[string]interface{}:
+		for key, value := range valParsed {
+
+			// Get the subfield type if it exists
+			subFieldType, ok := colName.SubFields[key]
+			if !ok {
+				continue
+			}
+
+			// Same as the string case, we need to handle BYTE_ARRAY and FIXED_LEN_BYTE_ARRAY
+			if subFieldType.Type == "BYTE_ARRAY" || subFieldType.Type == "FIXED_LEN_BYTE_ARRAY" {
+				if strValue, ok := value.(string); ok {
+					valParsed[key] = []byte(strValue)
+				} else if byteValue, ok := value.([]byte); ok {
+					valParsed[key] = byteValue
+				} else {
+					valParsed[key] = value
+				}
+			}
+		}
 		marshaled, err := json.Marshal(valParsed)
 		if err != nil {
 			context.ResultNull()
