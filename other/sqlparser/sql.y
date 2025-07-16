@@ -5628,7 +5628,7 @@ function_call_keyword
   }
 | column_name_or_offset JSON_UNQUOTE_EXTRACT_OP text_literal_or_arg
   {
-    $$ = &JSONUnquoteExpr{JSONValue: &JSONExtractExpr{JSONDoc: $1, PathList: []Expr{$3}}}
+    $$ = &JSONExtractExpr{JSONDoc: $1, PathList: []Expr{$3}}
   }
 
 column_names_opt_paren:
