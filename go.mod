@@ -4,7 +4,7 @@ go 1.24.2
 
 toolchain go1.24.3
 
-replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.19.2
+replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.19.3
 
 replace github.com/runreveal/pql => github.com/julien040/pql-anyquery v0.2.1
 
