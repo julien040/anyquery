@@ -144,6 +144,14 @@ func efficientConstructSQLQuery(
 		cols = append(cols, col.Realname)
 	}
 
+	// If no columns are used, we add the first one
+	//
+	// When SQLite does a SELECT count(*), it doesn't use any column, so we need to add at least one column
+	// because most SQL engines require at least one column in the SELECT clause.
+	if len(cols) == 0 {
+		cols = append(cols, columns[0].Realname)
+	}
+
 	query.Select(cols...).From(table)
 
 	// Add the constraints (where, limit, offset)
