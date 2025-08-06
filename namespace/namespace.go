@@ -375,6 +375,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("mysql_reader", &module.MySQLModule{})
 			conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
 			conn.CreateModule("duckdb_reader", &module.DuckDBModule{})
+			conn.CreateModule("cassandra_reader", &module.CassandraModule{})
 
 			// Run the exec statements
 			for i, statement := range n.execStatements {
@@ -762,7 +763,7 @@ func extractUserConf(profile model.Profile, manifest rpc.PluginManifest) (rpc.Pl
 }
 
 // The list of external connections supported by Anyquery
-var SupportedConnections = []string{"MySQL", "PostgreSQL", "SQLite", "ClickHouse", "DuckDB"}
+var SupportedConnections = []string{"MySQL", "PostgreSQL", "SQLite", "ClickHouse", "DuckDB", "Cassandra"}
 
 // A struct to hold all the informations required to import tables from an external database
 type LoadDatabaseConnectionParams struct {
@@ -811,6 +812,8 @@ func (n *Namespace) LoadDatabaseConnection(args LoadDatabaseConnectionParams) er
 		execStatements, execArgs, err = registerExternalClickHouse(args, n.logger)
 	case "DuckDB":
 		execStatements, execArgs, err = registerExternalDuckDB(args, n.logger)
+	case "Cassandra":
+		execStatements, execArgs, err = registerExternalCassandra(args, n.logger)
 	}
 	if err != nil {
 		return fmt.Errorf("could not fetch the tables from the external database %s(connection name: %s): %w", args.DatabaseType, args.SchemaName, err)

@@ -93,6 +93,7 @@ type ClickHouseCursor struct {
 	currentRow   []interface{}
 	rowsReturned int64
 	limit        int64
+	query        SQLQueryToExecute
 }
 
 func (m *ClickHouseModule) Create(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
@@ -310,11 +311,44 @@ func (t *ClickHouseTable) Open() (sqlite3.VTabCursor, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting a new connection: %v", err)
 	}
+
+	values := make([]interface{}, len(t.schema))
+	for i := range values {
+		values[i] = new(interface{})
+		switch t.schema[i].Type {
+		case "INTEGER":
+			if t.schema[i].RemoteType[0] == 'u' {
+				// For unsigned integers, we use NullUint64
+				values[i] = new(NullUint64) // ClickHouse does not have unsigned integers, so we use NullInt64
+			} else {
+				values[i] = new(sql.NullInt64)
+			}
+		case "REAL":
+			values[i] = new(sql.NullFloat64)
+		case "TEXT":
+			if t.schema[i].RemoteType == "ipv4" || t.schema[i].RemoteType == "ipv6" {
+				// For IPv4 and IPv6, we use a net.IP type
+				values[i] = new(net.IP)
+			} else {
+				values[i] = new(sql.NullString)
+			}
+		case "BLOB":
+			values[i] = new([]byte)
+		case "DATE":
+			values[i] = new(timeMySQL)
+		case "DATETIME":
+			values[i] = new(timeMySQL)
+		default:
+			values[i] = new(interface{})
+		}
+	}
+
 	return &ClickHouseCursor{
 		connection: conn,
 		tableName:  t.tableName,
 		schema:     t.schema,
 		limit:      -1,
+		currentRow: values,
 	}, nil
 }
 
@@ -341,7 +375,7 @@ func (t *ClickHouseTable) Destroy() error {
 // To find the method, we will ask the database to explain the query and return the best method
 func (t *ClickHouseTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// Create the SQL query
-	queryBuilder, limitCstIndex, offsetCstIndex, used := constructSQLQuery(cst, ob, t.schema, t.tableName)
+	queryBuilder, limitCstIndex, offsetCstIndex, used := efficientConstructSQLQuery(cst, ob, t.schema, t.tableName, info.ColUsed)
 	queryBuilder.SetFlavor(sqlbuilder.ClickHouse)
 	rawQuery, args := queryBuilder.Build()
 	rawQuery += sqlQuerySuffix
@@ -391,6 +425,7 @@ func (t *ClickHouseTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.I
 		Args:        args,
 		LimitIndex:  limitCstIndex,
 		OffsetIndex: offsetCstIndex,
+		ColumnsUsed: info.ColUsed,
 	}
 
 	// Serialize the query as a JSON object
@@ -474,7 +509,6 @@ func (t *ClickHouseCursor) resetCursor() error {
 	t.limit = -1
 	t.rowsReturned = 0
 	t.exhausted = false
-	t.currentRow = nil
 
 	return nil
 }
@@ -492,6 +526,9 @@ func (t *ClickHouseCursor) Filter(idxNum int, idxStr string, vals []interface{})
 	if err != nil {
 		return fmt.Errorf("error unmarshalling the query: %v", err)
 	}
+
+	// Set the query for the cursor
+	t.query = query
 
 	// Get the LIMIT AND OFFSET values
 	// and remove them from the query so that we can pass these arguments to the query
@@ -539,48 +576,21 @@ func (t *ClickHouseCursor) Next() error {
 	}
 	if hasMoreRows {
 		var err error
-		// Init an array of the same size as the number of columns
-		values := make([]interface{}, len(t.schema))
-		for i := range values {
-			values[i] = new(interface{})
-			switch t.schema[i].Type {
-			case "INTEGER":
-				if t.schema[i].RemoteType[0] == 'u' {
-					// For unsigned integers, we use NullUint64
-					values[i] = new(NullUint64) // ClickHouse does not have unsigned integers, so we use NullInt64
-				} else {
-					values[i] = new(sql.NullInt64)
-				}
-			case "REAL":
-				values[i] = new(sql.NullFloat64)
-			case "TEXT":
-				if t.schema[i].RemoteType == "ipv4" || t.schema[i].RemoteType == "ipv6" {
-					// For IPv4 and IPv6, we use a net.IP type
-					values[i] = new(net.IP)
-				} else {
-					values[i] = new(sql.NullString)
-				}
-			case "BLOB":
-				values[i] = new([]byte)
-			case "DATE":
-				values[i] = new(timeMySQL)
-			case "DATETIME":
-				values[i] = new(timeMySQL)
-			default:
-				values[i] = new(interface{})
-			}
-		}
-		err = t.rows.Scan(values...)
-		if err != nil {
-			return fmt.Errorf("error scanning the row: %v", err)
-		}
-		t.currentRow = make([]interface{}, len(values))
-		for i, v := range values {
-			if v == nil {
-				t.currentRow[i] = nil
+
+		dest := make([]interface{}, 0, len(t.schema))
+		for i := range t.schema {
+			// ColumnsUsed is a bitmask that indicates which columns are used in the query
+			// If the last bit is set, it means that the rest of the columns are used
+			if t.query.ColumnsUsed&(1<<i) == 0 && i < 62 {
 				continue
 			}
-			t.currentRow[i] = v
+
+			dest = append(dest, &t.currentRow[i])
+		}
+
+		err = t.rows.Scan(dest...)
+		if err != nil {
+			return fmt.Errorf("error scanning the row: %v", err)
 		}
 
 	} else {

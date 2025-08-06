@@ -144,7 +144,10 @@ func ConnectionAdd(cmd *cobra.Command, args []string) error {
 					prefixConnectionString = "connection string for ClickHouse (see https://anyquery.dev/docs/database/clickhouse/#connection)"
 				case "DuckDB":
 					urlExample = "/path/to/database.duckdb"
-					prefixConnectionString = "path to the DuckDB database file (see https://anyquery.dev/docs/database/duckdb/)"
+					prefixConnectionString = "path to the DuckDB database file (see https://anyquery.dev/docs/database/duckdb/#getting-started)"
+				case "Cassandra":
+					urlExample = "cassandra://user:password@host:port"
+					prefixConnectionString = "connection string for Cassandra (see https://anyquery.dev/docs/database/cassandra/#getting-started)"
 				}
 
 				return fmt.Sprintf("The %s. For example: `%s`.", prefixConnectionString, urlExample)
