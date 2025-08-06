@@ -5,9 +5,11 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"net/url"
 	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	gocql "github.com/apache/cassandra-gocql-driver/v2"
 	mysql "github.com/go-sql-driver/mysql"
 	"github.com/google/cel-go/cel"
 	"github.com/hashicorp/go-hclog"
@@ -391,6 +393,92 @@ func registerExternalDuckDB(params LoadDatabaseConnectionParams, logger hclog.Lo
 
 		// Create the virtual table and its mapping
 		statements = append(statements, fmt.Sprintf("CREATE VIRTUAL TABLE IF NOT EXISTS %s USING duckdb_reader(dsn='%s', table='%s')", tableName.String(), params.ConnectionString, duckDBTableName.String()))
+		args = append(args, []driver.Value{})
+	}
+
+	return
+}
+
+func registerExternalCassandra(params LoadDatabaseConnectionParams, log hclog.Logger) (statements []string, args [][]driver.Value, err error) {
+	statements = []string{}
+	args = [][]driver.Value{}
+
+	// Create the connection
+	parsedURL, err := url.Parse(params.ConnectionString)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not parse the connection string of %s: %w", params.SchemaName, err)
+	}
+
+	hosts := strings.Split(parsedURL.Host, ",")
+	if len(hosts) == 0 || (len(hosts) == 1 && hosts[0] == "") {
+		return nil, nil, fmt.Errorf("no hosts found in the connection string of %s", params.SchemaName)
+	}
+
+	for i, host := range hosts {
+		hosts[i] = strings.TrimSpace(host)
+	}
+
+	// Create the cluster
+	cluster := gocql.NewCluster(hosts...)
+	if parsedURL.User != nil {
+		username := parsedURL.User.Username()
+		password, _ := parsedURL.User.Password()
+		if username != "" || password != "" {
+			cluster.Authenticator = gocql.PasswordAuthenticator{
+				Username: username,
+				Password: password,
+			}
+		}
+	}
+
+	session, err := cluster.CreateSession()
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not create the Cassandra session for %s: %w", params.SchemaName, err)
+	}
+	defer session.Close()
+
+	// Get the list of tables
+	query := "SELECT keyspace_name, table_name FROM system_schema.tables"
+	iter := session.Query(query).Iter()
+	tables := []sqlTable{}
+	var keyspaceName, tableName string
+	for iter.Scan(&keyspaceName, &tableName) {
+		table := sqlTable{
+			Schema:    keyspaceName,
+			TableName: tableName,
+			TableType: "TABLE", // Cassandra does not have a table type, so we set it to TABLE
+		}
+		tables = append(tables, table)
+	}
+	if err := iter.Close(); err != nil {
+		return nil, nil, fmt.Errorf("could not get the list of tables for %s: %w", params.SchemaName, err)
+	}
+
+	// Filter the tables
+	filteredTables, err := filterTables(tables, params.Filter, log)
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not filter the tables for %s: %w", params.SchemaName, err)
+	}
+
+	// Create the statements
+	// First, we attach a schema to the connection. This is just an in-memory database
+	statements = append(statements, "ATTACH DATABASE ? AS ?")
+	args = append(args, []driver.Value{fmt.Sprintf("file:%s?mode=memory&cache=shared", params.SchemaName), params.SchemaName})
+	for _, table := range filteredTables {
+		// Compute the table name
+		tableName := strings.Builder{}
+		tableName.WriteString(params.SchemaName)
+		tableName.WriteString(".")
+		tableName.WriteString(fmt.Sprintf("%s_", table.Schema))
+		tableName.WriteString(table.TableName)
+		// The table name remote side
+		cassandraTableName := strings.Builder{}
+		cassandraTableName.WriteString(table.Schema)
+		cassandraTableName.WriteString(".")
+		cassandraTableName.WriteString(table.TableName)
+
+		// Create the virtual table and its mapping
+		statements = append(statements, fmt.Sprintf("CREATE VIRTUAL TABLE IF NOT EXISTS %s USING cassandra_reader(dsn='%s', table='%s')", tableName.String(), params.ConnectionString, cassandraTableName.String()))
 		args = append(args, []driver.Value{})
 	}
 
