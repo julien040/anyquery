@@ -1125,8 +1125,8 @@ github.com/json-iterator/go v1.1.12 h1:PV8peI4a0ysnczrg+LtxykD8LfKY9ML6u2jnxaEnr
 github.com/json-iterator/go v1.1.12/go.mod h1:e30LSqwooZae/UwlEbR2852Gd8hjQvJoHmT4TnhNGBo=
 github.com/jstemmer/go-junit-report v0.0.0-20190106144839-af01ea7f8024/go.mod h1:6v2b51hI/fHJwM22ozAgKL4VKDeJcHhJFhtBdhmNjmU=
 github.com/jstemmer/go-junit-report v0.9.1/go.mod h1:Brl9GWCQeLvo8nXZwPNNblvFj/XSXhF0NWZEnDohbsk=
-github.com/julien040/go-sqlite3-anyquery v1.19.3 h1:5rkFedUNDANa6ZUKyqBQ9nN4BESo+npINnWc9+HB5Rg=
-github.com/julien040/go-sqlite3-anyquery v1.19.3/go.mod h1:9t7/JQ99yNR2b18cBR11VGyrJYg+Q7IQNHMWoCt6yGE=
+github.com/julien040/go-sqlite3-anyquery v1.19.4 h1:pPlthejytzUq9Ezza4AZHvqvA6bfPZaDsM/afqGD/x0=
+github.com/julien040/go-sqlite3-anyquery v1.19.4/go.mod h1:9t7/JQ99yNR2b18cBR11VGyrJYg+Q7IQNHMWoCt6yGE=
 github.com/julien040/go-ternary v1.0.1 h1:xWv3jYtdpdFZFbdfpU8Jn0m0z1l7Ai8yVa1Iy8jCYdw=
 github.com/julien040/go-ternary v1.0.1/go.mod h1:XXIcjDHL7vyuHA7V0UwaTKMscsqKzFkE9FTGbBeqJHM=
 github.com/julien040/pql-anyquery v0.2.1 h1:k4eF28S8diwFYWg1r6fKiA7ZmeiF65PTersyUY3GqVw=
