@@ -1,11 +1,15 @@
 .sl-markdown-content ul:not([role="tablist"]) {
     list-style-type: disc;
-    margin-left: 20px;
+    margin-left: 12px;
 }
 
 .sl-markdown-content ol:not(.sl-steps) {
     list-style-type: decimal;
-    margin-left: 20px;
+    margin-left: 12px;
+}
+
+.sl-markdown-content li:not(:last-child) {
+    margin-bottom: 0.3rem;
 }
 
 .sl-markdown-content ul li {

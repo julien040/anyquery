@@ -1,0 +1,4 @@
+name: ScyllaDB
+url: /docs/database/scylladb
+icon: /icons/scylladb.svg
+description: Query data from ScyllaDB tables.

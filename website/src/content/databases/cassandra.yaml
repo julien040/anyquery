@@ -1,0 +1,4 @@
+name: Cassandra
+url: /docs/database/cassandra
+icon: /icons/cassandra.svg
+description: Query data from Cassandra tables.

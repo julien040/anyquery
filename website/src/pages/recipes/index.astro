@@ -1,6 +1,5 @@
 ---
 import Main from "../../layouts/main.astro";
-import "../../markdown.css";
 import { getCollection } from "astro:content";
 
 const recipes = await getCollection("recipes");
@@ -8,15 +7,14 @@ const recipes = await getCollection("recipes");
 
 <Main title={"Guides - Anyquery"}>
     <h1 class="text-3xl mt-2">Recipes</h1>
-    <p class="mb-4">
+    <p class="mb-4 text-sm">
         I have written {recipes.length} tutorials using computer assistance to help
         you get started with Anyquery. If you have any questions, or would like to
         report a bug, please feel free to contact me of the <a
             href="https://github.com/julien040/anyquery/issues/new"
             class="text-blue-500"
         >
-            GitHub issue tracker
-        </a>.
+            GitHub issue tracker</a>.
     </p>
     <main
         class="grid
@@ -30,7 +28,7 @@ const recipes = await getCollection("recipes");
                     class="flex flex-col p-6 bg-black/40 rounded-lg border border-[#655cc339]"
                     href={`/recipes/${guide.slug}`}
                 >
-                    <h2 class="text-lg mt-0">{guide.data.title}</h2>
+                    <h2 class="text-md mt-0">{guide.data.title}</h2>
                     <p class="text-white/60 text-sm">
                         {guide.data.description}
                     </p>
