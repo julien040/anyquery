@@ -10,7 +10,7 @@ Anyquery is able to run queries from Cassandra-compatible databases, such as Scy
 
 ## Connection
 
-To connect a MariaDB database to Anyquery, you need to provide the connection string. It has the following format:
+To connect a ScyllaDB database to Anyquery, you need to provide the connection string. It has the following format:
 
 ```txt
 cassandra://user:password@host:port/database?option1=value1&option2=value2
