@@ -1,0 +1,68 @@
+
+name = "readwise"
+version = "0.1.0"
+description = "List and upsert/delete highlights and documents from Readwise and Readwise Reader"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/readwise"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/readwise"
+type = "anyquery"
+minimumAnyqueryVersion = "0.4.0"
+
+# highlights and documents
+[[table]]
+name = "highlights"
+description = "List all highlights in Readwise and insert/update/delete them"
+examples = [
+    "-- List all highlights\nSELECT * FROM readwise_highlights;",
+    "-- Insert a new highlight\nINSERT INTO readwise_highlights (text, note, book_source, book_title) VALUES ('Lorem ipsum dolor sit amet.', 'My annotation note.', 'https://source.example.com/highlight/abc', 'My Book Title');",
+    "-- Update an existing highlight\nUPDATE readwise_highlights SET text = 'Updated text.' WHERE text = 'Lorem ipsum dolor sit amet.';",
+    "-- Delete an existing highlight\nDELETE FROM readwise_highlights WHERE text = 'Updated text.';",
+]
+
+[[table]]
+name = "documents"
+description = "List all documents (articles, books, tweets, YouTube videos, etc.) in Readwise and insert/update/delete them"
+examples = [
+    "-- List all documents\nSELECT * FROM readwise_documents;",
+    "-- Insert a new document\nINSERT INTO readwise_documents (source_url, title, author, category) VALUES ('https://source.example.com/article/abc', 'My Article Title', 'John Doe', 'archive');",
+    "-- Update an existing document\nUPDATE readwise_documents SET title = 'Updated title.' WHERE title = 'My Article Title';",
+    "-- Delete an existing document\nDELETE FROM readwise_documents WHERE title = 'Updated title.';",
+]
+
+# The user configuration schema
+[[userConfig]]
+name = "token"
+description = "A token to access the Readwise API. You can get one at https://readwise.io/access_token"
+type = "string"
+required = true # If the user must provide a value
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "readwise"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "readwise"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "readwise"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "readwise"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "readwise.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "readwise.exe"
