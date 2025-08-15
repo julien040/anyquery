@@ -240,7 +240,7 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 			defaultValue = ""
 		}
 
-		localColumnName := transformSQLiteValidName(columnName)
+		localColumnName := fmt.Sprintf(`"%s"`, transformSQLiteValidName(columnName))
 		if !firstRow {
 			schema.WriteString(",\n")
 		}
@@ -250,9 +250,9 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 			primaryKeys = append(primaryKeys, localColumnName)
 		}
 
-		schema.WriteString(fmt.Sprintf("  \"%s\" %s", localColumnName, columnType))
+		schema.WriteString(fmt.Sprintf("  %s %s", localColumnName, columnType))
 		internalSchema = append(internalSchema, databaseColumn{
-			Realname:     columnName,
+			Realname:     fmt.Sprintf(`"%s"`, columnName),
 			SQLiteName:   localColumnName,
 			Type:         columnType,
 			Supported:    typeSupported,
