@@ -1,0 +1,61 @@
+
+name = "carddav"
+version = "0.1.0"
+description = "Query and manage CardDAV contacts with SQL"
+author = "Anyquery Team"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/carddav"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/carddav"
+type = "anyquery"
+minimumAnyqueryVersion = "0.4.0"
+
+tables = ["contacts", "address_books"]
+
+# The user configuration schema
+[[userConfig]]
+name = "url"
+description = "CardDAV server URL (e.g., https://carddav.example.com)"
+type = "string"
+required = true
+
+[[userConfig]]
+name = "username"
+description = "Username for CardDAV authentication"
+type = "string"
+required = true
+
+[[userConfig]]
+name = "password"
+description = "Password for CardDAV authentication"
+type = "string"
+required = true
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "carddav"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "carddav"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "carddav"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "carddav"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "carddav.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "carddav.exe"
