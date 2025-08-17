@@ -2,7 +2,7 @@
 name = "carddav"
 version = "0.1.0"
 description = "Query and manage CardDAV contacts with SQL"
-author = "Anyquery Team"
+author = "offlinehacker"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/carddav"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/carddav"
