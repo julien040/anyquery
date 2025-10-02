@@ -2,11 +2,12 @@ package controller
 
 import (
 	"context"
+	"crypto/rand"
 	"database/sql"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -201,6 +202,29 @@ func executeQueryLLM(
 	return nil
 }
 
+// Securely generates a random bearer token
+func generateBearerToken() string {
+	// Generate a random token
+	token := make([]byte, 32)
+	rand.Read(token)
+
+	// Encode the token as a base64 string
+	encodedToken := base64.StdEncoding.EncodeToString(token)
+
+	return encodedToken
+}
+
+// Returns true if the request has a valid authorization header
+func checkHTTPAuthorization(r *http.Request, bearerToken string) bool {
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return false
+	}
+
+	authHeader = strings.TrimPrefix(authHeader, "Bearer ")
+	return authHeader == bearerToken
+}
+
 func Gpt(cmd *cobra.Command, args []string) error {
 	// Open the configuration database
 	cdb, queries, err := requestDatabase(cmd.Flags(), false)
@@ -314,11 +338,32 @@ func Gpt(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// This token will be used to authenticate the client
+	// It must be supplied in the Authorization header of the request (prefixed with "Bearer ")
+	//
+	// The user can provide one using the environment variable ANYQUERY_AI_SERVER_BEARER_TOKEN
+	bearerToken := generateBearerToken()
+
+	envBearerToken := os.Getenv("ANYQUERY_AI_SERVER_BEARER_TOKEN")
+	if envBearerToken != "" {
+		bearerToken = envBearerToken
+	}
+
+	// Defaults to false
+	// A flag to disable the authorization mechanism for locally bound servers
+	noAuthHTTPFlag, _ := cmd.Flags().GetBool("no-auth")
+
 	// Create an HTTP server if tunnel is disabled
 	mux := http.NewServeMux()
 	mux.HandleFunc("/list-tables", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodGet {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Check the authorization header
+		if !noAuthHTTPFlag && !checkHTTPAuthorization(r, bearerToken) {
+			http.Error(w, "You must provide a valid authorization token prefixed with 'Bearer '", http.StatusUnauthorized)
 			return
 		}
 
@@ -335,6 +380,12 @@ func Gpt(cmd *cobra.Command, args []string) error {
 	mux.HandleFunc("/describe-table", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Check the authorization header
+		if !noAuthHTTPFlag && !checkHTTPAuthorization(r, bearerToken) {
+			http.Error(w, "You must provide a valid authorization token prefixed with 'Bearer '", http.StatusUnauthorized)
 			return
 		}
 
@@ -360,6 +411,12 @@ func Gpt(cmd *cobra.Command, args []string) error {
 			return
 		}
 
+		// Check the authorization header
+		if !noAuthHTTPFlag && !checkHTTPAuthorization(r, bearerToken) {
+			http.Error(w, "You must provide a valid authorization token prefixed with 'Bearer '", http.StatusUnauthorized)
+			return
+		}
+
 		body := executeQueryBody{}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			http.Error(w, fmt.Sprintf("Failed to decode the JSON body: %v", err), http.StatusBadRequest)
@@ -376,16 +433,25 @@ func Gpt(cmd *cobra.Command, args []string) error {
 		w.Header().Set("Cache-Control", "private, max-age=600")
 	})
 
+	fmt.Printf("Local server listening on %s:%d\n", host, portUser)
+	if !noAuthHTTPFlag {
+		fmt.Println("To authenticate, provide the authorization token in the Authorization header of the request (prefixed with 'Bearer ')")
+		if envBearerToken != "" {
+			fmt.Printf("Authorization token is supplied in the environment variable ANYQUERY_AI_SERVER_BEARER_TOKEN\n")
+		} else {
+			fmt.Printf("Authorization token: %s\n", bearerToken)
+		}
+	}
+	fmt.Println("Methods:")
+	fmt.Println("	GET /list-tables - List all the tables available")
+	fmt.Println("	POST /describe-table - Describe a table. Pass the table name in the body as a JSON object with the key 'table_name'")
+	fmt.Println("	POST /execute-query - Execute a query. Pass the query in the body as a JSON object with the key 'query'. Returns a markdown table for SELECT queries, and the number of rows affected for other queries")
+
 	// Start the HTTP server
 	err = http.ListenAndServe(fmt.Sprintf("%s:%d", host, portUser), mux)
 	if err != nil {
 		return fmt.Errorf("failed to start the HTTP server: %w", err)
 	}
-	fmt.Printf("Local server listening on %s:%d\n", host, portUser)
-	fmt.Printf("Methods:")
-	fmt.Println("GET /list-tables - List all the tables available")
-	fmt.Println("POST /describe-table - Describe a table. Pass the table name in the body as a JSON object with the key 'table_name'")
-	fmt.Println("POST /execute-query - Execute a query. Pass the query in the body as a JSON object with the key 'query'. Returns a markdown table for SELECT queries, and the number of rows affected for other queries")
 
 	return nil
 }
@@ -454,18 +520,6 @@ func writeTableDescription(w io.Writer, desc namespace.TableMetadata) {
 			w.Write([]byte(fmt.Sprintf("%d. %s\n\n", i+1, example)))
 		}
 	}
-}
-
-// Finds an open port so that the server can listen on it
-func findOpenPort() (int, error) {
-	// Start at 6969
-	for i := 6969; i < 65535; i++ {
-		_, err := net.Dial("tcp", fmt.Sprintf("127.0.0.1:%d", i))
-		if err != nil {
-			return i, nil
-		}
-	}
-	return 0, fmt.Errorf("all ports are taken")
 }
 
 // Get the tunnel from the database
@@ -599,12 +653,38 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		db.Close()
 	}()
 
+	useStdio, _ := cmd.Flags().GetBool("stdio")
+	tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
+
+	authEnabled := false
+	noAuthHTTPFlag, _ := cmd.Flags().GetBool("no-auth")
+	// If the server is in HTTP mode, we need to enable the auth mechanism unless the user explicitly disables it
+	if !noAuthHTTPFlag && !tunnelEnabled && !useStdio {
+		authEnabled = true
+	}
+
+	bearerToken := generateBearerToken()
+	if envBearerToken := os.Getenv("ANYQUERY_AI_SERVER_BEARER_TOKEN"); envBearerToken != "" {
+		bearerToken = envBearerToken
+	}
+
 	s := server.NewMCPServer("Anyquery", "0.1.0")
 
 	// Create the MCP server
 	tool := mcp.NewTool("listTables", mcp.WithDescription("Lists all the tables available. When the user requests data, or wants an action (insert/update/delete), call this endpoint to check if a table corresponds to the user's request."))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
+
 		response := strings.Builder{}
 		err := listTablesLLM(namespaceInstance, db, &response)
 		if err != nil {
@@ -620,6 +700,17 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
 		args := request.GetArguments()
 		param, ok := args["tableName"]
 		if !ok {
@@ -699,6 +790,17 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 `),
 		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
 		// Get the table name from the request
 		args := request.GetArguments()
 		param, ok := args["query"]
@@ -722,8 +824,6 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 	})
 
 	// Start the server
-	useStdio, _ := cmd.Flags().GetBool("stdio")
-	tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
 
 	if useStdio {
 		return server.ServeStdio(s)
@@ -817,6 +917,14 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 			baseURL = "http://" + bindAddr
 		}
 
+		if authEnabled {
+			fmt.Printf("Authentication enabled. Pass the token in the Authorization header of the request (prefixed with 'Bearer ')\n")
+			if os.Getenv("ANYQUERY_AI_SERVER_BEARER_TOKEN") != "" {
+				fmt.Printf("Authorization token is supplied in the environment variable ANYQUERY_AI_SERVER_BEARER_TOKEN\n")
+			} else {
+				fmt.Printf("Authorization token: %s\n", bearerToken)
+			}
+		}
 		fmt.Printf("Model context protocol server listening on %s/sse\n", baseURL)
 
 		sse := server.NewSSEServer(s, server.WithBaseURL(baseURL))
