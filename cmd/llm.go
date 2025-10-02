@@ -10,7 +10,10 @@ var gptCmd = &cobra.Command{
 	Aliases: []string{"chat", "chatgpt"},
 	Short:   "Open an HTTP server so that ChatGPT can do function calls",
 	Long: `Open an HTTP server so that ChatGPT can do function calls. By default, it will expose a tunnel to the internet.
-By setting the --host or --port flags, you can disable the tunnel and bind to a specific host and port. In this case, you will need to configure your LLM to connect to this host and port.`,
+
+By setting the --host or --port flags, you can disable the tunnel and bind to a specific host and port. In this case, you will need to configure your LLM to connect to this host and port.
+It will also enable the authorization token mechanism. By default, the token is randomly generated and can be found when starting the server. You can also provide a token using the ANYQUERY_AI_SERVER_BEARER_TOKEN environment variable.
+This token must be supplied in the Authorization header of the request (prefixed with "Bearer "). You can also disable the authorization mechanism by setting the --no-auth flag.`,
 
 	RunE: controller.Gpt,
 }
@@ -38,6 +41,7 @@ func init() {
 	gptCmd.Flags().String("log-format", "text", "Log format (text, json)")
 	gptCmd.Flags().String("host", "", "Host to bind to. If not empty, the tunnel will be disabled")
 	gptCmd.Flags().Int("port", 0, "Port to bind to. If not empty, the tunnel will be disabled")
+	gptCmd.Flags().Bool("no-auth", false, "Disable the authorization mechanism for locally bound servers")
 
 	// MCP command
 	rootCmd.AddCommand(mcpCmd)
