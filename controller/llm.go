@@ -653,12 +653,38 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		db.Close()
 	}()
 
+	useStdio, _ := cmd.Flags().GetBool("stdio")
+	tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
+
+	authEnabled := false
+	noAuthHTTPFlag, _ := cmd.Flags().GetBool("no-auth")
+	// If the server is in HTTP mode, we need to enable the auth mechanism unless the user explicitly disables it
+	if !noAuthHTTPFlag && !tunnelEnabled && !useStdio {
+		authEnabled = true
+	}
+
+	bearerToken := generateBearerToken()
+	if envBearerToken := os.Getenv("ANYQUERY_AI_SERVER_BEARER_TOKEN"); envBearerToken != "" {
+		bearerToken = envBearerToken
+	}
+
 	s := server.NewMCPServer("Anyquery", "0.1.0")
 
 	// Create the MCP server
 	tool := mcp.NewTool("listTables", mcp.WithDescription("Lists all the tables available. When the user requests data, or wants an action (insert/update/delete), call this endpoint to check if a table corresponds to the user's request."))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
+
 		response := strings.Builder{}
 		err := listTablesLLM(namespaceInstance, db, &response)
 		if err != nil {
@@ -674,6 +700,17 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")))
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
 		args := request.GetArguments()
 		param, ok := args["tableName"]
 		if !ok {
@@ -753,6 +790,17 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 `),
 		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+		if authEnabled {
+			suppliedToken := request.Header.Get("Authorization")
+			if suppliedToken == "" {
+				return mcp.NewToolResultError("Missing authorization token"), nil
+			}
+
+			suppliedToken = strings.TrimPrefix(suppliedToken, "Bearer ")
+			if suppliedToken != bearerToken {
+				return mcp.NewToolResultError("Invalid authorization token"), nil
+			}
+		}
 		// Get the table name from the request
 		args := request.GetArguments()
 		param, ok := args["query"]
@@ -776,8 +824,6 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 	})
 
 	// Start the server
-	useStdio, _ := cmd.Flags().GetBool("stdio")
-	tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
 
 	if useStdio {
 		return server.ServeStdio(s)
@@ -871,6 +917,14 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 			baseURL = "http://" + bindAddr
 		}
 
+		if authEnabled {
+			fmt.Printf("Authentication enabled. Pass the token in the Authorization header of the request (prefixed with 'Bearer ')\n")
+			if os.Getenv("ANYQUERY_AI_SERVER_BEARER_TOKEN") != "" {
+				fmt.Printf("Authorization token is supplied in the environment variable ANYQUERY_AI_SERVER_BEARER_TOKEN\n")
+			} else {
+				fmt.Printf("Authorization token: %s\n", bearerToken)
+			}
+		}
 		fmt.Printf("Model context protocol server listening on %s/sse\n", baseURL)
 
 		sse := server.NewSSEServer(s, server.WithBaseURL(baseURL))

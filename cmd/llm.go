@@ -48,6 +48,7 @@ func init() {
 	addFlag_commandModifiesConfiguration(mcpCmd)
 	mcpCmd.Flags().String("host", "127.0.0.1", "Host to bind to")
 	mcpCmd.Flags().String("domain", "", "Domain to use for the HTTP tunnel (empty to use the host)")
+	mcpCmd.Flags().Bool("no-auth", false, "Disable the authorization mechanism for locally bound HTTP servers")
 	mcpCmd.Flags().Int("port", 8070, "Port to bind to")
 	mcpCmd.Flags().Bool("stdio", false, "Use standard input/output for communication")
 	mcpCmd.Flags().Bool("tunnel", false, "Use an HTTP tunnel, and expose the server to the internet (when used, --host, --domain and --port are ignored)")
