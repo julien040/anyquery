@@ -8,7 +8,10 @@ Start the Model Context Protocol (MCP) server
 ### Synopsis
 
 Start the Model Context Protocol (MCP) server. It is used to provide context for LLM that supports it. 
-Pass the --stdio flag to use standard input/output for communication. By default, it will bind locally to localhost:8070 (modify it with the --host, --port and --domain flags).
+Pass the --stdio flag to use standard input/output for communication. 
+
+By default, it will bind locally to localhost:8070 (modify it with the --host, --port and --domain flags). Authentication is enabled by default for server-side events (SSE) connections. The token can be found when starting the server, or you can provide one using the ANYQUERY_AI_SERVER_BEARER_TOKEN environment variable.,
+You can disable the authorization mechanism by setting the --no-auth flag.
 
 ```bash
 anyquery mcp [flags]
@@ -27,6 +30,7 @@ anyquery mcp [flags]
       --log-file string     Log file
       --log-format string   Log format (text, json) (default "text")
       --log-level string    Log level (trace, debug, info, warn, error, off) (default "info")
+      --no-auth             Disable the authorization mechanism for locally bound HTTP servers
       --port int            Port to bind to (default 8070)
       --read-only           Open the SQLite database in read-only mode
       --readonly            Open the SQLite database in read-only mode
