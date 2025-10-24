@@ -58,6 +58,16 @@ sudo dnf install anyquery
 sudo snap install anyquery
 ``` -->
 
+### Arch Linux (AUR)
+
+```bash
+# Install using an AUR helper like yay
+yay -S anyquery-git
+
+# paru
+paru -S anyquery-git
+```
+
 ### MacOS (Homebrew)
 
 ```bash
