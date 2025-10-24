@@ -70,6 +70,15 @@ brew install anyquery
 ```bash
 sudo snap install anyquery
 ``` -->
+### ARCH LINUX (AUR)
+
+```bash
+# Install using an AUR helper like yay
+yay -S anyquery-git
+
+# paru
+paru -S anyquery-git
+```
 
 ### APT
 
