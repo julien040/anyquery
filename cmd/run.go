@@ -29,4 +29,5 @@ func init() {
 	runCmd.Flags().Bool("in-memory", false, "Use an in-memory database")
 	runCmd.Flags().Bool("readonly", false, "Start the server in read-only mode")
 	runCmd.Flags().Bool("read-only", false, "Start the server in read-only mode")
+	runCmd.Flags().Uint("limit", 0, "Limit the number of rows returned. Overrides the query limit.")
 }

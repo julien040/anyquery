@@ -11,6 +11,7 @@ export async function getStaticPaths() {
         "The anyquery run command automatically installs the required plugins for the query to run. You can also install the plugins manually using the anyquery install command.",
         "You can also run local queries using the anyquery run command. Just pass the path to the query file as an argument (e.g. anyquery run path/to/query.sql).",
         "To run a hub query on a different account, you can create a new profile using the anyquery profile create command. For example, let's say you have two GitHub accounts, run anyquery profile create github to authenticate with the second account. Next time you run a query, Anyquery will prompt you to select the profile to use.",
+        "You can limit the number of results returned by a query using the --limit flag. For example, to limit the results to 10 rows, run anyquery run <query_id> --limit 10.",
     ];
 
     const entries: any[] = [];
@@ -96,7 +97,7 @@ const { query, pluginsMapper, tip } = Astro.props;
         >
             <!-- Ensure can break in the middle -->
             <p class="font-mono tracking-tight text-xs w-full break-all">
-                {`anyquery run ${query.id}`}
+                {`anyquery run ${query.id}`} {query.arguments.map((arg) =>  `<${arg.title}>`).join(' ')}
             </p>
             <svg
                 class="h-6 w-6 ml-auto hover:text-white cursor-pointer text-white/70 transition-all"

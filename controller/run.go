@@ -55,6 +55,7 @@ func Run(cmd *cobra.Command, args []string) error {
 	if !readOnly {
 		readOnly, _ = cmd.Flags().GetBool("read-only")
 	}
+	limit, _ := cmd.Flags().GetUint("limit")
 
 	if path == ":memory:" {
 		inMemory = true
@@ -281,7 +282,7 @@ func Run(cmd *cobra.Command, args []string) error {
 	}
 
 	anyqueryConfigPath := ""
-	anyqueryConfigPath, err = cmd.Flags().GetString("config")
+	anyqueryConfigPath, _ = cmd.Flags().GetString("config")
 	if anyqueryConfigPath == "" {
 		anyqueryConfigPath, err = xdg.ConfigFile("anyquery/config.db")
 		if err != nil {
@@ -311,7 +312,16 @@ func Run(cmd *cobra.Command, args []string) error {
 	// Request the arguments
 	fields := make([]huh.Field, 0, len(manifest.Args))
 	rawAnswers := make([]string, len(manifest.Args))
+	rawAnswersFromArgs := args[1:]
 	for i, arg := range manifest.Args {
+		// Check if the argument was supplied in the args
+		if i < len(rawAnswersFromArgs) {
+			rawAnswers[i] = rawAnswersFromArgs[i]
+			continue
+		}
+
+		// Otherwise, we request the argument
+
 		title := arg.Title
 		// Make sure the title is not empty
 		if title == "" {
@@ -579,38 +589,53 @@ func Run(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
+		limitFound := false
+
 		// Replace the table names
 		sqlparser.Rewrite(stmt, nil, func(c *sqlparser.Cursor) bool {
-			table, ok := c.Node().(sqlparser.TableName)
-			if !ok {
-				return true
-			}
-
-			tableName := table.Name.String()
-			// Skip if the table name is empty
-			if tableName == "" {
-				return true
-			}
-			for plugin, profile := range mapProfilePlugin {
-				if strings.HasPrefix(tableName, plugin) && profile != "default" {
-					tableName = profile + "_" + tableName
-					// Check if the table is aliased
-					if alias, ok := aliasesMap[tableName]; ok {
-						tableName = alias
+			switch node := c.Node().(type) {
+			case sqlparser.TableName:
+				tableName := node.Name.String()
+				// Skip if the table name is empty
+				if tableName == "" {
+					return true
+				}
+				for plugin, profile := range mapProfilePlugin {
+					if strings.HasPrefix(tableName, plugin) && profile != "default" {
+						tableName = profile + "_" + tableName
+						// Check if the table is aliased
+						if alias, ok := aliasesMap[tableName]; ok {
+							tableName = alias
+						}
+						break
 					}
-					break
+				}
+
+				// Replace the table name
+				c.Replace(sqlparser.TableName{
+					Name:      sqlparser.NewIdentifierCS(tableName),
+					Qualifier: node.Qualifier,
+					Args:      node.Args,
+				})
+			case *sqlparser.Limit:
+				limitFound = true
+				// If limit is set by the user, we override the limit
+				if limit > 0 {
+					limitClause := sqlparser.NewLimitWithoutOffset(int(limit))
+					limitClause.Offset = node.Offset
+					c.Replace(limitClause)
 				}
 			}
-
-			// Replace the table name
-			c.Replace(sqlparser.TableName{
-				Name:      sqlparser.NewIdentifierCS(tableName),
-				Qualifier: table.Qualifier,
-				Args:      table.Args,
-			})
-
 			return true
 		})
+
+		// If no limit found and limit is set by the user, we add it
+		if !limitFound && limit > 0 {
+			sel, ok := stmt.(*sqlparser.Select)
+			if ok {
+				sel.Limit = sqlparser.NewLimitWithoutOffset(int(limit))
+			}
+		}
 
 		queriesToRun[i] = sqlparser.String(stmt)
 
