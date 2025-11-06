@@ -476,7 +476,7 @@ func (t *MySQLTable) Destroy() error {
 // To find the method, we will ask the database to explain the query and return the best method
 func (t *MySQLTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// Create the SQL query
-	queryBuilder, limitCstIndex, offsetCstIndex, used := constructSQLQuery(cst, ob, t.schema, t.tableName)
+	queryBuilder, limitCstIndex, offsetCstIndex, used := constructSQLQuery(cst, ob, t.schema, t.tableName, sqlbuilder.MySQL)
 	queryBuilder.SetFlavor(sqlbuilder.MySQL)
 	rawQuery, args := queryBuilder.Build()
 	rawQuery += sqlQuerySuffix
