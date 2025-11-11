@@ -97,7 +97,7 @@ const { query, pluginsMapper, tip } = Astro.props;
         >
             <!-- Ensure can break in the middle -->
             <p class="font-mono tracking-tight text-xs w-full break-all">
-                {`anyquery run ${query.id}`} {query.arguments.map((arg) =>  `<${arg.title}>`).join(' ')}
+                {`anyquery run ${query.id}`} {query.arguments?.map((arg) =>  `<${arg.title}>`).join(' ')}
             </p>
             <svg
                 class="h-6 w-6 ml-auto hover:text-white cursor-pointer text-white/70 transition-all"
