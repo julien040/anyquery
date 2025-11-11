@@ -7,7 +7,7 @@ import readline from "readline";
 
 console.log("Downloading sqlean shared objects");
 
-const currentVersion = "0.27.0";
+const currentVersion = "0.28.0";
 
 const platforms = [
     {
@@ -17,13 +17,13 @@ const platforms = [
         goName: "linux/arm64",
     },
     {
-        name: "sqlean-linux-x86.zip",
+        name: "sqlean-linux-x64.zip",
         folder: "linux-x86",
         fileExtension: "so",
         goName: "linux/amd64",
     },
     {
-        name: "sqlean-macos-x86.zip",
+        name: "sqlean-macos-x64.zip",
         folder: "macos-x86",
         fileExtension: "dylib",
         goName: "darwin/amd64",
@@ -54,9 +54,9 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
-rl.question("Enter the user: ", (u) => {
+rl.question("Enter the plugin-manager username: ", (u) => {
     user = u;
-    rl.question("Enter the password: ", (p) => {
+    rl.question("Enter the plugin-manager password: ", (p) => {
         password = p;
         rl.close();
     });
