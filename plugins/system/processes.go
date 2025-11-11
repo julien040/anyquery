@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/julien040/anyquery/rpc"
@@ -86,6 +87,7 @@ func (t *processesTable) CreateReader() rpc.ReaderInterface {
 func (t *processesCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bool, error) {
 	processes, err := process.Processes()
 	if err != nil {
+		log.Printf("failed to get processes: %v", err)
 		return nil, true, fmt.Errorf("failed to get processes: %w", err)
 	}
 	rows := make([][]interface{}, 0, len(processes))
