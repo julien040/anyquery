@@ -30,15 +30,18 @@ func constructSQLQuery(
 	ob []sqlite3.InfoOrderBy,
 	columns []databaseColumn,
 	table string,
+	flavor sqlbuilder.Flavor,
 
 ) (query *sqlbuilder.SelectBuilder, limit int, offset int, used []bool) {
 
 	// Initialize the SQL query builder
 	query = sqlbuilder.NewSelectBuilder()
+	query.SetFlavor(flavor)
 	// Add all the columns to the query
 	cols := []string{}
 	for _, col := range columns {
-		cols = append(cols, col.Realname)
+		// Quote column names to handle reserved keywords (e.g., `order` for MySQL)
+		cols = append(cols, flavor.Quote(col.Realname))
 	}
 
 	query.Select(cols...).From(table)
@@ -112,10 +115,11 @@ func constructSQLQuery(
 
 	// Add the order by
 	for _, o := range ob {
+		quotedCol := flavor.Quote(columns[o.Column].Realname)
 		if o.Desc {
-			query.OrderBy(columns[o.Column].Realname + " DESC")
+			query.OrderBy(quotedCol + " DESC")
 		} else {
-			query.OrderBy(columns[o.Column].Realname + " ASC")
+			query.OrderBy(quotedCol + " ASC")
 		}
 	}
 
@@ -129,11 +133,13 @@ func efficientConstructSQLQuery(
 	columns []databaseColumn,
 	table string,
 	colUsed uint64,
+	flavor sqlbuilder.Flavor,
 
 ) (query *sqlbuilder.SelectBuilder, limit int, offset int, used []bool) {
 
 	// Initialize the SQL query builder
 	query = sqlbuilder.NewSelectBuilder()
+	query.SetFlavor(flavor)
 	// Add all the columns to the query
 	cols := []string{}
 	for i, col := range columns {
@@ -141,7 +147,8 @@ func efficientConstructSQLQuery(
 			// If the column is not used, we skip it
 			continue
 		}
-		cols = append(cols, col.Realname)
+		// Quote column names to handle reserved keywords (e.g., `order` for MySQL)
+		cols = append(cols, flavor.Quote(col.Realname))
 	}
 
 	// If no columns are used, we add the first one
@@ -149,7 +156,7 @@ func efficientConstructSQLQuery(
 	// When SQLite does a SELECT count(*), it doesn't use any column, so we need to add at least one column
 	// because most SQL engines require at least one column in the SELECT clause.
 	if len(cols) == 0 {
-		cols = append(cols, columns[0].Realname)
+		cols = append(cols, flavor.Quote(columns[0].Realname))
 	}
 
 	query.Select(cols...).From(table)
@@ -223,10 +230,11 @@ func efficientConstructSQLQuery(
 
 	// Add the order by
 	for _, o := range ob {
+		quotedCol := flavor.Quote(columns[o.Column].Realname)
 		if o.Desc {
-			query.OrderBy(columns[o.Column].Realname + " DESC")
+			query.OrderBy(quotedCol + " DESC")
 		} else {
-			query.OrderBy(columns[o.Column].Realname + " ASC")
+			query.OrderBy(quotedCol + " ASC")
 		}
 	}
 
