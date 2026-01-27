@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 // This file defines the string functions that are available in SQL queries

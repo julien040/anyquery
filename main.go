@@ -6,7 +6,7 @@ import (
 	"runtime/debug"
 
 	"github.com/julien040/anyquery/cmd"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 // Version of the program

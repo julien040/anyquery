@@ -12,8 +12,8 @@ import (
 	"sync"
 
 	"github.com/edsrzf/mmap-go"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"github.com/julien040/go-ternary"
-	"github.com/mattn/go-sqlite3"
 	"vitess.io/vitess/go/vt/sqlparser"
 )
 

@@ -9,7 +9,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/andybalholm/cascadia"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"golang.org/x/net/html"
 )
 

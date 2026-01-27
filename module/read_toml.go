@@ -9,7 +9,7 @@ import (
 
 	"github.com/BurntSushi/toml"
 	"github.com/edsrzf/mmap-go"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 type TomlModule struct {

@@ -16,7 +16,7 @@ import (
 	"github.com/twpayne/go-geom/encoding/wkt"
 
 	mysql "github.com/go-sql-driver/mysql"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 var mysqlSuffix = "/* Query sent by Anyquery */"

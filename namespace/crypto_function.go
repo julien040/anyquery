@@ -7,7 +7,7 @@ import (
 	"crypto/sha512"
 	"math/rand/v2"
 
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"golang.org/x/crypto/blake2b"
 )
 

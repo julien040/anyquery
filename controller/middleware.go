@@ -14,7 +14,7 @@ import (
 	"github.com/julien040/anyquery/other/prql"
 	"github.com/julien040/anyquery/other/sqlparser"
 	"github.com/julien040/go-ternary"
-	"github.com/runreveal/pql"
+	pql "github.com/julien040/pql-anyquery"
 )
 
 func middlewareDotCommand(queryData *QueryData) bool {

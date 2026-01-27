@@ -3,7 +3,7 @@ package namespace
 import (
 	"net/url"
 
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 // This file defines the url functions that are available in SQL queries

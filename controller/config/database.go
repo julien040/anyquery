@@ -9,7 +9,7 @@ import (
 	_ "embed"
 
 	"github.com/adrg/xdg"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/julien040/go-sqlite3-anyquery"
 
 	"github.com/julien040/anyquery/controller/config/model"
 )

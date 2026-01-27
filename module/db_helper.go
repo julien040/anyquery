@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/huandu/go-sqlbuilder"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 type databaseColumn struct {

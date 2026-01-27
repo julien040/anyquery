@@ -9,7 +9,7 @@ import (
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/gammazero/deque"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"github.com/parquet-go/parquet-go"
 )
 
