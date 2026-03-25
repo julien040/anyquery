@@ -13,7 +13,7 @@ import (
 	"github.com/hjson/hjson-go/v4"
 	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/rpc"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 
 	_ "embed"

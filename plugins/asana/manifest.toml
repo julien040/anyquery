@@ -1,22 +1,57 @@
 
 name = "asana"
+displayName = "Asana"
 version = "0.1.0"
-description = "My awesome plugin description"
-author = "A fantastic developer"
+description = "Query and manage your Asana tasks, projects, goals, and workspaces with SQL"
+author = "Julien040"
 license = "UNLICENSED"
-repository = ""
-homepage = ""
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/asana"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/asana"
 type = "anyquery"
 minimumAnyqueryVersion = "0.4.0"
 
-tables = ["asana"]
+[[table]]
+name = "tasks"
+description = "List, create, update, and delete tasks within an Asana project"
+examples = [
+    "-- List all incomplete tasks in a project\nSELECT gid, name, due_at, assignee FROM asana_tasks('<project_gid>') WHERE completed = 0;",
+    "-- Count tasks per section\nSELECT section, COUNT(*) AS task_count FROM asana_tasks('<project_gid>') GROUP BY section;",
+    "-- Create a new task\nINSERT INTO asana_tasks(project_id, name, notes, due_at) VALUES ('<project_gid>', 'Fix login bug', 'Users cannot log in on mobile', '2024-12-31');",
+    "-- Mark a task as complete\nUPDATE asana_tasks SET completed = 1 WHERE gid = '<task_gid>' AND project_id = '<project_gid>';",
+    "-- Delete a task\nDELETE FROM asana_tasks WHERE gid = '<task_gid>' AND project_id = '<project_gid>';",
+    "-- Read a custom field value\nSELECT name, custom_fields ->> '$.Priority' AS priority FROM asana_tasks('<project_gid>');",
+]
+
+[[table]]
+name = "projects"
+description = "List all projects in an Asana workspace"
+examples = [
+    "-- List all active projects in a workspace\nSELECT gid, name, owner, team FROM asana_projects('<workspace_gid>') WHERE archived = 0;",
+    "-- Find projects modified in the last 30 days\nSELECT name, modified_at FROM asana_projects('<workspace_gid>') WHERE modified_at >= date('now', '-30 days') ORDER BY modified_at DESC;",
+]
+
+[[table]]
+name = "goals"
+description = "List goals in an Asana workspace (requires Premium plan or higher)"
+examples = [
+    "-- List all goals in a workspace\nSELECT name, status, due_on FROM asana_goals('<workspace_gid>');",
+    "-- Find at-risk or missed goals\nSELECT name, owner, due_on FROM asana_goals('<workspace_gid>') WHERE status IN ('at_risk', 'missed');",
+]
+
+[[table]]
+name = "workspaces"
+description = "List all Asana workspaces and organizations accessible to the authenticated user"
+examples = [
+    "-- List all workspaces\nSELECT * FROM asana_workspaces;",
+    "-- Find your workspace GID (use it to query projects and goals)\nSELECT gid, name FROM asana_workspaces WHERE is_organization = 1;",
+]
 
 # The user configuration schema
 [[userConfig]]
-name = "my_token"
-description = "A description of why this token is needed"
+name = "token"
+description = "Your Asana Personal Access Token (PAT). Create one at https://app.asana.com/0/my-apps"
 type = "string"
-required = true # If the user must provide a value
+required = true
 
 [[file]]
 platform = "linux/amd64"

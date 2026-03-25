@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/edsrzf/mmap-go"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 	"github.com/trivago/grok"
 )
 

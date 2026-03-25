@@ -14,7 +14,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 var fetchClickHouseSchemaSQLQuery = `

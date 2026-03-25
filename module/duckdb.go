@@ -9,7 +9,7 @@ import (
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/julien040/anyquery/other/duckdb"
 
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 var fetchDuckDBSchemaSQLQuery = `

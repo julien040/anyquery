@@ -17,7 +17,7 @@ import (
 	"gopkg.in/inf.v0"
 
 	gocql "github.com/apache/cassandra-gocql-driver/v2"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
 var fetchCassandraSchemaSQLQuery = `

@@ -4,10 +4,6 @@ go 1.24.2
 
 toolchain go1.24.3
 
-replace github.com/mattn/go-sqlite3 => github.com/julien040/go-sqlite3-anyquery v1.19.4
-
-replace github.com/runreveal/pql => github.com/julien040/pql-anyquery v0.2.1
-
 require (
 	github.com/BurntSushi/toml v1.5.0
 	github.com/ClickHouse/clickhouse-go/v2 v2.35.0
@@ -39,12 +35,12 @@ require (
 	github.com/huandu/go-sqlbuilder v1.35.1
 	github.com/jackc/pgx/v5 v5.7.5
 	github.com/jmoiron/sqlx v1.4.0
+	github.com/julien040/go-sqlite3-anyquery v1.19.4
 	github.com/julien040/go-ternary v1.0.1
+	github.com/julien040/pql-anyquery v0.2.2
 	github.com/mark3labs/mcp-go v0.41.0
-	github.com/mattn/go-sqlite3 v1.14.28
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/parquet-go/parquet-go v0.25.1
-	github.com/runreveal/pql v0.2.0
 	github.com/samber/lo v1.51.0
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.9.1
@@ -182,6 +178,7 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.16 // indirect
+	github.com/mattn/go-sqlite3 v1.14.28 // indirect
 	github.com/mattn/go-tty v0.0.7 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
@@ -220,6 +217,7 @@ require (
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
 	github.com/quic-go/quic-go v0.48.2 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
+	github.com/runreveal/pql v0.2.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
 	github.com/sagikazarmark/locafero v0.9.0 // indirect

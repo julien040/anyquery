@@ -18,7 +18,7 @@ import (
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/rpc"
-	"github.com/mattn/go-sqlite3"
+	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 
 	"golang.org/x/mod/sumdb/dirhash"
 )
