@@ -671,7 +671,11 @@ func Mcp(cmd *cobra.Command, args []string) error {
 	s := server.NewMCPServer("Anyquery", "0.1.0")
 
 	// Create the MCP server
-	tool := mcp.NewTool("listTables", mcp.WithDescription("Lists all the tables available. When the user requests data, or wants an action (insert/update/delete), call this endpoint to check if a table corresponds to the user's request."))
+	tool := mcp.NewTool("listTables",
+		mcp.WithDescription("Lists all the tables available. When the user requests data, or wants an action (insert/update/delete), call this endpoint to check if a table corresponds to the user's request."),
+		mcp.WithTitleAnnotation("List Tables"),
+		mcp.WithReadOnlyHintAnnotation(true),
+	)
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		if authEnabled {
@@ -697,7 +701,10 @@ func Mcp(cmd *cobra.Command, args []string) error {
 
 	tool = mcp.NewTool("describeTable",
 		mcp.WithDescription("Describes a table. It returns the columns of the table, the supported operations, and the SQL examples. Before calling executeQuery, you must call this endpoint for each table you want to interact with."),
-		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")))
+		mcp.WithTitleAnnotation("Describe Table"),
+		mcp.WithReadOnlyHintAnnotation(true),
+		mcp.WithString("tableName", mcp.Required(), mcp.Description("The name of the table to describe")),
+	)
 
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		if authEnabled {
@@ -788,7 +795,10 @@ To install Anyquery, the user must follow the tutorial at https://anyquery.dev/d
 
 By default, Anyquery does not have any integrations. The user must visit https://anyquery.dev/integrations to find some integrations they might like and follow the instructions to add them.
 `),
-		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")))
+		mcp.WithTitleAnnotation("Execute Query"),
+		mcp.WithDestructiveHintAnnotation(true),
+		mcp.WithString("query", mcp.Required(), mcp.Description("The SQL query to execute")),
+	)
 	s.AddTool(tool, func(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 		if authEnabled {
 			suppliedToken := request.Header.Get("Authorization")
