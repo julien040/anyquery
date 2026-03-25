@@ -275,14 +275,14 @@ func Query(cmd *cobra.Command, args []string) error {
 			}
 			// We check if the query starts with a dot or a slash
 			// If so, we execute it immediately
-			if line[0] == '.' || line[0] == '/' {
+			if len(line) >= 1 && (line[0] == '.' || line[0] == '/') {
 				shell.Run(query.String())
 				query.Reset()
 			}
 
 			// Otherwise, we check if the query ends with a semicolon
 			// If so, we execute it immediately
-			if line[len(line)-2] == ';' {
+			if len(line) >= 2 && line[len(line)-2] == ';' {
 				shell.Run(query.String())
 				query.Reset()
 			}

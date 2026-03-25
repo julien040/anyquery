@@ -5,6 +5,6 @@ import (
 )
 
 func main() {
-	plugin := rpc.NewPlugin(tasksCreator)
+	plugin := rpc.NewPlugin(tasksCreator, projectsCreator, goalsCreator, workspacesCreator)
 	plugin.Serve()
 }
