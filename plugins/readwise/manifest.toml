@@ -1,6 +1,6 @@
 
 name = "readwise"
-version = "0.1.0"
+version = "0.1.2"
 description = "List and upsert/delete highlights and documents from Readwise and Readwise Reader"
 author = "julien040"
 license = "UNLICENSED"

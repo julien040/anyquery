@@ -1,6 +1,6 @@
 
 name = "google_forms"
-version = "0.1.1"
+version = "0.1.3"
 description = "Query the responses of a Google Form"
 author = "Julien040"
 license = "UNLICENSED"

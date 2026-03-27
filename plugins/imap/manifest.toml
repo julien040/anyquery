@@ -1,6 +1,6 @@
 
 name = "imap"
-version = "0.1.4"
+version = "0.1.6"
 description = "Query your emails with SQL"
 author = "julien040"
 license = "UNLICENSED"

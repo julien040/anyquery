@@ -1,7 +1,7 @@
 
 name = "docker"
 displayName = "Docker"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query docker containers, images, and networks"
 author = "julien040"
 license = "UNLICENSED"

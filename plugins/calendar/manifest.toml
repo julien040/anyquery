@@ -1,6 +1,6 @@
 
 name = "calendar"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query events from a calendar (iCal format)"
 author = "julien040"
 license = "UNLICENSED"

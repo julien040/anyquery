@@ -116,6 +116,8 @@ func main() {
 		password = string(rawPass)
 	}
 
+	fmt.Printf("Using user: %s & password: %s\n", user, password)
+
 	urlAuth, err := url.Parse(registryURL + "/api/collections/_superusers/auth-with-password?fields=*")
 	if err != nil {
 		panic(err)

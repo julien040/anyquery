@@ -1,7 +1,7 @@
 
 name = "hn"
 displayName = "Hacker News"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query user and post data from Hacker News"
 author = "julien040"
 license = "UNLICENSED"

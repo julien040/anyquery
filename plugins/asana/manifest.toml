@@ -1,7 +1,7 @@
 
 name = "asana"
 displayName = "Asana"
-version = "0.1.0"
+version = "0.1.2"
 description = "Query and manage your Asana tasks, projects, goals, and workspaces with SQL"
 author = "Julien040"
 license = "UNLICENSED"

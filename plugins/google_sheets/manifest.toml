@@ -1,6 +1,6 @@
 
 name = "google_sheets"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query/insert/update/delete data in Google Sheets"
 author = "julien040"
 license = "UNLICENSED"

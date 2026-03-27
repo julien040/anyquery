@@ -1,6 +1,6 @@
 
 name = "rss"
-version = "0.1.1"
+version = "0.1.3"
 description = "Query RSS feeds locally or over HTTP"
 author = "julien040"
 license = "UNLICENSED"

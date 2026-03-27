@@ -1,6 +1,6 @@
 
 name = "clickup"
-version = "0.1.2"
+version = "0.1.4"
 description = "Read tasks and documents from ClickUp"
 author = "julien040"
 license = "UNLICENSED"
