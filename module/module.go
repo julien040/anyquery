@@ -891,6 +891,9 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 	// We request the rows from the plugin
 	rows, noMoreRows, err := cursor.client.Plugin.Query(cursor.connectionIndex, cursor.tableIndex, cursor.cursorIndex, cursor.constraints)
 	if err != nil {
+		if strings.Contains(err.Error(), "unexpected EOF") {
+			err = errors.New("the plugin process was killed or crashed. Please check the plugin logs for more information")
+		}
 		cursor.logger.Error("could not request the rows from the plugin", "error", err, "table", cursor.tableIndex, "connection", cursor.connectionIndex)
 		return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
 	}
@@ -901,6 +904,9 @@ func (cursor *SQLiteCursor) requestRowsFromPlugin() (int, error) {
 		i++
 		time.Sleep(10 * time.Millisecond)
 		if err != nil {
+			if strings.Contains(err.Error(), "unexpected EOF") {
+				err = errors.New("the plugin process was killed or crashed. Please check the plugin logs for more information")
+			}
 			return 0, errors.Join(errors.New("could not request the rows from the plugin"), err)
 		}
 	}
