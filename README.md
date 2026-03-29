@@ -19,6 +19,10 @@ Finally, it can act as a [MySQL server](https://anyquery.dev/docs/usage/mysql-se
 
 ![Anyquery header](https://anyquery.dev/images/release-header.png)
 
+## Hosted deployment
+
+A hosted deployment is available on [Fronteir AI](https://fronteir.ai/mcp/julien040-anyquery).
+
 ## Usage
 
 ### Connecting LLM
