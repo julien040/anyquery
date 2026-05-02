@@ -12,6 +12,7 @@
 .gut
 
 # Go template downloaded with gut
+anyquery
 *.exe
 *.exe~
 *.dll
