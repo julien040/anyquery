@@ -233,7 +233,7 @@ func (t *cardsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 		// The API returns the number of minutes before the due date to remind the user
 		// We need to compute the actual reminder date
 		dueReminder := interface{}(nil)
-		if card.DueReminder != nil {
+		if card.DueReminder != nil && card.Due != nil {
 			dueAtParsed, err := time.Parse(time.RFC3339, *card.Due)
 			if err == nil {
 				dueAtParsed = dueAtParsed.Add(-time.Duration((*card.DueReminder)) * time.Minute)
