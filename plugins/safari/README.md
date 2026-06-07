@@ -1,5 +1,8 @@
 ## Safari plugin
 
+> [!IMPORTANT]
+> Please update this plugin to version 0.2.0 or later. Versions below 0.2.0 are subject to [CVE-2026-47252](https://github.com/julien040/anyquery/security/advisories), an AppleScript code injection vulnerability in the `tabs` table. Run `anyquery install safari` (or `anyquery plugin update safari`) to upgrade.
+
 Query/insert/modify your tabs in Safari.
 
 ## Installation
