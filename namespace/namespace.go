@@ -23,6 +23,41 @@ import (
 	"golang.org/x/mod/sumdb/dirhash"
 )
 
+// deniedSandboxFunctions is the set of scalar SQL functions the sandbox
+// authorizer blocks outright (SQLITE_FUNCTION), as defense in depth on top of
+// the per-function policy checks. These read arbitrary files or delete on-disk
+// cache directories. load_extension is included so a future change that
+// re-enables the SQL function (go-sqlite3 disables it by default) cannot
+// silently become an RCE vector. Keys are lowercase.
+var deniedSandboxFunctions = map[string]bool{
+	"load_file":          true,
+	"load_file_bytes":    true,
+	"clear_plugin_cache": true,
+	"clear_file_cache":   true,
+	"load_extension":     true,
+}
+
+// allowedSandboxPragmas is the read-only PRAGMA allowlist enforced by the
+// sandbox authorizer (SQLITE_PRAGMA). Everything not listed is denied. These
+// are the schema-introspection pragmas the engine, the MySQL protocol handler
+// (notably the direct "PRAGMA database_list"), and the information_schema /
+// SHOW emulation depend on. Keys are lowercase.
+var allowedSandboxPragmas = map[string]bool{
+	"table_info":       true,
+	"table_xinfo":      true,
+	"table_list":       true,
+	"index_info":       true,
+	"index_xinfo":      true,
+	"index_list":       true,
+	"foreign_key_list": true,
+	"database_list":    true,
+	"collation_list":   true,
+	"function_list":    true,
+	"module_list":      true,
+	"pragma_list":      true,
+	"compile_options":  true,
+}
+
 func hashDirectory(path string) (string, error) {
 	str, err := dirhash.HashDir(path, "", dirhash.Hash1)
 	if err != nil {
@@ -67,6 +102,13 @@ type NamespaceConfig struct {
 	// This can represent a security risk if the server is exposed to the internet
 	// Therefore, it's recommended to disable it in production
 	DevMode bool
+
+	// Restrictions is the sandboxing policy applied to file/URL access, the
+	// database reader modules, and ATTACH/VACUUM INTO. A nil value (the default)
+	// means no restrictions, which is appropriate for trusted local CLI use. A
+	// non-nil value is enforced and should be set when exposing the namespace as
+	// a server. See module.Restrictions.
+	Restrictions *module.Restrictions
 }
 
 type Namespace struct {
@@ -105,6 +147,9 @@ type Namespace struct {
 	// A map of the plugin table, and their modules
 	// This is used to flush the insert/update/delete buffers
 	anyqueryPlugins map[string]*module.SQLiteModule
+
+	// The sandboxing policy (nil means no restrictions). See module.Restrictions.
+	restrictions *module.Restrictions
 }
 
 type sharedObjectExtension struct {
@@ -178,6 +223,9 @@ func (n *Namespace) Init(config NamespaceConfig) error {
 
 	// Set the dev mode
 	n.devMode = config.DevMode
+
+	// Set the sandboxing policy (nil means no restrictions)
+	n.restrictions = config.Restrictions
 
 	// Create the connection pool
 	n.pool = rpc.NewConnectionPool()
@@ -338,19 +386,24 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.RegisterFunc("clear_buffers", bufferFlusher.Clear, false)
 			conn.RegisterFunc("flush_buffers", bufferFlusher.Flush, false)
 
-			// Register JSON and CSV modules
-			conn.CreateModule("json_reader", &module.JSONModule{})
-			conn.CreateModule("csv_reader", &module.CsvModule{})
-			conn.CreateModule("parquet_reader", &module.ParquetModule{})
-			conn.CreateModule("html_reader", &module.HtmlModule{})
-			conn.CreateModule("yaml_reader", &module.YamlModule{})
-			conn.CreateModule("toml_reader", &module.TomlModule{})
-			conn.CreateModule("jsonl_reader", &module.JSONlModule{})
-			conn.CreateModule("log_reader", &module.LogModule{})
+			// Register JSON and CSV modules.
+			// Each reader receives the sandbox policy (nil = unrestricted) so it
+			// confines local file reads to the allowed directories and rejects
+			// remote fetches unless permitted.
+			conn.CreateModule("json_reader", &module.JSONModule{Restrictions: n.restrictions})
+			conn.CreateModule("csv_reader", &module.CsvModule{Restrictions: n.restrictions})
+			conn.CreateModule("parquet_reader", &module.ParquetModule{Restrictions: n.restrictions})
+			conn.CreateModule("html_reader", &module.HtmlModule{Restrictions: n.restrictions})
+			conn.CreateModule("yaml_reader", &module.YamlModule{Restrictions: n.restrictions})
+			conn.CreateModule("toml_reader", &module.TomlModule{Restrictions: n.restrictions})
+			conn.CreateModule("jsonl_reader", &module.JSONlModule{Restrictions: n.restrictions})
+			conn.CreateModule("log_reader", &module.LogModule{Restrictions: n.restrictions})
 
 			// Register the string functions
 			// like position, repeat, replace, etc.
-			registerStringFunctions(conn)
+			// The sandbox policy (nil = unrestricted) is threaded in so that
+			// load_file/load_file_bytes honor the allowed-directory policy.
+			registerStringFunctions(conn, n.restrictions)
 
 			// Register the URL functions
 			registerURLFunctions(conn)
@@ -362,7 +415,9 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			registerDateFunctions(conn)
 
 			// Register the other functions
-			registerOtherFunctions(conn)
+			// The sandbox policy (nil = unrestricted) is threaded in so that
+			// the cache-management functions are no-ops under a sandbox.
+			registerOtherFunctions(conn, n.restrictions)
 
 			// Register the JSON functions
 			registerJSONFunctions(conn)
@@ -370,12 +425,17 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			// Register the collations
 			registerCollations(conn)
 
-			// Database related modules
-			conn.CreateModule("postgres_reader", &module.PostgresModule{})
-			conn.CreateModule("mysql_reader", &module.MySQLModule{})
-			conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
-			conn.CreateModule("duckdb_reader", &module.DuckDBModule{})
-			conn.CreateModule("cassandra_reader", &module.CassandraModule{})
+			// Database related modules.
+			// These accept arbitrary connection strings (SSRF), and DuckDB can
+			// read local files and load extensions (RCE), so they are not
+			// registered under a sandbox unless explicitly allowed.
+			if n.restrictions == nil || n.restrictions.AllowDBConnections {
+				conn.CreateModule("postgres_reader", &module.PostgresModule{})
+				conn.CreateModule("mysql_reader", &module.MySQLModule{})
+				conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
+				conn.CreateModule("duckdb_reader", &module.DuckDBModule{})
+				conn.CreateModule("cassandra_reader", &module.CassandraModule{})
+			}
 
 			// Run the exec statements
 			for i, statement := range n.execStatements {
@@ -383,6 +443,51 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				if err != nil {
 					n.logger.Error("could not execute the exec statement", "statement", statement, "error", err)
 				}
+			}
+
+			// Register the sandbox authorizer last, so all trusted setup above
+			// runs unrestricted: module creation and the exec statements, which
+			// include internal ATTACHes (information_schema/mysql, in-memory) and
+			// operator-configured external database connections. From here on,
+			// client queries on this connection are gated. ATTACH DATABASE — and
+			// VACUUM ... INTO, which SQLite implements as an attach and which
+			// surfaces through the same SQLITE_ATTACH action with the target path
+			// as arg1 — are confined to in-memory databases and the allowed
+			// directories. An empty/unparsed path (e.g. a parameterized ATTACH,
+			// authorized at prepare time before its value is bound) is denied.
+			if n.restrictions != nil {
+				conn.RegisterAuthorizer(func(op int, arg1, arg2, arg3 string) int {
+					switch op {
+					case sqlite3.SQLITE_ATTACH:
+						if n.restrictions.AllowAttachPath(arg1) {
+							return sqlite3.SQLITE_OK
+						}
+						return sqlite3.SQLITE_DENY
+					case sqlite3.SQLITE_FUNCTION:
+						// Defense in depth on top of the per-function checks:
+						// deny the scalar functions that read files or mutate the
+						// on-disk cache outright. For SQLITE_FUNCTION, arg2 is the
+						// function name.
+						if deniedSandboxFunctions[strings.ToLower(arg2)] {
+							return sqlite3.SQLITE_DENY
+						}
+						return sqlite3.SQLITE_OK
+					case sqlite3.SQLITE_PRAGMA:
+						// Allow only read-only introspection pragmas. For
+						// SQLITE_PRAGMA, arg1 is the pragma name. This blocks
+						// schema-corruption vectors (writable_schema=ON +
+						// UPDATE sqlite_master) and memory-inflation pragmas
+						// (cache_size/mmap_size), while keeping the introspection
+						// the engine, the MySQL handler, and information_schema
+						// rely on.
+						if allowedSandboxPragmas[strings.ToLower(arg1)] {
+							return sqlite3.SQLITE_OK
+						}
+						return sqlite3.SQLITE_DENY
+					default:
+						return sqlite3.SQLITE_OK
+					}
+				})
 			}
 
 			return nil

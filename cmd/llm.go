@@ -44,6 +44,9 @@ func init() {
 	gptCmd.Flags().String("host", "", "Host to bind to. If not empty, the tunnel will be disabled")
 	gptCmd.Flags().Int("port", 0, "Port to bind to. If not empty, the tunnel will be disabled")
 	gptCmd.Flags().Bool("no-auth", false, "Disable the authorization mechanism for locally bound servers")
+	// The gpt server runs arbitrary LLM-supplied SQL and exposes a tunnel to the
+	// internet by default, so it is sandboxed by default (--no-sandbox to disable).
+	addSandboxFlags(gptCmd, true)
 
 	// MCP command
 	rootCmd.AddCommand(mcpCmd)
@@ -62,5 +65,10 @@ func init() {
 	mcpCmd.Flags().String("log-file", "", "Log file")
 	mcpCmd.Flags().String("log-level", "info", "Log level (trace, debug, info, warn, error, off)")
 	mcpCmd.Flags().String("log-format", "text", "Log format (text, json)")
+	// The MCP server runs arbitrary LLM-supplied SQL. It defaults to localhost,
+	// so --sandbox is opt-in here, but Mcp() auto-enables it when the server is
+	// network-exposed (--tunnel or a non-loopback --host). Use --sandbox=false to
+	// force it off even when exposed.
+	addSandboxFlags(mcpCmd, false)
 
 }

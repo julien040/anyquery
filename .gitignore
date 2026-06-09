@@ -64,3 +64,5 @@ dist/
 .aider*
 CLAUDE.md
 *.log
+
+drafts/

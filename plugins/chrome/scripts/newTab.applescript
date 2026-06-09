@@ -1,4 +1,5 @@
-tell application "Google Chrome"
-	make new tab with properties {URL:"%s"} at end of tabs of first window
-	
-end tell
+on run argv
+	tell application "Google Chrome"
+		make new tab with properties {URL:(item 1 of argv)} at end of tabs of first window
+	end tell
+end run

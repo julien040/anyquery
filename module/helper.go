@@ -21,7 +21,17 @@ import (
 // the file is not downloaded again
 //
 // The destination path is created if it doesn't exist
-func downloadFile(src string, dst string, maxAge int64) error {
+//
+// When r is non-nil, the source is validated against the sandbox policy before
+// anything happens (the check is on src, not the cache destination), and remote
+// transports are dropped from go-getter unless the policy allows them.
+func downloadFile(src string, dst string, maxAge int64, r *Restrictions) error {
+	// Enforce the sandbox policy on the original source before any side effect
+	// (directory creation, cache freshness short-circuit, fetch).
+	if err := r.CheckSource(src); err != nil {
+		return err
+	}
+
 	// Create the directory if it doesn't exist
 	err := os.MkdirAll(path.Dir(dst), 0755)
 	if err != nil {
@@ -49,6 +59,18 @@ func downloadFile(src string, dst string, maxAge int64) error {
 		Dst:  dst,
 		Mode: getter.ClientModeFile,
 		Pwd:  wd,
+	}
+
+	// When remote fetching is disabled, restrict go-getter to the local file
+	// getter only. This is the authoritative SSRF gate: Client.Get selects the
+	// getter by scheme and fails with "download not supported for scheme" when
+	// it is absent, so http/https/s3/gcs/git become unreachable. Default
+	// detectors can stay — a scheme-less input they rewrite (e.g. a git source)
+	// fails at the same lookup.
+	if r != nil && !r.AllowRemote {
+		client.Getters = map[string]getter.Getter{
+			"file": getter.Getters["file"],
+		}
 	}
 
 	if needToDownload {
@@ -80,12 +102,13 @@ func findCachedDestination(src string) (string, error) {
 }
 
 // openMmapedFile downloads a file from a source URL and returns a mmap of the file
-func openMmapedFile(src string) (mmap.MMap, error) {
+func openMmapedFile(src string, r *Restrictions) (mmap.MMap, error) {
 	// Find the cached destination
 	filePath, err := findCachedDestination(src)
 
 	// Download the file and cache it for 24 hours
-	err = downloadFile(src, filePath, 60*60*24)
+	// (downloadFile enforces the sandbox policy on src)
+	err = downloadFile(src, filePath, 60*60*24, r)
 	if err != nil {
 		return nil, err
 	}

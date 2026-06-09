@@ -141,3 +141,20 @@ code .hljs-built_in {
 code .hljs-string {
     color: #50fa7b;
 }
+
+.markdown-alert {
+    /* They look really ai-generated, they are not */
+    @apply bg-white/10 text-white/80 p-4 rounded-md border-l-2 mt-4 mb-8; 
+}
+
+.markdown-alert-important {
+    @apply border-yellow-500;
+}
+
+.markdown-alert-title {
+    @apply font-semibold text-white/90 mb-2;
+}
+
+.markdown-alert-title > svg {
+    @apply inline-block w-5 h-5 mr-2;
+}

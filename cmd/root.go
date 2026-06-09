@@ -48,6 +48,9 @@ func init() {
 	rootCmd.Flags().Bool("dev", false, "Run the program in developer mode")
 	rootCmd.Flags().StringSlice("extension", []string{}, "Load one or more extensions by specifying their path. Separate multiple extensions with a comma.")
 
+	// Sandboxing (off by default in CLI mode; --sandbox opts in for parity with the server)
+	addSandboxFlags(rootCmd, false)
+
 	// Query flags
 	rootCmd.Flags().StringP("query", "q", "", "Query to run")
 

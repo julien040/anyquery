@@ -6,10 +6,34 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os/exec"
+	"strings"
 
 	"github.com/julien040/anyquery/rpc"
 )
+
+// allowedSchemes restricts which URL schemes may be opened, as a
+// defense-in-depth measure on top of passing values as osascript arguments.
+var allowedSchemes = map[string]bool{
+	"http":      true,
+	"https":     true,
+	"file":      true,
+	"chrome":    true,
+	"favorites": true,
+}
+
+// checkURLScheme returns an error if rawURL does not use an allowed scheme.
+func checkURLScheme(rawURL string) error {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL %q: %w", rawURL, err)
+	}
+	if !allowedSchemes[strings.ToLower(parsed.Scheme)] {
+		return fmt.Errorf("URL scheme %q is not allowed (allowed: http, https, file, chrome, favorites)", parsed.Scheme)
+	}
+	return nil
+}
 
 //go:embed scripts/listTabs.js
 var listTabsScript string
@@ -149,10 +173,16 @@ func (t *tabsTable) Insert(rows [][]interface{}) error {
 			url = rawURL
 		}
 
-		cmd := exec.Command("osascript", "-e", fmt.Sprintf(newTabScript, url, windowIndex))
+		if err := checkURLScheme(url); err != nil {
+			return err
+		}
+
+		// windowIndex is a trusted int (cast from int64); the URL is passed as
+		// an argument (argv) rather than interpolated into the script body.
+		cmd := exec.Command("osascript", "-e", fmt.Sprintf(newTabScript, windowIndex), url)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(newTabScript, windowIndex, url))
+			return fmt.Errorf("can't run osascript: %w (message: %s, url: %s)\n Script: %s", err, output, url, fmt.Sprintf(newTabScript, windowIndex))
 		}
 
 	}
@@ -179,10 +209,16 @@ func (t *tabsTable) Update(rows [][]interface{}) error {
 		}
 
 		if url != "" {
-			cmd := exec.Command("osascript", "-l", "JavaScript", "-e", fmt.Sprintf(setURLScript, window, index, url))
+			if err := checkURLScheme(url); err != nil {
+				return err
+			}
+
+			// window and index are trusted ints (derived from int64); the URL
+			// is passed as an argument (argv) rather than interpolated.
+			cmd := exec.Command("osascript", "-l", "JavaScript", "-e", fmt.Sprintf(setURLScript, window, index), url)
 			output, err := cmd.CombinedOutput()
 			if err != nil {
-				return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(setURLScript, window, index, url))
+				return fmt.Errorf("can't run osascript: %w (message: %s, url: %s)\n Script: %s", err, output, url, fmt.Sprintf(setURLScript, window, index))
 			}
 		}
 
@@ -191,7 +227,7 @@ func (t *tabsTable) Update(rows [][]interface{}) error {
 			cmd := exec.Command("osascript", "-e", fmt.Sprintf(activateTabScript, window, index))
 			output, err := cmd.CombinedOutput()
 			if err != nil {
-				return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(activateTabScript, window, index))
+				return fmt.Errorf("can't run osascript: %w (message: %s)\n Script: %s", err, output, fmt.Sprintf(activateTabScript, window, index))
 			}
 		}
 	}

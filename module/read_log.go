@@ -18,6 +18,7 @@ import (
 var grokTemplate string
 
 type LogModule struct {
+	Restrictions *Restrictions
 }
 
 type LogTable struct {
@@ -151,11 +152,19 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		}
 	} else {
 		// Open the file and mmap it
-		mmap, err = openMmapedFile(fileName)
+		mmap, err = openMmapedFile(fileName, m.Restrictions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open the file: %s", err)
 		}
 		file = mmap
+	}
+
+	// The custom grok pattern file is read directly (it bypasses the go-getter
+	// chokepoint), so it must be validated against the sandbox policy here.
+	if patternFile != "" {
+		if err := m.Restrictions.CheckFileRead(patternFile); err != nil {
+			return nil, err
+		}
 	}
 
 	parser, err := createGrokParser(patternFile)

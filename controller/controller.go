@@ -78,7 +78,8 @@ func openUserDatabase(cmd *cobra.Command, args []string) (*namespace.Namespace, 
 				Level:      logLevel,
 			},
 		),
-		DevMode: devMode,
+		DevMode:      devMode,
+		Restrictions: RestrictionsFromFlags(cmd),
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create namespace: %w", err)

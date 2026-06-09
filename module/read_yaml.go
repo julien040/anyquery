@@ -18,6 +18,7 @@ type interfaceRow struct {
 }
 
 type YamlModule struct {
+	Restrictions *Restrictions
 }
 
 type YamlTable struct {
@@ -108,7 +109,7 @@ func (m *YamlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 			return nil, fmt.Errorf("failed to read from stdin: %s", err)
 		}
 	} else {
-		content, err = openMmapedFile(fileName)
+		content, err = openMmapedFile(fileName, m.Restrictions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s", err)
 		}

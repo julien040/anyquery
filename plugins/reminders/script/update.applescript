@@ -1,6 +1,7 @@
-{{ if ne .Body "" }} set bodyR to "{{.Body}}" {{ end }}
-{{ if ne .Name "" }} set nameR to "{{.Name}}" {{ end }}
-{{ if ne .ID "" }} set idR to "{{.ID}}" {{ end }}
+on run argv
+{{ if ne .Body "" }} set bodyR to item 2 of argv {{ end }}
+{{ if ne .Name "" }} set nameR to item 1 of argv {{ end }}
+{{ if ne .ID "" }} set idR to item 4 of argv {{ end }}
 {{ if ne .Completed "" }} set completedR to {{.Completed}} {{ end }}
 {{ if ne .Priority ""}} set priorityR to {{.Priority}} {{ end }}
 
@@ -29,3 +30,4 @@ tell application "Reminders"
     {{if .Priority}} set priority of theReminder to priorityR {{end}}
     {{if and (ne .Day "") (ne .Month "") (ne .Year "")}} set due date of theReminder to newDate {{end}}
 end tell
+end run

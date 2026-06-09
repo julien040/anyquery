@@ -273,7 +273,9 @@ func (t *reminderTable) Insert(rows [][]interface{}) error {
 			return fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		stdout, cmd, err := runOsaScript(templateRun.String())
+		// Free-form strings are passed as argv (name, body, list, id) rather
+		// than interpolated into the script body.
+		stdout, cmd, err := runOsaScript(templateRun.String(), createArgs.Name, createArgs.Body, createArgs.List, createArgs.ID)
 		if err != nil {
 			return fmt.Errorf("failed to run osascript: %w", err)
 		}
@@ -340,7 +342,9 @@ func (t *reminderTable) Update(rows [][]interface{}) error {
 			return fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		stdout, cmd, err := runOsaScript(templateRun.String())
+		// Free-form strings are passed as argv (name, body, list, id) rather
+		// than interpolated into the script body.
+		stdout, cmd, err := runOsaScript(templateRun.String(), updateArgs.Name, updateArgs.Body, updateArgs.List, updateArgs.ID)
 		if err != nil {
 			return fmt.Errorf("failed to run osascript: %w", err)
 		}
@@ -365,7 +369,9 @@ func (t *reminderTable) Delete(primaryKeys []interface{}) error {
 			return fmt.Errorf("failed to execute template: %w", err)
 		}
 
-		stdout, cmd, err := runOsaScript(templateRun.String())
+		// The id is passed as argv (position 4: name, body, list, id) rather
+		// than interpolated into the script body.
+		stdout, cmd, err := runOsaScript(templateRun.String(), "", "", "", deleteArgs.ID)
 		if err != nil {
 			return fmt.Errorf("failed to run osascript: %w", err)
 		}
@@ -382,9 +388,13 @@ func (t *reminderTable) Close() error {
 	return nil
 }
 
-func runOsaScript(script string) (io.Reader, *exec.Cmd, error) {
+// runOsaScript runs the given AppleScript. Any extra args are passed to the
+// script's "on run argv" handler as arguments (argv), so user-controlled values
+// are treated as data and never interpolated into the script source.
+func runOsaScript(script string, args ...string) (io.Reader, *exec.Cmd, error) {
 	// Create a new command
-	cmd := exec.Command("osascript", "-sh", "-e", script)
+	cmdArgs := append([]string{"-sh", "-e", script}, args...)
+	cmd := exec.Command("osascript", cmdArgs...)
 	// plugin only supports printing to stderr
 	cmd.Stdout = os.Stderr
 

@@ -86,7 +86,8 @@ func Query(cmd *cobra.Command, args []string) error {
 				Level:      logLevel,
 			},
 		),
-		DevMode: devMode,
+		DevMode:      devMode,
+		Restrictions: RestrictionsFromFlags(cmd),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to create namespace: %w", err)

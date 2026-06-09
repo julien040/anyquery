@@ -1,6 +1,6 @@
 
 name = "edge"
-version = "0.1.4"
+version = "0.2.0"
 description = "Query and modify Edge tabs"
 author = "julien040"
 license = "UNLICENSED"

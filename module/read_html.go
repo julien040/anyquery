@@ -14,6 +14,7 @@ import (
 )
 
 type HtmlModule struct {
+	Restrictions *Restrictions
 }
 
 type HtmlTable struct {
@@ -97,7 +98,7 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		}
 
 		// Download the file and cache it for 60 seconds
-		err = downloadFile(fileName, filePath, cacheTTLParsed)
+		err = downloadFile(fileName, filePath, cacheTTLParsed, m.Restrictions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to download file: %s", err)
 		}

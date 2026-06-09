@@ -271,10 +271,11 @@ func Run(cmd *cobra.Command, args []string) error {
 
 	// Create the namespace so that we can run the query
 	namespace, err := namespace.NewNamespace(namespace.NamespaceConfig{
-		InMemory: inMemory,
-		ReadOnly: readOnly,
-		Path:     path,
-		Logger:   hclog.NewNullLogger(),
+		InMemory:     inMemory,
+		ReadOnly:     readOnly,
+		Path:         path,
+		Logger:       hclog.NewNullLogger(),
+		Restrictions: RestrictionsFromFlags(cmd),
 	})
 
 	if err != nil {

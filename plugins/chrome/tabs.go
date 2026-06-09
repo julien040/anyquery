@@ -6,10 +6,33 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"os/exec"
+	"strings"
 
 	"github.com/julien040/anyquery/rpc"
 )
+
+// allowedSchemes restricts which URL schemes may be opened, as a
+// defense-in-depth measure on top of passing values as osascript arguments.
+var allowedSchemes = map[string]bool{
+	"http":   true,
+	"https":  true,
+	"file":   true,
+	"chrome": true,
+}
+
+// checkURLScheme returns an error if rawURL does not use an allowed scheme.
+func checkURLScheme(rawURL string) error {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL %q: %w", rawURL, err)
+	}
+	if !allowedSchemes[strings.ToLower(parsed.Scheme)] {
+		return fmt.Errorf("URL scheme %q is not allowed (allowed: http, https, file, chrome)", parsed.Scheme)
+	}
+	return nil
+}
 
 //go:embed scripts/listTabs.js
 var listTabsScript string
@@ -138,10 +161,16 @@ func (t *tabsTable) Insert(rows [][]interface{}) error {
 			url = rawURL
 		}
 
-		cmd := exec.Command("osascript", "-e", fmt.Sprintf(newTabScript, url))
+		if err := checkURLScheme(url); err != nil {
+			return err
+		}
+
+		// The URL is passed as an argument (argv) rather than interpolated
+		// into the script body, so it can never be parsed as code.
+		cmd := exec.Command("osascript", "-e", newTabScript, url)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(newTabScript, url))
+			return fmt.Errorf("can't run osascript: %w (message: %s)\n Script: %s", err, output, newTabScript)
 		}
 
 	}
@@ -166,10 +195,16 @@ func (t *tabsTable) Update(rows [][]interface{}) error {
 		}
 
 		if url != "" {
-			cmd := exec.Command("osascript", "-l", "JavaScript", "-e", fmt.Sprintf(setURLScript, pk, url))
+			if err := checkURLScheme(url); err != nil {
+				return err
+			}
+
+			// pk and url are passed as arguments (argv) rather than
+			// interpolated into the script body.
+			cmd := exec.Command("osascript", "-l", "JavaScript", "-e", setURLScript, pk, url)
 			output, err := cmd.CombinedOutput()
 			if err != nil {
-				return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(setURLScript, pk, url))
+				return fmt.Errorf("can't run osascript: %w (message: %s)\n Script: %s", err, output, setURLScript)
 			}
 		}
 	}
@@ -191,10 +226,12 @@ func (t *tabsTable) Delete(primaryKeys []interface{}) error {
 		if rawString == "" {
 			continue
 		}
-		cmd := exec.Command("osascript", "-l", "JavaScript", "-e", fmt.Sprintf(deleteTabScript, rawString))
+		// rawString (the tab id) is passed as an argument (argv) rather than
+		// interpolated into the script body.
+		cmd := exec.Command("osascript", "-l", "JavaScript", "-e", deleteTabScript, rawString)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("can't run osascript: %W (message: %s)\n Script: %s", err, output, fmt.Sprintf(deleteTabScript, rawString))
+			return fmt.Errorf("can't run osascript: %w (message: %s)\n Script: %s", err, output, deleteTabScript)
 		}
 
 	}

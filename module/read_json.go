@@ -13,9 +13,10 @@ import (
 )
 
 type JSONModule struct {
-	fileContent []byte
-	mmap        mmap.MMap
-	tableShape  jsonShape
+	Restrictions *Restrictions
+	fileContent  []byte
+	mmap         mmap.MMap
+	tableShape   jsonShape
 }
 
 type JSONTable struct {
@@ -128,7 +129,7 @@ func (m *JSONModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 			return nil, err
 		}
 	} else {
-		file, err := openMmapedFile(filepath)
+		file, err := openMmapedFile(filepath, m.Restrictions)
 		if err != nil {
 			return nil, err
 		}

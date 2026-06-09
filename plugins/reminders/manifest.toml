@@ -1,6 +1,6 @@
 
 name = "reminders"
-version = "0.1.3"
+version = "0.2.0"
 description = "Add/modifiy/delete reminders in the Apple Reminders app"
 author = "julien040"
 license = "UNLICENSED"
