@@ -98,6 +98,17 @@ func Server(cmd *cobra.Command, args []string) error {
 	dev, _ := cmd.Flags().GetBool("dev")
 
 	// Create the namespace
+	restrictions := RestrictionsFromFlags(cmd)
+	if restrictions != nil {
+		lo.Info("Server sandboxing enabled",
+			"allowedDirs", restrictions.AllowedDirs,
+			"allowRemote", restrictions.AllowRemote,
+			"allowAttach", restrictions.AllowAttach,
+			"allowDBConnections", restrictions.AllowDBConnections)
+	} else {
+		lo.Warn("Server sandboxing is DISABLED (--no-sandbox): clients can read local files, reach internal endpoints, and write arbitrary files")
+	}
+
 	instance, err := namespace.NewNamespace(namespace.NamespaceConfig{
 		InMemory: inMemory,
 		ReadOnly: readOnly,
@@ -106,7 +117,8 @@ func Server(cmd *cobra.Command, args []string) error {
 			Level:       hclog.LevelFromString(logLevel),
 			DisableTime: true,
 		}),
-		DevMode: dev,
+		DevMode:      dev,
+		Restrictions: restrictions,
 	})
 	if err != nil {
 		return err

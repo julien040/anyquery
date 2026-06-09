@@ -39,3 +39,20 @@ func addPersistentFlag_commandPrintsData(cmd *cobra.Command) {
 func addFlag_commandCanBeInteractive(cmd *cobra.Command) {
 	cmd.Flags().Bool("no-input", false, "Do not ask for input")
 }
+
+// addSandboxFlags registers the sandboxing flags.
+//
+// For the server, sandboxing is on by default and --no-sandbox disables it; for
+// CLI commands, --sandbox opts in (off by default, since local use is trusted).
+// The relaxation flags are identical in both cases.
+func addSandboxFlags(cmd *cobra.Command, isServer bool) {
+	cmd.Flags().StringSlice("allow-dirs", []string{}, "When sandboxed, directories that read_* tables (and on-disk ATTACH) may access (repeatable, comma-separated)")
+	cmd.Flags().Bool("allow-remote", false, "When sandboxed, allow read_* tables to fetch remote URLs (http/https/s3/...)")
+	cmd.Flags().Bool("allow-attach", false, "When sandboxed, allow ATTACH/VACUUM INTO to on-disk paths within --allow-dirs")
+	cmd.Flags().Bool("allow-db-connections", false, "When sandboxed, allow the database reader modules (duckdb/postgres/mysql/clickhouse/cassandra)")
+	if isServer {
+		cmd.Flags().Bool("no-sandbox", false, "Disable server sandboxing entirely (UNSAFE: exposes local file read, SSRF, and arbitrary file write)")
+	} else {
+		cmd.Flags().Bool("sandbox", false, "Apply server-style sandboxing restrictions (off by default in CLI mode)")
+	}
+}

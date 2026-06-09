@@ -13,6 +13,22 @@ To launch the MySQL server, you need to use the command `server`. It will start 
 anyquery server
 ```
 
+## Sandboxing
+
+Because a client connected to the server can run arbitrary SQL, the server is **sandboxed by default**: file reads are confined to an explicit list of directories, remote fetches are blocked, the database reader modules are disabled, `ATTACH DATABASE`/`VACUUM … INTO` and a set of dangerous functions are denied, and `PRAGMA` is limited to a read-only allowlist. This addresses [CVE-2026-50006](https://www.cve.org/CVERecord?id=CVE-2026-50006) and [CVE-2026-47253](https://www.cve.org/CVERecord?id=CVE-2026-47253).
+
+```bash title="Sandboxed server that may read two directories and fetch remote URLs"
+anyquery server --allow-dirs /var/data,/srv/exports --allow-remote
+```
+
+You can disable the sandbox with `--no-sandbox`, but only on a trusted, non-exposed deployment.
+
+See [Sandboxing](/docs/usage/sandbox) for the full policy, every flag, and the blocked functions and pragmas.
+
+:::caution
+The server has no authentication by default. The sandbox limits what a connected client can do, but you should still add [authentication](#adding-authentication) before exposing the server.
+:::
+
 ## Configuring the MySQL server
 
 ### Changing the address and port

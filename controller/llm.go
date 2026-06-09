@@ -637,6 +637,19 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		os.Chdir(xdg.CacheHome)
 	}
 
+	// Sandboxing: the MCP server runs arbitrary client/LLM SQL, so enable the
+	// sandbox automatically when it is network-exposed (a tunnel to the internet
+	// or a non-loopback bind). Pure localhost/stdio stays unsandboxed by default
+	// for local "analyze my files" use. --sandbox forces it on; --sandbox=false
+	// forces it off even when exposed (Changed() is true for an explicit value).
+	if !cmd.Flags().Changed("sandbox") {
+		tunnelEnabled, _ := cmd.Flags().GetBool("tunnel")
+		host, _ := cmd.Flags().GetString("host")
+		if tunnelEnabled || isNetworkExposedHost(host) {
+			_ = cmd.Flags().Set("sandbox", "true")
+		}
+	}
+
 	// Open the database
 	namespaceInstance, db, err := openUserDatabase(cmd, args)
 	if err != nil {

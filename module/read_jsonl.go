@@ -13,6 +13,7 @@ import (
 )
 
 type JSONlModule struct {
+	Restrictions *Restrictions
 }
 
 type JSONlTable struct {
@@ -95,7 +96,7 @@ func (m *JSONlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 			return nil, fmt.Errorf("failed to read from stdin: %s", err)
 		}
 	} else {
-		file, err := openMmapedFile(fileName)
+		file, err := openMmapedFile(fileName, m.Restrictions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s", err)
 		}

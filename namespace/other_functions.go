@@ -5,6 +5,7 @@ import (
 	"os"
 	pathlib "path"
 	"strconv"
+	"strings"
 
 	"github.com/adrg/xdg"
 	u "github.com/bcicen/go-units"
@@ -14,14 +15,32 @@ import (
 
 /* ------------------------------- Clear cache ------------------------------ */
 
-func registerOtherFunctions(conn *sqlite3.SQLiteConn) {
+func registerOtherFunctions(conn *sqlite3.SQLiteConn, restrictions *module.Restrictions) {
+	// Cache management deletes on-disk cache directories. That is an operator
+	// action, not something an untrusted client should drive, so under a sandbox
+	// these functions become no-ops that report being disabled. (nil == no
+	// sandbox == unrestricted CLI use.)
+	sandboxed := restrictions != nil
+	clearFileCache := func() string {
+		if sandboxed {
+			return "sandbox: clear_file_cache is disabled"
+		}
+		return clear_file_cache()
+	}
+	clearPluginCache := func(plugin string) string {
+		if sandboxed {
+			return "sandbox: clear_plugin_cache is disabled"
+		}
+		return clear_plugin_cache(plugin)
+	}
+
 	var otherFunctions = []struct {
 		name     string
 		function any
 		pure     bool
 	}{
-		{"clear_file_cache", clear_file_cache, true},
-		{"clear_plugin_cache", clear_plugin_cache, true},
+		{"clear_file_cache", clearFileCache, true},
+		{"clear_plugin_cache", clearPluginCache, true},
 		{"convert_unit", convert_unit, true},
 		{"format_unit", format_unit, true},
 	}
@@ -43,10 +62,25 @@ func clear_file_cache() string {
 }
 
 func clear_plugin_cache(plugin string) string {
-	pathToRemove := pathlib.Join(xdg.CacheHome, "anyquery", "plugins", plugin)
-
 	if plugin == "" {
 		return "The plugin name is empty"
+	}
+
+	// The plugin name must be a single path component. A separator or a ".."
+	// segment would let the joined path escape the cache root and recursively
+	// delete an arbitrary directory (path.Join collapses "..").
+	if strings.ContainsAny(plugin, `/\`) || strings.Contains(plugin, "..") {
+		return "invalid plugin name"
+	}
+
+	root := pathlib.Join(xdg.CacheHome, "anyquery", "plugins")
+	pathToRemove := pathlib.Join(root, plugin)
+
+	// Defense in depth: confirm the resolved target is still nested under the
+	// cache root before removing it. The rejection above already guarantees
+	// this; this guards against a future change to the construction above.
+	if pathToRemove != root && !strings.HasPrefix(pathToRemove, root+"/") {
+		return "invalid plugin name"
 	}
 
 	// Remove the directory

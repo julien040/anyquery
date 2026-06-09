@@ -18,6 +18,7 @@ import (
 )
 
 type CsvModule struct {
+	Restrictions *Restrictions
 }
 
 type CsvTable struct {
@@ -137,7 +138,7 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		}
 	} else {
 		// Open the file and mmap it
-		mmap, err = openMmapedFile(fileName)
+		mmap, err = openMmapedFile(fileName, m.Restrictions)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open the file: %s", err)
 		}

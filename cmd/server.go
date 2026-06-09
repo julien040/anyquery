@@ -38,5 +38,10 @@ func init() {
 	serverCmd.Flags().Bool("dev", false, "Run the program in developer mode")
 	serverCmd.Flags().StringSlice("extension", []string{}, "Load one or more extensions by specifying their path. Separate multiple extensions with a comma.")
 
+	// Sandboxing: enabled by default in server mode (the attack surface), with
+	// --allow-dirs / --allow-remote / --allow-attach / --allow-db-connections to
+	// relax it, and --no-sandbox to disable it entirely.
+	addSandboxFlags(serverCmd, true)
+
 	addFlag_commandModifiesConfiguration(serverCmd)
 }
