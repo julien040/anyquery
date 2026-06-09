@@ -1,139 +1,104 @@
 ---
-import Logo from "./logo.astro";
-
-const { footnote } = Astro.props;
+const { footnote, fullBleed = false } = Astro.props;
 ---
 
-<footer
-    class="flex flex-col md:flex-row items-center md:justify-between py-5 px-7 bg-[#05060c] rounded-[14px] shadow-glow border border-[#2d2d2d] gap-8 sm:gap-4"
->
-    <div
-        class="text-white/60 flex flex-col items-center text-center md:items-start md:text-left"
-    >
-        <Logo />
-        <p class="mt-1 text-xs">
-            Copyright © 2025 · <a href="https://julienc.me">Julien Cagniart</a>
-            · <br />
-            All rights reserved
-        </p>
-        <div
-            class="flex-row flex mt-6 gap-4 text-white/50 hover:text-white/60 transition-all"
-        >
-            <a href="https://github.com/julien040/anyquery/">
-                <svg
-                    class="w-5 h-5"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                    ><path
-                        fill="currentColor"
-                        d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5c.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34c-.46-1.16-1.11-1.47-1.11-1.47c-.91-.62.07-.6.07-.6c1 .07 1.53 1.03 1.53 1.03c.87 1.52 2.34 1.07 2.91.83c.09-.65.35-1.09.63-1.34c-2.22-.25-4.55-1.11-4.55-4.92c0-1.11.38-2 1.03-2.71c-.1-.25-.45-1.29.1-2.64c0 0 .84-.27 2.75 1.02c.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02c.55 1.35.2 2.39.1 2.64c.65.71 1.03 1.6 1.03 2.71c0 3.82-2.34 4.66-4.57 4.91c.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"
-                    ></path></svg
+<footer class="mt-12 border-t border-ink/15 bg-paper py-14 font-ui">
+    <div class:list={[fullBleed && "wrap"]}>
+        <div class="flex flex-wrap justify-between gap-10">
+            <div class="max-w-[320px]">
+                <a
+                    href="/"
+                    class="font-display text-[34px] leading-none tracking-[-0.02em] text-ink"
+                    aria-label="Anyquery home">any<em class="italic text-peach-700">query</em></a
                 >
-            </a>
-            <a href="https://x.com/JulienC_me">
-                <svg
-                    class="w-5 h-5"
-                    viewBox="0 0 256 256"
-                    xmlns="http://www.w3.org/2000/svg"
-                    ><path
-                        fill="currentColor"
-                        d="m218.12 209.56l-61-95.8l59.72-65.69a12 12 0 0 0-17.76-16.14l-55.27 60.84l-37.69-59.21A12 12 0 0 0 96 28H48a12 12 0 0 0-10.12 18.44l61 95.8l-59.76 65.69a12 12 0 1 0 17.76 16.14l55.31-60.84l37.69 59.21A12 12 0 0 0 160 228h48a12 12 0 0 0 10.12-18.44M166.59 204L69.86 52h19.55l96.73 152Z"
-                    ></path>
-                </svg>
-            </a>
+                <p class="mt-3.5 text-sm leading-relaxed text-ink-2">
+                    A love letter to SQL. Query anything — including the
+                    services you thought you'd never escape.
+                </p>
+                <div class="mt-5 flex gap-4 text-ink-3">
+                    <a
+                        href="https://github.com/julien040/anyquery/"
+                        class="transition-colors hover:text-ink"
+                        aria-label="GitHub"
+                    >
+                        <svg
+                            class="h-5 w-5"
+                            viewBox="0 0 24 24"
+                            xmlns="http://www.w3.org/2000/svg"
+                            ><path
+                                fill="currentColor"
+                                d="M12 2A10 10 0 0 0 2 12c0 4.42 2.87 8.17 6.84 9.5c.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34c-.46-1.16-1.11-1.47-1.11-1.47c-.91-.62.07-.6.07-.6c1 .07 1.53 1.03 1.53 1.03c.87 1.52 2.34 1.07 2.91.83c.09-.65.35-1.09.63-1.34c-2.22-.25-4.55-1.11-4.55-4.92c0-1.11.38-2 1.03-2.71c-.1-.25-.45-1.29.1-2.64c0 0 .84-.27 2.75 1.02c.79-.22 1.65-.33 2.5-.33s1.71.11 2.5.33c1.91-1.29 2.75-1.02 2.75-1.02c.55 1.35.2 2.39.1 2.64c.65.71 1.03 1.6 1.03 2.71c0 3.82-2.34 4.66-4.57 4.91c.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0 0 12 2"
+                            ></path></svg
+                        >
+                    </a>
+                    <a
+                        href="https://x.com/JulienC_me"
+                        class="transition-colors hover:text-ink"
+                        aria-label="X / Twitter"
+                    >
+                        <svg
+                            class="h-5 w-5"
+                            viewBox="0 0 256 256"
+                            xmlns="http://www.w3.org/2000/svg"
+                            ><path
+                                fill="currentColor"
+                                d="m218.12 209.56l-61-95.8l59.72-65.69a12 12 0 0 0-17.76-16.14l-55.27 60.84l-37.69-59.21A12 12 0 0 0 96 28H48a12 12 0 0 0-10.12 18.44l61 95.8l-59.76 65.69a12 12 0 1 0 17.76 16.14l55.31-60.84l37.69 59.21A12 12 0 0 0 160 228h48a12 12 0 0 0 10.12-18.44M166.59 204L69.86 52h19.55l96.73 152Z"
+                            ></path></svg
+                        >
+                    </a>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-x-12 gap-y-7 text-sm">
+                <div class="flex flex-col gap-2">
+                    <p
+                        class="mb-1 font-mono text-xs uppercase tracking-[0.08em] text-ink-3"
+                    >
+                        Guide
+                    </p>
+                    <a href="/docs/#installation" class="text-ink-2 transition-colors hover:text-ink">Install</a>
+                    <a href="/docs/usage/running-queries/" class="text-ink-2 transition-colors hover:text-ink">Running a query</a>
+                    <a href="/docs/usage/connecting-llms" class="text-ink-2 transition-colors hover:text-ink">Connecting LLMs</a>
+                    <a href="/docs/usage/plugins/" class="text-ink-2 transition-colors hover:text-ink">Install plugin</a>
+                    <a href="/docs/usage/exporting-results/" class="text-ink-2 transition-colors hover:text-ink">JSON/CSV export</a>
+                    <a href="/docs/developers/plugins/create-plugin/" class="text-ink-2 transition-colors hover:text-ink">Developers</a>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p
+                        class="mb-1 font-mono text-xs uppercase tracking-[0.08em] text-ink-3"
+                    >
+                        Connection guide
+                    </p>
+                    <a href="/connection-guide/llm/chatgpt/" class="text-ink-2 transition-colors hover:text-ink">ChatGPT</a>
+                    <a href="/connection-guide/llm/claude" class="text-ink-2 transition-colors hover:text-ink">Claude</a>
+                    <a href="/connection-guide/llm/librechat" class="text-ink-2 transition-colors hover:text-ink">LibreChat</a>
+                    <a href="/connection-guide/datasette" class="text-ink-2 transition-colors hover:text-ink">Datasette</a>
+                    <a href="/connection-guide/tableplus" class="text-ink-2 transition-colors hover:text-ink">TablePlus</a>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <p
+                        class="mb-1 font-mono text-xs uppercase tracking-[0.08em] text-ink-3"
+                    >
+                        Popular plugins
+                    </p>
+                    <a href="/integrations/notion" class="text-ink-2 transition-colors hover:text-ink">Notion</a>
+                    <a href="/integrations/airtable" class="text-ink-2 transition-colors hover:text-ink">Airtable</a>
+                    <a href="/integrations/github" class="text-ink-2 transition-colors hover:text-ink">GitHub</a>
+                    <a href="/integrations/notes" class="text-ink-2 transition-colors hover:text-ink">Apple Notes</a>
+                    <a href="/integrations/git" class="text-ink-2 transition-colors hover:text-ink">Git</a>
+                    <a href="/integrations/google_sheets" class="text-ink-2 transition-colors hover:text-ink">Google Sheets</a>
+                </div>
+            </div>
         </div>
-    </div>
-    <div
-        class="flex flex-row flex-wrap items-start justify-center text-[0.825rem] text-white/70 gap-4 md:gap-12"
-    >
-        <div class="flex flex-col">
-            <p class="text-white/50 mb-1">Guide</p>
-            <a
-                href="/docs/#installation"
-                class="hover:text-white/80 transition-all">Install</a
-            >
-            <a
-                href="/docs/usage/running-queries/"
-                class="hover:text-white/80 transition-all">Running a query</a
-            >
-            <a
-                href="/docs/usage/connecting-llms"
-                class="hover:text-white/80 transition-all"
-                >Connecting LLMs
-            </a>
-            <a
-                href="/docs/usage/plugins/"
-                class="hover:text-white/80 transition-all">Install plugin</a
-            >
-            <a
-                href="/docs/usage/exporting-results/"
-                class="hover:text-white/80 transition-all">JSON/CSV export</a
-            >
-            <a
-                href="/docs/developers/plugins/create-plugin/"
-                class="hover:text-white/80 transition-all">Developers</a
-            >
+        <div class="mt-12 border-t border-ink/15 pt-6 text-[13px] text-ink-3">
+            <p>
+                © 2026 · <a href="https://julienc.me" class="text-ink">Julien Cagniart</a> ·
+                AGPL-3.0-or-later · Built on SQLite
+            </p>
         </div>
-        <div class="flex flex-col">
-            <p class="text-white/50 mb-1">Connection guide</p>
-            <a
-                href="/connection-guide/llm/chatgpt/"
-                class="hover:text-white/80 transition-all">ChatGPT</a
-            >
-            <a
-                href="/connection-guide/llm/claude"
-                class="hover:text-white/80 transition-all">Claude</a
-            >
-            <a
-                href="/connection-guide/llm/librechat"
-                class="hover:text-white/80 transition-all">LibreChat</a
-            >
-            <a
-                href="/connection-guide/datasette"
-                class="hover:text-white/80 transition-all">Datasette</a
-            >
-            <a
-                href="/connection-guide/tableplus"
-                class="hover:text-white/80 transition-all">TablePlus</a
-            >
-        </div>
-        <div class="flex flex-col">
-            <p class="text-white/50 mb-1">Popular plugins</p>
-            <a
-                href="/integrations/notion"
-                class="hover:text-white/80 transition-all">Notion</a
-            >
-            <a
-                href="/integrations/airtable"
-                class="hover:text-white/80 transition-all">Airtable</a
-            >
-            <a
-                href="/integrations/github"
-                class="hover:text-white/80 transition-all">GitHub</a
-            >
-            <a
-                href="/integrations/notes"
-                class="hover:text-white/80 transition-all">Apple Notes</a
-            >
-            <a
-                href="/integrations/git"
-                class="hover:text-white/80 transition-all">Git</a
-            >
-            <a
-                href="/integrations/google_sheets"
-                class="hover:text-white/80 transition-all">Google Sheets</a
-            >
-        </div>
+        {
+            footnote && (
+                <p class="mt-4 text-[11px] text-ink-3 opacity-80">{footnote}</p>
+            )
+        }
     </div>
 </footer>
-
-{
-    footnote && (
-        <div class="text-white/30 text-center mt-4 text-[0.7rem]">
-            <p>{footnote}</p>
-        </div>
-    )
-}
-
-<!-- To facilite reading, a trailing div is added to the end of the file -->
-<div class="py-4"></div>

@@ -1,35 +1,40 @@
+@import "tailwindcss";
 @reference "./styles/global.css";
+
 h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #ffffff;
+    font-size: 2.9rem;
+    font-weight: 500;
+    color: #000000;
     margin-bottom: 1rem;
-    line-height: 1.2;
+    line-height: 1.0;
+    font-family: var(--font-display);
 }
 h2 {
     font-size: 1.6rem;
-    font-weight: 600;
-    color: #ffffff;
+    color: #000000;
     margin-bottom: 1rem;
+    font-family: var(--font-display);
 }
 h3 {
     font-size: 1.3rem;
-    font-weight: 600;
-    color: #ffffff;
+    color: #000000;
     margin-bottom: 1rem;
+    font-family: var(--font-display);
 }
 h4,
 h5,
 h6 {
     font-size: 1.2rem;
     font-weight: 600;
-    color: #ffffff;
+    color: #000000;
     margin-bottom: 1rem;
+    font-family: var(--font-display);
 }
+
 p,
 li,
 table {
-    @apply text-white/80 text-sm;
+    @apply text-black/80 text-sm;
 }
 blockquote {
     border-left: 4px solid #ffffff87;
@@ -40,7 +45,7 @@ blockquote {
 blockquote p,
 blockquote li,
 blockquote a {
-    @apply text-white/60 text-sm;
+    @apply text-black/60 text-sm;
 }
 /* Top level code */
 article pre:has(code) {
@@ -54,9 +59,9 @@ article pre:has(code) {
 
 article > pre:has(code),
 .expressive-code {
-    background: #ffffff1a;
-    padding: 12px 16px;
-    border-radius: 4px;
+    background: #1d2320;
+    padding: 20px 20px;
+    border-radius: 8px;
 }
 
 /* Inline code */
@@ -68,31 +73,41 @@ article > h3 code,
 article > h4 code,
 article > h5 code,
 article > h6 code {
-    @apply text-white/70 text-[0.825rem];
+    @apply text-black/70 text-[0.825rem];
     background: #ffffff24;
     padding: 2px 4px;
     border-radius: 4px;
 }
 
 table {
-    border-collapse: separate;
-    @apply mt-3 border border-white/20 rounded-md bg-white/10;
+    border-collapse: collapse;
+    @apply mt-3 bg-[#faf6ee] w-full;
 }
+
 table tr {
+    
+}
+table tr:not(:last-child) {
+    @apply border-b border-black/20;
+    
 }
 table td {
     @apply p-2 md:py-2 md:px-8;
-    @apply border-t border-white/20;
+
 }
 table td:not(:last-child) {
-    border-right: 1px solid #ffffff20;
+
 }
-table th:not(:last-child) {
-    @apply border-r border-white/20;
-}
+
 table thead th {
-    @apply md:px-2 md:py-1 p-1 text-white/70 text-[0.825rem] font-semibold;
+    @apply md:px-2 md:py-1 p-1 text-black/40 text-[0.75rem] font-semibold uppercase tracking-wide;
 }
+table thead {
+    background: #fff7e8;
+    @apply  border-b border-black/20;
+}
+
+td::content
 
 ol,
 ul,
@@ -122,7 +137,7 @@ article a {
 /* Code */
 
 code .hljs-comment {
-    @apply text-white/50;
+    @apply text-white/30;
 }
 
 code .hljs-operator {
@@ -139,20 +154,21 @@ code .hljs-built_in {
 }
 
 code .hljs-string {
-    color: #50fa7b;
+    color: #4ed771;
 }
 
 .markdown-alert {
     /* They look really ai-generated, they are not */
-    @apply bg-white/10 text-white/80 p-4 rounded-md border-l-2 mt-4 mb-8; 
+    @apply bg-black/10 text-black/80 p-4 rounded-md border-l-2 mt-4 mb-8; 
 }
 
 .markdown-alert-important {
     @apply border-yellow-500;
 }
 
+
 .markdown-alert-title {
-    @apply font-semibold text-white/90 mb-2;
+    @apply font-semibold text-black/90 mb-2;
 }
 
 .markdown-alert-title > svg {

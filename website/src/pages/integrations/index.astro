@@ -51,65 +51,108 @@ const chats = await getCollection("chats");
     title="Integrations - Anyquery"
     footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned."
 >
-    <h1 class="text-3xl" id="databases">Databases</h1>
-    <p class="break-words text-sm text-white/60 mt-1">
-        Using Anyquery, you can connect to a variety of databases. Insert data,
-        join tables across databases, and more (starting from version 0.3.0 in
-        beta).
-    </p>
     <div
-        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-3"
+        class="absolute h-[480px] w-[480px] -right-24 top-20 rounded-full bg-lavender opacity-50 blur-[40px] z-0"
     >
+    </div>
+    <div
+        class="absolute h-[360px] w-[360px] -left-24 top-[800px] rounded-full bg-peach opacity-50 blur-[40px]"
+    >
+    </div>
+    <h1 class="text-5xl font-display text-ink font-normal" id="databases">
+        Attach a <em class="text-peach-700">database</em>
+    </h1>
+    <p class="break-words text-sm text-black/60 mt-1">
+        Using Anyquery, you can connect to a variety of databases. Insert data,
+        join tables across databases, and more. <br />
+        Learn more about how to connect a database in our{" "}<a
+            href="/docs/database/"
+            class="underline">documentation</a
+        >.
+    </p>
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">
         {
             databases
                 .sort((a, b) => a.data.name.localeCompare(b.data.name))
                 .map((db) => (
                     <a
                         href={db.data.url}
-                        class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                        class="flex flex-col p-4 rounded-lg bg-white/30 border border-black/10"
                     >
                         <img
                             src={db.data.icon}
                             alt={db.data.name}
                             class="max-w-10 h-10 rounded-md"
                         />
-                        <h2 class="text-lg mt-3">{db.data.name}</h2>
-                        <p class="break-words text-sm text-white/60">
+                        <h2 class="text-2xl mt-3 font-display tracking-normal ">
+                            {db.data.name}
+                        </h2>
+                        <p class="break-words text-sm text-black/60 border-b border-black/10 pb-4 mb-4">
                             {db.data.description}
                         </p>
+                        <div class="flex gap-2 items-center mt-auto">
+                            <p class="text-[0.6rem] px-2 py-1 bg-green-300/50 rounded-2xl max-w-fit text-black/90 uppercase tracking-wide">
+                                OFFICIAL
+                            </p>
+                            <p class="text-xs text-black/60">
+                                Made by Anyquery
+                            </p>
+                        </div>
                     </a>
                 ))
         }
     </div>
-    <h1 class="text-3xl mt-8" id="plugins">Plugins</h1>
-    <p class="break-words text-sm text-white/60 mt-1">
+    <h1 class="text-5xl font-display text-ink font-normal mt-8" id="plugins">
+        Extend with <em class="text-peach-700">plugins</em>
+    </h1>
+    <p class="break-words text-sm text-black/60 mt-1">
         Query data from various sources, including APIs and local applications.
     </p>
-    <div
-        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
-    >
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">
         {
             remotePlugins.map((plugin) => (
                 <a
                     href={`/integrations/${slugify(plugin.name)}`}
-                    class="block flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
                     <img
                         src={plugin.icon}
                         alt={plugin.display_name}
-                        class="max-h-10"
+                        class=" w-10 aspect-auto"
                     />
-                    <h2 class="text-lg mt-3">{plugin.display_name}</h2>
-                    <p class="break-words text-sm text-white/60">
+                    <h2 class="text-2xl font-display mt-3">
+                        {plugin.display_name}
+                    </h2>
+                    <p class="break-words text-sm text-black/60 mb-4">
                         {plugin.description}
                     </p>
+                    <div class="flex gap-2 items-center mt-auto border-t border-black/10 pt-4">
+                        <p
+                            class:list={[
+                                "text-[0.6rem] px-2 py-1 bg-blue-300/50 rounded-2xl max-w-fit text-black/90 uppercase tracking-wide",
+                                {
+                                    "bg-blue-300/50":
+                                        plugin.author.toLowerCase() ===
+                                        "julien040",
+                                    "bg-purple-300/50":
+                                        plugin.author.toLowerCase() !==
+                                        "julien040",
+                                },
+                            ]}
+                        >
+                            {plugin.author.toLowerCase() === "julien040"
+                                ? " OFFICIAL"
+                                : "COMMUNITY"}
+                        </p>
+                        <p class="text-xs text-black/60">By {plugin.author}</p>
+                    </div>
                 </a>
             ))
         }
     </div>
 
     <h1 class="text-3xl mt-8" id="libraries">Libraries</h1>
-    <p class="break-words text-sm text-white/60 mt-1">
+    <p class="break-words text-sm text-black/60 mt-1">
         Because Anyquery is based on SQLite, download and use SQLite libraries
         to extend the functionality of your queries.
     </p>
@@ -128,10 +171,10 @@ const chats = await getCollection("chats");
                             alt={plugin.author}
                             class="w-8 h-8 rounded-md"
                         />
-                        <p class="text-xs text-white/60">{plugin.author}</p>
+                        <p class="text-xs text-black/60">{plugin.author}</p>
                     </div>
                     <h2 class="text-lg">{plugin.display_name}</h2>
-                    <p class="break-words text-sm text-white/60 mb-2">
+                    <p class="break-words text-sm text-black/60 mb-2">
                         {plugin.description}
                     </p>
                 </a>
@@ -140,7 +183,7 @@ const chats = await getCollection("chats");
     </div>
 
     <h1 class="text-3xl mt-8" id="guides">Guides</h1>
-    <p class="break-words text-sm text-white/60 mt-1">
+    <p class="break-words text-sm text-black/60 mt-1">
         Guides on reusing plugins for other integrations.
     </p>
     <div
@@ -158,7 +201,7 @@ const chats = await getCollection("chats");
                         class="w-10 h-10"
                     />
                     <h2 class="text-lg mt-3">{integration.data.title}</h2>
-                    <p class="break-words text-sm text-white/60">
+                    <p class="break-words text-sm text-black/60">
                         {integration.data.description}
                     </p>
                 </a>
@@ -166,7 +209,7 @@ const chats = await getCollection("chats");
         }
     </div>
     <h1 class="text-3xl mt-8" id="llm">LLMs</h1>
-    <p class="break-words text-sm text-white/60 mt-1">
+    <p class="break-words text-sm text-black/60 mt-1">
         Connect Anyquery to LLMs to chat with your data.
     </p>
 
@@ -185,7 +228,7 @@ const chats = await getCollection("chats");
                         class="w-10 h-10"
                     />
                     <h2 class="text-lg mt-3">{chat.data.name}</h2>
-                    <p class="break-words text-sm text-white/60">
+                    <p class="break-words text-sm text-black/60">
                         {chat.data.description}
                     </p>
                 </a>

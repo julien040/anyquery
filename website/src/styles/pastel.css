@@ -1,0 +1,306 @@
+/* ============================================================
+   Anyquery — Pastel base + the bits that don't fit Tailwind
+   Design tokens live in global.css (@theme). This file holds:
+   page base styles, pseudo-elements, JS-injected element styles
+   (result card / playground tables, tabs), stateful animation
+   classes toggled from JS, and legacy hooks for old pages.
+   ============================================================ */
+
+html,
+body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-ui);
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "ss02", "cv11";
+}
+
+/* Paper grain overlay */
+.aq-grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background-image: radial-gradient(rgba(27, 35, 32, 0.05) 1px, transparent 1px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+    opacity: 0.35;
+}
+
+/* Hand-drawn highlighter underline behind a hero word */
+.hl-underline {
+    position: relative;
+    white-space: nowrap;
+    display: inline-block;
+}
+.hl-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.04em;
+    height: 0.18em;
+    background: var(--color-butter);
+    z-index: -1;
+    border-radius: 0.1em;
+}
+
+/* ---------- Kinetic hero (stateful, toggled by JS) ---------- */
+.kin-slot {
+    transition: background 0.6s ease, box-shadow 0.6s ease;
+}
+.kin-word {
+    transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), opacity 0.35s;
+}
+.kin-slot.leaving .kin-word {
+    transform: translateY(-120%);
+    opacity: 0;
+}
+.kin-slot.entering .kin-word {
+    transform: translateY(120%);
+    opacity: 0;
+}
+
+/* Result card tilt (stateful) */
+.result-card {
+    transition: background 0.6s ease, transform 0.6s ease;
+    transform: rotate(-1.5deg);
+}
+.result-card.tilt {
+    transform: rotate(1.2deg);
+}
+
+/* ---------- Syntax highlighting (JS-injected spans) ---------- */
+.sql-k {
+    color: var(--color-syn-keyword);
+    font-weight: 500;
+}
+.sql-o {
+    color: var(--color-syn-operator);
+}
+.sql-b {
+    color: var(--color-syn-builtin);
+}
+.sql-s {
+    color: var(--color-syn-string);
+}
+.sql-c {
+    color: var(--color-syn-comment);
+    font-style: italic;
+}
+
+/* ---------- Result-card table (built via innerHTML) ---------- */
+.rc-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.rc-table thead th {
+    text-align: left;
+    padding: 10px 18px;
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+    background: var(--color-paper-2);
+    border-bottom: 1px solid rgba(27, 35, 32, 0.15);
+}
+.rc-table thead th:first-child {
+    width: 40px;
+    text-align: right;
+    padding-right: 10px;
+}
+.rc-table thead th:last-child {
+    width: 90px;
+    text-align: right;
+    padding-right: 18px;
+}
+.rc-table tbody td {
+    padding: 11px 18px;
+    font-size: 14px;
+    color: var(--color-ink);
+    border-bottom: 1px dashed rgba(27, 35, 32, 0.15);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.rc-table tbody tr:last-child td {
+    border-bottom: 0;
+}
+.rc-table tbody tr:nth-child(even) td {
+    background: color-mix(in oklab, var(--color-ink) 2%, transparent);
+}
+.rc-table td.idx {
+    color: var(--color-ink-3);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-align: right;
+    padding-right: 10px;
+    width: 40px;
+}
+.rc-table td.c-meta {
+    color: var(--color-ink-2);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-align: right;
+    width: 90px;
+    padding-right: 18px;
+}
+.rc-table td .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 500;
+    font-family: var(--font-ui);
+}
+
+/* ---------- Playground (tabs + table built via innerHTML) ---------- */
+.pg-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--color-paper);
+    box-shadow: var(--inset-shadow-hair);
+    font-size: 13px;
+    color: var(--color-ink-2);
+    cursor: pointer;
+    border: 0;
+    font-family: var(--font-ui);
+}
+.pg-tab .sq {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+}
+.pg-tab.on {
+    background: var(--color-ink);
+    color: var(--color-paper);
+}
+.pg-tab.on .sq {
+    outline: 2px solid var(--color-paper);
+}
+.pg-sql {
+    background: var(--color-paper);
+    border-radius: 14px;
+    padding: 16px 18px;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--color-ink);
+    box-shadow: var(--inset-shadow-hair);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+.pg-out {
+    margin-top: 12px;
+    background: var(--color-paper);
+    border-radius: 14px;
+    box-shadow: var(--inset-shadow-hair);
+    overflow: hidden;
+}
+.pg-out table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.pg-out th {
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 500;
+    color: var(--color-ink-3);
+    background: var(--color-paper-2);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(27, 35, 32, 0.15);
+}
+.pg-out td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(27, 35, 32, 0.15);
+    color: var(--color-ink);
+}
+.pg-out tr:last-child td {
+    border-bottom: 0;
+}
+.pg-out .cell-pill {
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+}
+.pg-foot {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-ink-3);
+}
+
+/* OS-tab active state (toggled by JS) */
+.os-tab.on {
+    background: var(--color-ink);
+    color: var(--color-paper);
+}
+
+/* ---------- Mobile nav toggle (astro-navbar renders these
+   outside any component scope, so they live here) ---------- */
+#astronav-menu {
+    display: none;
+    color: var(--color-ink);
+}
+.aq-menu-icon {
+    width: 26px;
+    height: 26px;
+}
+@media (max-width: 767px) {
+    #astronav-menu {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        margin: -6px;
+        cursor: pointer;
+    }
+}
+
+/* ---------- Legacy .button (pages not yet on the pastel theme) ---------- */
+.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 999px;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+.button:hover {
+    background: #000;
+    transform: translateY(-1px);
+}
+.button-silent {
+    background: transparent;
+    color: var(--color-ink);
+    box-shadow: inset 0 0 0 1px rgba(27, 35, 32, 0.18);
+}
+.button-silent:hover {
+    background: rgba(27, 35, 32, 0.04);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .result-card,
+    .kin-slot,
+    .kin-word {
+        transition: none !important;
+    }
+}
