@@ -17,8 +17,8 @@
   <sub><i>Sponsored by</i></sub><br><br>
   <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=anyquery">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="website/public/images/sponsors/atlas-cloud-logo-white.svg">
-      <img src="website/public/images/sponsors/atlas-cloud-logo-black.svg" alt="Atlas Cloud" width="220">
+      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/atlas-cloud-logo-white.svg">
+      <img src="https://cdn.julienc.me/share/atlas-cloud-logo-black.svg" alt="Atlas Cloud" width="220">
     </picture>
   </a>
 </p>
