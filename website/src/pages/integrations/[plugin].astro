@@ -27,14 +27,14 @@ export async function getStaticPaths() {
                 const language = hljs.getLanguage(lang) ? lang : "plaintext";
                 return hljs.highlight(code, { language }).value;
             },
-        })
+        }),
     )
         .use(markedAlert())
         .use(gfmHeadingId({}));
     const remotePlugins: any = await fetchReg.json();
     for (const plugin of remotePlugins.plugins) {
         const sanitized = DOMPurify.sanitize(
-            await marked.parse(plugin.page_content)
+            await marked.parse(plugin.page_content),
         );
 
         // Parse the images src using the sanitized html
@@ -71,12 +71,12 @@ export async function getStaticPaths() {
                     if (isSrcSet) {
                         img.setAttribute(
                             "srcset",
-                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`
+                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`,
                         );
                     } else {
                         img.setAttribute(
                             "src",
-                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`
+                            `https://raw.githubusercontent.com/${user}/${repo}/${branch}/${prefix}`,
                         );
                     }
                 }
@@ -101,7 +101,7 @@ export async function getStaticPaths() {
 
                     link.setAttribute(
                         "href",
-                        `https://github.com/${user}/${repo}/blob/${branch}/${prefix}`
+                        `https://github.com/${user}/${repo}/blob/${branch}/${prefix}`,
                     );
                 }
             }
@@ -110,6 +110,29 @@ export async function getStaticPaths() {
         if (plugin.versions.length > 0) {
             for (const platform in plugin.versions[0].files) {
                 compatiblePlatform.push(platform);
+            }
+        }
+        for (let i = 0; i < compatiblePlatform.length; i++) {
+            const element = compatiblePlatform[i];
+            switch (element) {
+                case "darwin/amd64":
+                    compatiblePlatform[i] = "macOS (Intel)";
+                    break;
+                case "darwin/arm64":
+                    compatiblePlatform[i] = "macOS (Apple Silicon)";
+                    break;
+                case "windows/amd64":
+                    compatiblePlatform[i] = "Windows";
+                    break;
+                case "windows/arm64":
+                    compatiblePlatform[i] = "Windows (ARM)";
+                    break;
+                case "linux/amd64":
+                    compatiblePlatform[i] = "Linux";
+                    break;
+                case "linux/arm64":
+                    compatiblePlatform[i] = "Linux (ARM)";
+                    break;
             }
         }
 
@@ -160,56 +183,82 @@ const {
 
 <Main title={title + " - AnyQuery"} description={description}>
     <style is:global></style>
+
+    <div
+        class="absolute h-[360px] w-[360px] top-[50px] right-4 rounded-full bg-peach opacity-50 blur-[40px]"
+    >
+    </div>
+    <div
+        class="absolute h-[360px] w-[360px] top-[600px] left-[50px] right-4 rounded-full bg-purple-400 opacity-20 blur-[40px]"
+    >
+    </div>
+
     <main
         class="flex flex-wrap-reverse flex-row gap-2 justify-center md:justify-between md:items-end"
     >
         <article
-            class="md:max-w-[65%] md:mx-0 overflow-hidden"
+            class="md:max-w-[65%] md:mx-0 overflow-hidden z-2"
             set:html={readme}
         />
-        <aside
-            class="flex flex-col mt-7 p-6 rounded-lg md:max-w-[30%] bg-white/10"
-        >
-            {
-                icon && (
-                    <img
-                        src={icon}
-                        alt={title}
-                        class="h-14 w-14 aspect-square"
-                    />
-                )
-            }
-            <h1 class="mb-0 mt-4 p-0 text-2xl">{title}</h1>
-            <p class="mt-0 mb-4">{description}</p>
-            <p class="m-0 text-white/60">
-                Made by <a href={`https://github.com/${author}`}>{author}</a> · Version{
-                    " " + version
-                }
-            </p>
-            <p class="m-0 text-white/60">License: {license}</p>
-            <a href={homepage} class="mr-2 text-white/60 text-sm inline-flex">
-                Homepage <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="ml-2"
-                >
-                    <path
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15 3h6v6m-11 5L21 3m-3 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
-                    ></path>
-                </svg></a
+        <aside class="flex flex-col mt-7 w-full md:w-[30%] z-2">
+            <div
+                class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md items-center"
             >
+                <div
+                    class="flex items-center -rotate-10 justify-center rounded-md bg-white p-3 border border-[#655cc339]"
+                >
+                    {
+                        icon && (
+                            <img
+                                src={icon}
+                                alt={title}
+                                class="h-14 w-14 aspect-square rotate-10 mx-auto"
+                            />
+                        )
+                    }
+                </div>
+                <h1
+                    class="mb-0 mt-4 p-0 text-2xl font-title-sans tracking-tight"
+                >
+                    {title}
+                </h1>
+                <p class="mt-0 text-sm mb-4">{description}</p>
+            </div>
+            <div
+                class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md mt-3 w-full text-sm"
+            >
+                <p class="m-0 text-black/60">
+                    Made by <a href={`https://github.com/${author}`}>{author}</a
+                    >
+                </p>
+                <p class="m-0 text-black/60">License: {license}</p>
+                <a
+                    href={homepage}
+                    class="mr-2 text-black/60 text-sm inline-flex"
+                >
+                    Homepage <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="ml-2"
+                    >
+                        <path
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 3h6v6m-11 5L21 3m-3 10v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"
+                        ></path>
+                    </svg></a
+                >
+            </div>
             {
                 type === "sharedObject" && (
                     <div class="mt-2">
-                        <h2 class="text-lg text-white/90 mb-2">Installation</h2>
-                        <div class="text-sm bg-white/10 p-3 break-words rounded-md">
+                        <h2 class=" text-black/90 mb-2">Installation</h2>
+                        <div class="text-sm bg-black/10 p-3 break-words rounded-md">
                             <code>{`anyquery install ${rawTitle}`}</code>
                         </div>
                     </div>
@@ -217,9 +266,11 @@ const {
             }
             {
                 type === "anyquery" && (
-                    <div class="mt-2">
-                        <h2 class="text-lg text-white/90 mt-0">Tables</h2>
-                        <ul class="mt-0">
+                    <div class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-lg mt-3">
+                        <h2 class=" uppercase font-medium text-black/60 text-xs mb-2 tracking-wider">
+                            Tables
+                        </h2>
+                        <ul class="mt-0 font-mono text-sm text-black/80 list-disc list-inside">
                             {tables.map((table: any) => (
                                 <li>{`${rawTitle}_${table}`}</li>
                             ))}
@@ -227,21 +278,44 @@ const {
                     </div>
                 )
             }
-            <div class="mt-2 pt-0">
-                <h2 class="text-lg text-white/90 mt-0">Compatible platforms</h2>
-                <ul class="mt-0">
+            <div
+                class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md mt-3 w-full text-sm"
+            >
+                <h2
+                    class="uppercase font-medium text-black/60 text-xs mb-2 tracking-wider"
+                >
+                    Compatible platforms
+                </h2>
+                <div class="mt-0 flex flex-wrap gap-2">
                     {
                         compatiblePlatform.map((platform: string) => (
-                            <li>{platform}</li>
+                            <div class="bg-[#eae6e0] text-black/60 px-3 py-1 rounded-md text-sm">
+                                {platform}
+                            </div>
                         ))
                     }
-                </ul>
+                </div>
             </div>
-            <div class="mt-2 pt-0">
-                <h2 class="text-lg text-white/90 mt-0">Versions</h2>
-                <ul class="mt-0">
-                    {versions.map((version: string) => <li>{version}</li>)}
-                </ul>
+            <div
+                class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md mt-3 w-full text-sm"
+            >
+                <h2
+                    class="uppercase font-medium text-black/60 text-xs mb-2 tracking-wider"
+                >
+                    Versions
+                </h2>
+                <div class="flex flex-col gap-2 mt-0">
+                    {versions.map((version: string, i: number) => (<div
+                    class:list={[
+                        "px-3 py-1 rounded-md text-sm max-w-fit",
+                        {"bg-[#eae6e0] text-black/60": i !== 0},
+                        {"bg-lavender text-black/90": i === 0},
+                    ]}
+                >
+                    {version} {i === 0 && "(latest)"}
+                </div>))}
+
+
             </div>
         </aside>
     </main>

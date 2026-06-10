@@ -1,51 +1,61 @@
 @import "tailwindcss";
 @reference "./styles/global.css";
 
-h1 {
+article h1 {
     font-size: 2.9rem;
     font-weight: 500;
     color: #000000;
     margin-bottom: 1rem;
     line-height: 1.0;
+
     font-family: var(--font-display);
 }
-h2 {
-    font-size: 1.6rem;
-    color: #000000;
-    margin-bottom: 1rem;
-    font-family: var(--font-display);
-}
-h3 {
+article h2, article h2 code {
     font-size: 1.3rem;
     color: #000000;
-    margin-bottom: 1rem;
-    font-family: var(--font-display);
+    margin-top: 2rem !important;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    font-family: var(--font-ui);
 }
-h4,
-h5,
-h6 {
-    font-size: 1.2rem;
+article h3, article h3 code {
+    font-size: 1.1rem;
+    color: #000000;
+    margin-top: 1.4rem !important;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    font-family: var(--font-ui);
+}
+article h4,
+article h5,
+article h6,
+article h4 code,
+article h5 code,
+article h6 code {
+    font-size: 1rem;
     font-weight: 600;
     color: #000000;
-    margin-bottom: 1rem;
-    font-family: var(--font-display);
+    margin-top: 0.5rem !important;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    font-family: var(--font-ui);
 }
 
-p,
-li,
-table {
-    @apply text-black/80 text-sm;
+article p,
+article li,
+article table {
+    @apply text-black/80 text-sm leading-[21px];
 }
-blockquote {
-    border-left: 4px solid #ffffff87;
+article blockquote {
+    border-left: 2px solid #21212187;
     padding-left: 1rem;
     margin-left: 0;
     margin-bottom: 1rem;
 }
-blockquote p,
-blockquote li,
-blockquote a {
-    @apply text-black/60 text-sm;
+article blockquote p,
+article blockquote li,
+article blockquote a {
+    @apply text-black/80 text-sm;
 }
 /* Top level code */
 article pre:has(code) {
@@ -55,6 +65,7 @@ article pre:has(code) {
     white-space: pre-wrap;
     word-wrap: break-word;
     margin-bottom: 1rem;
+    margin-top: 0.4rem;
 }
 
 article > pre:has(code),
@@ -77,58 +88,58 @@ article > h6 code {
     background: #ffffff24;
     padding: 2px 4px;
     border-radius: 4px;
+    font-family: var(--font-ui);
 }
 
-table {
+article table {
     border-collapse: collapse;
     @apply mt-3 bg-[#faf6ee] w-full;
 }
 
-table tr {
+article table tr {
     
 }
-table tr:not(:last-child) {
+article table tr:not(:last-child) {
     @apply border-b border-black/20;
     
 }
-table td {
+article table td {
     @apply p-2 md:py-2 md:px-8;
 
 }
-table td:not(:last-child) {
+article table td:not(:last-child) {
 
 }
 
-table thead th {
+article table thead th {
     @apply md:px-2 md:py-1 p-1 text-black/40 text-[0.75rem] font-semibold uppercase tracking-wide;
 }
-table thead {
+article table thead {
     background: #fff7e8;
     @apply  border-b border-black/20;
 }
 
-td::content
 
-ol,
-ul,
-menu {
-    list-style: circle;
+article ol,
+article ul,
+article menu {
     margin: 0.5rem 0;
     padding: 0 1rem;
+    @apply list-disc list-inside;
 }
-h1,
-h2 {
+/* article h1,
+article h2 {
     @apply mt-5 mb-1;
 }
-h3,
-h4,
-h5,
-h6 {
+article h3,
+article h4,
+article h5,
+article h6 {
     @apply mt-4 mb-1;
 }
 article p {
-    @apply mt-1 mb-2;
-}
+    @apply mt-1 mb-4;
+} */
 
 article a {
     @apply underline underline-offset-2;
@@ -136,34 +147,33 @@ article a {
 
 /* Code */
 
-code .hljs-comment {
+article code .hljs-comment {
     @apply text-white/30;
 }
 
-code .hljs-operator {
+article code .hljs-operator {
     color: #ff79c6;
 }
 
-code .hljs-keyword {
+article code .hljs-keyword {
     color: #bd93f9;
 }
 
-code .hljs-attr,
-code .hljs-built_in {
+article code .hljs-attr,
+article code .hljs-built_in {
     color: #8be9fd;
 }
 
-code .hljs-string {
+article code .hljs-string {
     color: #4ed771;
 }
 
 .markdown-alert {
-    /* They look really ai-generated, they are not */
-    @apply bg-black/10 text-black/80 p-4 rounded-md border-l-2 mt-4 mb-8; 
+    @apply  text-black/80 p-4 rounded-md mt-4 mb-8; 
 }
 
 .markdown-alert-important {
-    @apply border-yellow-500;
+    @apply bg-yellow-200/40;
 }
 
 
@@ -173,4 +183,8 @@ code .hljs-string {
 
 .markdown-alert-title > svg {
     @apply inline-block w-5 h-5 mr-2;
+}
+
+article h2 code, article h3  code, article h4  code, article h5  code, article h6  code {
+    @apply text-[1.2rem];
 }

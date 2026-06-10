@@ -97,7 +97,24 @@
     }
 }
 
+
 /* Import Starlight’s compatibility styles. */
 @import "@astrojs/starlight-tailwind";
 @import "tailwindcss/utilities.css" layer(utilities);
 @import "tailwindcss/theme.css" layer(theme);
+
+
+
+.font-display {
+    font-family: var(--font-display);
+}
+.font-ui {
+    font-family: var(--font-ui);
+}
+ @layer components {
+      .font-title-sans {
+          font-family: var(--font-ui);
+          letter-spacing: -0.03em;
+          font-weight: 600;
+      }
+  }

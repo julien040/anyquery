@@ -151,49 +151,49 @@ const chats = await getCollection("chats");
         }
     </div>
 
-    <h1 class="text-3xl mt-8" id="libraries">Libraries</h1>
+    <h1 class="text-5xl font-display text-ink font-normal mt-8" id="libraries">
+        Use <em class="text-peach-700">SQLite libraries</em>
+    </h1>
     <p class="break-words text-sm text-black/60 mt-1">
         Because Anyquery is based on SQLite, download and use SQLite libraries
         to extend the functionality of your queries.
     </p>
-    <div
-        class="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-4"
-    >
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">
         {
             libraryPlugins.map((plugin) => (
                 <a
                     href={`/integrations/${slugify(plugin.name)}`}
-                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
-                    <div class="flex gap-2 items-center mb-4">
-                        <img
-                            src={plugin.icon}
-                            alt={plugin.author}
-                            class="w-8 h-8 rounded-md"
-                        />
-                        <p class="text-xs text-black/60">{plugin.author}</p>
-                    </div>
-                    <h2 class="text-lg">{plugin.display_name}</h2>
+                    <h2 class="text-2xl font-display">{plugin.display_name}</h2>
                     <p class="break-words text-sm text-black/60 mb-2">
                         {plugin.description}
                     </p>
+                    <div class="flex gap-2 items-center pt-4 border-t border-black/10 mt-auto">
+                        <img
+                            src={plugin.icon}
+                            alt={plugin.author}
+                            class="w-6 h-6 rounded-md"
+                        />
+                        <p class="text-xs text-black/60">by {plugin.author}</p>
+                    </div>
                 </a>
             ))
         }
     </div>
 
-    <h1 class="text-3xl mt-8" id="guides">Guides</h1>
+    <h1 class="text-5xl mt-8 font-display" id="guides">
+        Discover more with <em class="text-peach-700">guides</em>
+    </h1>
     <p class="break-words text-sm text-black/60 mt-1">
         Guides on reusing plugins for other integrations.
     </p>
-    <div
-        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
-    >
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-4">
         {
             integrations.map((integration) => (
                 <a
                     href={`/integrations/${integration.slug}`}
-                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
                     <img
                         src={integration.data.icon}
@@ -208,19 +208,19 @@ const chats = await getCollection("chats");
             ))
         }
     </div>
-    <h1 class="text-3xl mt-8" id="llm">LLMs</h1>
+    <h1 class="text-5xl mt-8 font-display" id="llm">
+        <em class="text-peach-700">Chat with your data</em> using LLMs
+    </h1>
     <p class="break-words text-sm text-black/60 mt-1">
         Connect Anyquery to LLMs to chat with your data.
     </p>
 
-    <div
-        class="grid lg:grid-cols-5 md:grid-cols-4 sm:grid-cols-3 grid-cols-2 gap-4 mt-4"
-    >
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-4">
         {
             chats.map((chat) => (
                 <a
                     href={chat.data.url}
-                    class="flex flex-col p-4 rounded-lg bg-white/10 border border-[#655cc339]"
+                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
                     <img
                         src={chat.data.icon}

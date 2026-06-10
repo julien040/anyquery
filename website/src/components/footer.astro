@@ -1,5 +1,8 @@
 ---
 const { footnote, fullBleed = false } = Astro.props;
+
+// Get current year
+const currentYear = new Date().getFullYear();
 ---
 
 <footer class="mt-12 border-t border-ink/15 bg-paper py-14 font-ui">
@@ -91,8 +94,8 @@ const { footnote, fullBleed = false } = Astro.props;
         </div>
         <div class="mt-12 border-t border-ink/15 pt-6 text-[13px] text-ink-3">
             <p>
-                © 2026 · <a href="https://julienc.me" class="text-ink">Julien Cagniart</a> ·
-                AGPL-3.0-or-later · Built on SQLite
+                © {currentYear} · <a href="https://julienc.me" class="text-ink">Julien Cagniart</a> ·
+                AGPL-3.0-or-later
             </p>
         </div>
         {
