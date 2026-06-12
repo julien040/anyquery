@@ -2,6 +2,7 @@
 import { slugify } from "../../functions/slugify";
 import Main from "../../layouts/main.astro";
 import { getCollection } from "astro:content";
+import type { RegistryResponse, Plugin } from "../../types/registry";
 
 // Get all the remote plugins
 const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
@@ -10,28 +11,29 @@ const fetchReg = await fetch("https://registry.anyquery.dev/v0/registry/", {
     },
 });
 
-type apiResponse = {
-    plugins: [
-        {
-            name: string;
-            display_name: string;
-            description: string;
-            icon: string;
-            type: string;
-            author: string;
-        },
-    ];
+type RemotePlugin = Plugin & {
+    // Add any additional fields if necessary
+    lastVersion?: string;
+    tables?: string[];
 };
 
-const allPlugins: apiResponse = await fetchReg.json();
+const allPlugins: RegistryResponse = await fetchReg.json();
 
 // Sort the plugins by name
 allPlugins.plugins.sort((a, b) => a.display_name.localeCompare(b.display_name));
 
-const remotePlugins = allPlugins.plugins.filter((plugin) => {
+const remotePlugins: RemotePlugin[] = allPlugins.plugins.filter((plugin) => {
     // Filter out test plugins that start with "sample"
     return plugin.type === "anyquery" && !plugin.name.startsWith("sample");
 });
+
+for (const plugin of remotePlugins) {
+    // Get the last version of the plugin
+    if (plugin.versions && plugin.versions.length > 0) {
+        plugin.lastVersion = plugin.versions[0].version;
+        plugin.tables = plugin.versions[0].tables;
+    }
+}
 
 const libraryPlugins = allPlugins.plugins.filter((plugin) => {
     return plugin.type === "sharedObject";
@@ -59,7 +61,65 @@ const chats = await getCollection("chats");
         class="absolute h-[360px] w-[360px] -left-24 top-[800px] rounded-full bg-peach opacity-50 blur-[40px]"
     >
     </div>
-    <h1 class="text-5xl font-display text-ink font-normal" id="databases">
+
+    <h1 class="text-5xl font-display text-ink font-normal" id="plugins">
+        Extend with <em class="text-peach-700">plugins</em>
+    </h1>
+    <p class="break-words text-sm text-black/60 mt-1">
+        Query data from various sources, including APIs and local applications.
+    </p>
+    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">
+        {
+            remotePlugins.map((plugin) => (
+                <a
+                    href={`/integrations/${slugify(plugin.name)}`}
+                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
+                >
+                    <img
+                        src={plugin.icon}
+                        alt={plugin.display_name}
+                        class=" w-10 aspect-auto"
+                    />
+                    <div class="flex items-center justify-between mt-3">
+                        <h2 class="text-2xl font-display ">
+                            {plugin.display_name}
+                        </h2>
+                        <p class="text-xs text-black/60 px-2 py-1 rounded-lg bg-black/5">
+                            {plugin.lastVersion}
+                        </p>
+                    </div>
+                    <p class="break-words text-sm text-black/60 mb-4">
+                        {plugin.description}
+                    </p>
+                    <div class="flex gap-2 items-center mt-auto border-t border-black/10 pt-4">
+                        <p
+                            class:list={[
+                                "text-[0.6rem] px-2 py-1 bg-blue-300/50 rounded-2xl max-w-fit text-black/90 uppercase tracking-wide",
+                                {
+                                    "bg-blue-300/50":
+                                        plugin.author.toLowerCase() ===
+                                        "julien040",
+                                    "bg-purple-300/50":
+                                        plugin.author.toLowerCase() !==
+                                        "julien040",
+                                },
+                            ]}
+                        >
+                            {plugin.author.toLowerCase() === "julien040"
+                                ? " OFFICIAL"
+                                : "COMMUNITY"}
+                        </p>
+                        <p class="text-xs text-black/60">By {plugin.author}</p>
+                        <p class="text-xs text-black/60">
+                            {" "}
+                            • {plugin.tables?.length} {plugin.tables?.length === 1 ? "table" : "tables"}
+                        </p>
+                    </div>
+                </a>
+            ))
+        }
+    </div>
+    <h1 class="text-5xl font-display text-ink font-normal mt-8" id="databases">
         Attach a <em class="text-peach-700">database</em>
     </h1>
     <p class="break-words text-sm text-black/60 mt-1">
@@ -102,54 +162,6 @@ const chats = await getCollection("chats");
                 ))
         }
     </div>
-    <h1 class="text-5xl font-display text-ink font-normal mt-8" id="plugins">
-        Extend with <em class="text-peach-700">plugins</em>
-    </h1>
-    <p class="break-words text-sm text-black/60 mt-1">
-        Query data from various sources, including APIs and local applications.
-    </p>
-    <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">
-        {
-            remotePlugins.map((plugin) => (
-                <a
-                    href={`/integrations/${slugify(plugin.name)}`}
-                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
-                >
-                    <img
-                        src={plugin.icon}
-                        alt={plugin.display_name}
-                        class=" w-10 aspect-auto"
-                    />
-                    <h2 class="text-2xl font-display mt-3">
-                        {plugin.display_name}
-                    </h2>
-                    <p class="break-words text-sm text-black/60 mb-4">
-                        {plugin.description}
-                    </p>
-                    <div class="flex gap-2 items-center mt-auto border-t border-black/10 pt-4">
-                        <p
-                            class:list={[
-                                "text-[0.6rem] px-2 py-1 bg-blue-300/50 rounded-2xl max-w-fit text-black/90 uppercase tracking-wide",
-                                {
-                                    "bg-blue-300/50":
-                                        plugin.author.toLowerCase() ===
-                                        "julien040",
-                                    "bg-purple-300/50":
-                                        plugin.author.toLowerCase() !==
-                                        "julien040",
-                                },
-                            ]}
-                        >
-                            {plugin.author.toLowerCase() === "julien040"
-                                ? " OFFICIAL"
-                                : "COMMUNITY"}
-                        </p>
-                        <p class="text-xs text-black/60">By {plugin.author}</p>
-                    </div>
-                </a>
-            ))
-        }
-    </div>
 
     <h1 class="text-5xl font-display text-ink font-normal mt-8" id="libraries">
         Use <em class="text-peach-700">SQLite libraries</em>
@@ -163,13 +175,13 @@ const chats = await getCollection("chats");
             libraryPlugins.map((plugin) => (
                 <a
                     href={`/integrations/${slugify(plugin.name)}`}
-                    class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
+                    class="flex flex-col p-6 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
                     <h2 class="text-2xl font-display">{plugin.display_name}</h2>
-                    <p class="break-words text-sm text-black/60 mb-2">
+                    <p class="break-words text-sm text-black/60 mb-4">
                         {plugin.description}
                     </p>
-                    <div class="flex gap-2 items-center pt-4 border-t border-black/10 mt-auto">
+                    <div class="flex gap-2 items-center pt-2 border-t border-black/10 mt-auto">
                         <img
                             src={plugin.icon}
                             alt={plugin.author}

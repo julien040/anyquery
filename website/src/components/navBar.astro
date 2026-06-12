@@ -2,6 +2,40 @@
 import { Astronav, MenuItems, MenuIcon } from "astro-navbar";
 
 const { fullBleed = false } = Astro.props;
+
+// Fetch GitHub stars at build time. In dev we skip the request and use the
+// fallback so HMR/page navigations don't burn through the unauthenticated
+// rate limit (60 req/hour per IP).
+const STARS_FALLBACK = 1700;
+
+async function getStars(): Promise<number> {
+    if (import.meta.env.DEV) return STARS_FALLBACK;
+    try {
+        const res = await fetch(
+            "https://api.github.com/repos/julien040/anyquery",
+            {
+                headers: {
+                    Accept: "application/vnd.github+json",
+                    "User-Agent": "anyquery-website-build",
+                },
+            },
+        );
+        if (!res.ok) return STARS_FALLBACK;
+        const data = await res.json();
+        return typeof data.stargazers_count === "number"
+            ? data.stargazers_count
+            : STARS_FALLBACK;
+    } catch {
+        return STARS_FALLBACK;
+    }
+}
+
+const stars = await getStars();
+// 1234 -> "1.2k"
+const starsLabel =
+    stars >= 1000
+        ? (stars / 1000).toFixed(1).replace(/\.0$/, "") + "k"
+        : String(stars);
 ---
 
 <nav class="relative z-[5] font-ui">
@@ -16,7 +50,8 @@ const { fullBleed = false } = Astro.props;
                 <a
                     href="/"
                     class="font-display text-[28px] leading-none tracking-[-0.02em] text-ink"
-                    aria-label="Anyquery home">any<em class="italic text-peach-700">query</em></a
+                    aria-label="Anyquery home"
+                    >any<em class="italic text-peach-700">query</em></a
                 >
                 <MenuIcon class="aq-menu-icon" />
             </div>
@@ -24,20 +59,35 @@ const { fullBleed = false } = Astro.props;
                 class="mx-auto hidden flex-col gap-3 py-3 text-sm text-ink-2 sm:flex md:flex-row md:gap-7 md:py-0"
             >
                 <a href="/llm" class="transition-colors hover:text-ink">AI</a>
-                <a
-                    href="/integrations"
-                    class="transition-colors hover:text-ink">Integrations</a
+                <a href="/integrations" class="transition-colors hover:text-ink"
+                    >Integrations</a
                 >
-                <a href="/docs" class="transition-colors hover:text-ink">Docs</a>
-                <a href="/queries" class="transition-colors hover:text-ink">Hub</a>
-                <a href="/recipes" class="transition-colors hover:text-ink">Guides</a>
+                <a href="/docs" class="transition-colors hover:text-ink">Docs</a
+                >
+                <a href="/queries" class="transition-colors hover:text-ink"
+                    >Hub</a
+                >
+                <a href="/recipes" class="transition-colors hover:text-ink"
+                    >Guides</a
+                >
             </MenuItems>
             <div class="hidden items-center gap-4 md:flex">
                 <a
                     href="https://github.com/julien040/anyquery"
-                    class="inline-flex text-ink-2 transition-colors hover:text-ink"
-                    aria-label="Anyquery on GitHub"
-                    ><svg
+                    class="inline-flex items-center gap-1.5 text-ink-2 transition-colors hover:text-ink"
+                    aria-label={`Anyquery on GitHub (${stars} stars)`}
+                >
+                    <span class="text-sm tabular-nums">{starsLabel} </span>
+                    <svg
+                        class="inline-block h-5 w-5 hover:text-yellow-600 hover:rotate-180 transition-all"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                        ><path
+                            fill="currentColor"
+                            d="m12 17.27l4.15 2.51c.76.46 1.69-.22 1.49-1.08l-1.1-4.72l3.67-3.18c.67-.58.31-1.68-.57-1.75l-4.83-.41l-1.89-4.46c-.34-.81-1.5-.81-1.84 0L9.19 8.63l-4.83.41c-.88.07-1.24 1.17-.57 1.75l3.67 3.18l-1.1 4.72c-.2.86.73 1.54 1.49 1.08z"
+                        ></path></svg
+                    >
+                    <svg
                         fill="none"
                         height="24"
                         viewBox="0 0 24 25"

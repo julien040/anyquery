@@ -115,7 +115,7 @@ import Main from "../layouts/main.astro";
                             <span
                                 id="rcSq"
                                 class="h-3.5 w-3.5 rounded bg-pistachio"></span>
-                            <span id="rcTitle">github_starred_repos</span>
+                            <span id="rcTitle">github_my_stars</span>
                         </span>
                         <span id="rcSub" class="text-sm text-ink-3"
                             >6 of 274 rows</span
@@ -348,43 +348,47 @@ import Main from "../layouts/main.astro";
                         <div
                             class="max-w-[85%] self-end rounded-[18px] rounded-br-[6px] bg-ink px-4 py-3 text-sm leading-[1.45] text-paper"
                         >
-                            Which of my starred GitHub repos were last updated
-                            before 2023? I want to spring-clean.
+                            Which artists do I have the most saved tracks from
+                            on Spotify?
                         </div>
                         <div
                             class="max-w-[85%] self-start rounded-[18px] rounded-bl-[6px] bg-lavender px-4 py-3 text-sm leading-[1.45] text-ink"
                         >
-                            Let me check your stars via Anyquery.
+                            Let me roll up your saved tracks with Anyquery.
                             <span
                                 class="mt-2 block break-words rounded-lg bg-ink/[0.06] px-2.5 py-2 font-mono text-[11px] text-ink-2"
                                 ><span class="font-medium text-lavender-700"
                                     >anyquery.query</span
-                                > · <span class="sql-k">SELECT</span> name, pushed_at
-                                <span class="sql-k">FROM</span> github_stars_from_user(<span
-                                    class="sql-s">'you'</span
-                                >) <span class="sql-k">WHERE</span> pushed_at &lt;
-                                <span class="sql-s">'2023-01-01'</span></span
+                                > · <span class="sql-k">SELECT</span> artist_name,
+                                <span class="sql-k">COUNT</span>(*) saves
+                                <span class="sql-k">FROM</span> spotify_saved_tracks
+                                <span class="sql-k">GROUP BY</span> artist_name
+                                <span class="sql-k">ORDER BY</span> saves
+                                <span class="sql-k">DESC LIMIT</span> 5</span
                             >
                             <span
                                 class="mt-1 block break-words rounded-lg bg-ink/[0.06] px-2.5 py-2 font-mono text-[11px] text-ink-2"
-                                >→ 47 rows · 38ms</span
+                                >→ 5 rows · 41ms</span
                             >
                         </div>
                         <div
                             class="max-w-[85%] self-start rounded-[18px] rounded-bl-[6px] bg-lavender px-4 py-3 text-sm leading-[1.45] text-ink"
                         >
-                            You have <b class="font-medium">47 stale repos</b>.
-                            The top three by inactivity: <i>ziglang/zig-old</i>, <i
-                                >pkg/example</i
-                            >,
-                            <i>typicode/lowdb</i>. Want me to unstar all 47?
+                            Your top five: <i>Fred again..</i> (38),
+                            <i>Bladee</i> (29), <i>Charli XCX</i> (24),
+                            <i>Magdalena Bay</i> (19), <i>Jamie xx</i> (17). Want
+                            me to save them to a Notion page?
                         </div>
                         <div
                             class="max-w-[85%] self-end rounded-[18px] rounded-br-[6px] bg-ink px-4 py-3 text-sm leading-[1.45] text-paper"
                         >
-                            Yes — and give me a markdown list first.
+                            Yes — append them to my "Listening log" database.
                         </div>
                     </div>
+                    <p class="mt-5 text-center text-xs italic text-ink-3">
+                        Illustrative conversation — sample data, not a live
+                        session.
+                    </p>
                 </div>
             </div>
 
@@ -560,32 +564,31 @@ import Main from "../layouts/main.astro";
         github: {
             color: "pistachio",
             word: "github",
-            table: "github_starred_repos",
+            table: "github_my_stars",
             time: "27ms",
             rows: 274,
             data: [
-                { a: "tldraw/tldraw", b: "★ 36.9k", pill: "MIT", p: "sky" },
+                { a: "tldraw/tldraw", b: "★ 36.9k", pill: "TS", p: "sky" },
                 {
                     a: "anthropics/mcp",
                     b: "★ 8.2k",
-                    pill: "Apache",
-                    p: "lavender",
+                    pill: "TS",
+                    p: "sky",
                 },
-                { a: "rauchg/slackin", b: "★ 5.3k", pill: "MIT", p: "sky" },
-                { a: "sst/sst", b: "★ 22.1k", pill: "MIT", p: "sky" },
-                { a: "vercel/next.js", b: "★ 121k", pill: "MIT", p: "sky" },
+                { a: "rauchg/slackin", b: "★ 5.3k", pill: "JS", p: "butter" },
+                { a: "sst/sst", b: "★ 22.1k", pill: "TS", p: "sky" },
+                { a: "vercel/next.js", b: "★ 121k", pill: "JS", p: "butter" },
                 {
                     a: "astral-sh/uv",
                     b: "★ 30.8k",
-                    pill: "Apache",
-                    p: "lavender",
+                    pill: "Rust",
+                    p: "peach",
                 },
             ],
-            cols: ["repo", "stars", "license"],
+            cols: ["repo", "stars", "language"],
             pg: `-- your starred repos, newest first
-SELECT name, stars, license
-FROM github_starred_repos
-WHERE owner = 'you'
+SELECT full_name, stargazers_count, language
+FROM github_my_stars
 ORDER BY starred_at DESC;`,
         },
         notion: {
@@ -623,8 +626,8 @@ ORDER BY starred_at DESC;`,
                 },
             ],
             cols: ["task", "status", "priority"],
-            pg: `-- update the priority on an active Notion page
-UPDATE notion_tasks
+            pg: `-- bump the priority on every blocked task
+UPDATE notion_database
 SET priority = 'High'
 WHERE status = 'Blocked';`,
         },
@@ -658,68 +661,66 @@ WHERE status = 'Blocked';`,
                 { a: "Jamie xx — Gosh", b: "6:18", pill: "2015", p: "butter" },
             ],
             cols: ["track", "length", "year"],
-            pg: `-- tracks you actually play, not just save
-SELECT track, play_count
-FROM spotify_top_tracks
-WHERE range = 'medium_term'
-ORDER BY play_count DESC
-LIMIT 25;`,
+            pg: `-- the tracks you've saved, newest first
+SELECT track_name, duration_ms, album_release_date
+FROM spotify_saved_tracks
+ORDER BY saved_at DESC;`,
         },
         gmail: {
             color: "rose",
             word: "your inbox",
-            table: "gmail_messages",
+            table: "imap_emails",
             time: "312ms",
             rows: 4412,
             data: [
                 {
-                    a: "Stripe · Invoice #3048",
-                    b: "Tue 14:22",
-                    pill: "Billing",
+                    a: "Stripe · Receipt #3048",
+                    b: "receipts@stripe.com",
+                    pill: "Jun 2",
                     p: "butter",
                 },
                 {
-                    a: "Linear · Cycle ended",
-                    b: "Mon 09:01",
-                    pill: "Work",
+                    a: "Vercel · Your invoice",
+                    b: "invoices@vercel.com",
+                    pill: "May 28",
                     p: "sky",
                 },
                 {
-                    a: "Notion · Weekly digest",
-                    b: "Sun 08:00",
-                    pill: "Digest",
+                    a: "Notion · Payment receipt",
+                    b: "team@mail.notion.so",
+                    pill: "May 14",
                     p: "peach",
                 },
                 {
-                    a: "Mom · re: Thanksgiving",
-                    b: "Sat 22:14",
-                    pill: "Family",
-                    p: "rose",
+                    a: "OpenAI · Your receipt",
+                    b: "billing@openai.com",
+                    pill: "May 1",
+                    p: "butter",
                 },
                 {
-                    a: "GitHub · 2 PRs awaiting",
-                    b: "Fri 17:30",
-                    pill: "Work",
+                    a: "GitHub · Payment confirmed",
+                    b: "billing@github.com",
+                    pill: "Apr 30",
                     p: "sky",
                 },
                 {
-                    a: "Spotify · Your receipt",
-                    b: "Fri 03:00",
-                    pill: "Billing",
+                    a: "Spotify · Premium receipt",
+                    b: "no-reply@spotify.com",
+                    pill: "Apr 3",
                     p: "butter",
                 },
             ],
-            cols: ["subject", "received", "label"],
-            pg: `-- find every invoice from the last year
-SELECT subject, sender, received_at
-FROM gmail_messages
-WHERE label = 'Billing'
+            cols: ["subject", "from", "received"],
+            pg: `-- every receipt that hit your inbox this year
+SELECT subject, _from, received_at
+FROM imap_emails
+WHERE (subject LIKE '%receipt%' OR subject LIKE '%invoice%')
   AND received_at > date('now','-1 year');`,
         },
         airtable: {
             color: "sky",
             word: "airtable",
-            table: "airtable_records",
+            table: "airtable_table",
             time: "522ms",
             rows: 45463,
             data: [
@@ -745,17 +746,15 @@ WHERE label = 'Billing'
                 },
                 { a: "Customer 3053", b: "Trial", pill: "€0", p: "butter" },
             ],
-            cols: ["record", "status", "mrr"],
-            pg: `-- join Airtable customers with Stripe events
-SELECT a.name, a.status, s.amount
-FROM airtable_customers a
-JOIN stripe_charges s ON s.customer = a.stripe_id
-WHERE a.status = 'Active';`,
+            cols: ["customer", "status", "mrr"],
+            pg: `-- every customer, straight from your Airtable base
+SELECT name, status, mrr
+FROM airtable_table;`,
         },
         sheets: {
             color: "butter",
             word: "a Google Sheet",
-            table: "google_sheets",
+            table: "google_sheets_spreadsheet",
             time: "760ms",
             rows: 150,
             data: [
@@ -768,9 +767,9 @@ WHERE a.status = 'Active';`,
             ],
             cols: ["name", "team", "level"],
             pg: `-- treat a Google Sheet as a live table
-SELECT team, COUNT(*), AVG(level_num)
-FROM google_sheets('Team roster')
-GROUP BY team;`,
+SELECT name, team, level
+FROM google_sheets_spreadsheet
+ORDER BY team;`,
         },
         parquet: {
             color: "mint",
@@ -900,7 +899,7 @@ GROUP BY date ORDER BY date DESC;`,
             )
             .replace(/('[^']*')/g, '<span class="sql-s">$1</span>')
             .replace(
-                /\b(read_parquet|google_sheets|date|now)\b/g,
+                /\b(read_parquet|date|now)\b/g,
                 '<span class="sql-b">$1</span>',
             );
     }

@@ -222,7 +222,7 @@ const {
                 >
                     {title}
                 </h1>
-                <p class="mt-0 text-sm mb-4">{description}</p>
+                <p class="text-black/80 text-sm mb-2 text-center">{description}</p>
             </div>
             <div
                 class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md mt-3 w-full text-sm"
@@ -289,7 +289,7 @@ const {
                 <div class="mt-0 flex flex-wrap gap-2">
                     {
                         compatiblePlatform.map((platform: string) => (
-                            <div class="bg-[#eae6e0] text-black/60 px-3 py-1 rounded-md text-sm">
+                            <div class="bg-[#eae6e0] hover:bg-[#d4cfc8] text-black/60 px-3 py-1 rounded-md text-sm transition-colors">
                                 {platform}
                             </div>
                         ))
@@ -305,7 +305,7 @@ const {
                     Versions
                 </h2>
                 <div class="flex flex-col gap-2 mt-0">
-                    {versions.map((version: string, i: number) => (<div
+                    {versions.slice(0, 10).map((version: string, i: number) => (<div
                     class:list={[
                         "px-3 py-1 rounded-md text-sm max-w-fit",
                         {"bg-[#eae6e0] text-black/60": i !== 0},

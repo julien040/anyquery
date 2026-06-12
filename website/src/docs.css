@@ -640,7 +640,7 @@ mobile-starlight-toc nav {
    handful of palette colors by matching the style attribute.
    Keyed on --1: every token carries a light value, and the
    forced single theme makes it canonical for both schemes. */
-.expressive-code .ec-line span[style*="--1:#403F53" i],
+/* .expressive-code .ec-line span[style*="--1:#403F53" i],
 .expressive-code .ec-line span[style*="--1:#111111" i] {
     color: var(--aq-ink) !important;
 }
@@ -666,7 +666,7 @@ mobile-starlight-toc nav {
 }
 .expressive-code .ec-line span[style*="--1:#5F636F" i] {
     color: #9aa59e !important;
-}
+} */
 
 /* ============================================================
    Tabs component → pill tabs in a cream tray

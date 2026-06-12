@@ -7,7 +7,7 @@ import { slugify } from "../../functions/slugify";
 
 export async function getStaticPaths() {
     const tips = [
-        'You can export the result of the answer to different formats (JSON, CSV, Markdown, etc.). Just pass the --format flag to the command. See all the formats available <a href="/docs/usage/exporting-results#supported-formats" class="text-blue-500">here</a>.',
+        'You can export the result of the answer to different formats (JSON, CSV, Markdown, etc.). Just pass the --format flag to the command. See all the formats available <a href="/docs/usage/exporting-results#supported-formats" class="underline text-lavender-700">here</a>.',
         "The anyquery run command automatically installs the required plugins for the query to run. You can also install the plugins manually using the anyquery install command.",
         "You can also run local queries using the anyquery run command. Just pass the path to the query file as an argument (e.g. anyquery run path/to/query.sql).",
         "To run a hub query on a different account, you can create a new profile using the anyquery profile create command. For example, let's say you have two GitHub accounts, run anyquery profile create github to authenticate with the second account. Next time you run a query, Anyquery will prompt you to select the profile to use.",
@@ -62,8 +62,12 @@ const { query, pluginsMapper, tip } = Astro.props;
 ---
 
 <Main title={`Anyquery - ${query.title}`} noIndex={false}>
+    <div
+        class="absolute h-[360px] w-[360px] top-[50px] right-4 rounded-full bg-lavender opacity-50 blur-[40px] z-0"
+    >
+    </div>
     <main
-        class="max-w-xl mx-auto p-8 md:p-10 rounded-lg bg-black/60 mt-4 shadow-glow"
+        class="max-w-xl mx-auto p-8 md:p-10 rounded-md bg-[#faf6ee] border border-[#eae6e0] mt-4 z-2"
     >
         <div class="flex gap-2 mb-2">
             {
@@ -76,7 +80,7 @@ const { query, pluginsMapper, tip } = Astro.props;
                     return (
                         <a
                             href={`/queries/plugin/${slugify(plugin)}`}
-                            class="flex items-center gap-2 rounded-md text-sm text-white/70"
+                            class="flex items-center gap-2 rounded-md text-sm text-black/70"
                         >
                             <img src={pluginObject.icon} class="h-7 w-7 mr-1" />
                         </a>
@@ -85,22 +89,22 @@ const { query, pluginsMapper, tip } = Astro.props;
             }
         </div>
 
-        <h1 class="text-xl">{query.title}</h1>
-        <p class="text-sm text-white/70">{query.description}</p>
+        <h1 class="text-3xl font-display text-ink font-normal">{query.title}</h1>
+        <p class="text-sm text-black/60">{query.description}</p>
 
-        <h2 class="text-lg mt-5">Run this query</h2>
-        <p class="text-xs text-white/50">
+        <h2 class="text-lg mt-5 font-display">Run this query</h2>
+        <p class="text-xs text-black/50">
             To run this query, you can use the following command:
         </p>
         <div
-            class="flex items-center justify-between font-mono text-sm text-white/70 px-4 py-2 bg-neutral-600/30 border border-[#262626] rounded-md mt-3 mb-6"
+            class="flex items-center justify-between font-mono text-sm text-ink px-4 py-2 bg-paper-2 border border-black/10 rounded-md mt-3 mb-6"
         >
             <!-- Ensure can break in the middle -->
             <p class="font-mono tracking-tight text-xs w-full break-all">
                 {`anyquery run ${query.id}`} {query.arguments?.map((arg) =>  `<${arg.title}>`).join(' ')}
             </p>
             <svg
-                class="h-6 w-6 ml-auto hover:text-white cursor-pointer text-white/70 transition-all"
+                class="h-6 w-6 ml-auto hover:text-ink cursor-pointer text-black/50 transition-all"
                 viewBox="0 0 14 14"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
@@ -119,16 +123,16 @@ const { query, pluginsMapper, tip } = Astro.props;
             </svg>
         </div>
 
-        <h2 class="text-lg mt-8">Arguments</h2>
+        <h2 class="text-lg mt-8 font-display">Arguments</h2>
         <div class="flex flex-col mt-1">
             <div class="flex flex-col gap-2">
                 {
                     query?.arguments?.map((argument) => (
                         <div class="flex flex-col">
-                            <h3 class="text-sm tracking-tight text-white/90">
+                            <h3 class="text-sm tracking-tight text-ink">
                                 {argument.display_title}
                             </h3>
-                            <p class="text-xs text-white/50 mt-1">
+                            <p class="text-xs text-black/50 mt-1">
                                 {argument.description}
                             </p>
                         </div>
@@ -136,17 +140,17 @@ const { query, pluginsMapper, tip } = Astro.props;
                 }
                 {
                     (!query?.arguments || query?.arguments?.length === 0) && (
-                        <p class="text-xs text-white/50">
+                        <p class="text-xs text-black/50">
                             This query does not require any arguments.
                         </p>
                     )
                 }
             </div>
         </div>
-        <h2 class="text-lg mt-8">Additional informations</h2>
+        <h2 class="text-lg mt-8 font-display">Additional informations</h2>
         <a
             href={query.source_code}
-            class="text-xs text-white/70 w-full p-3 bg-black border border-gray-600/50 rounded-md mt-2 flex gap-2 items-center"
+            class="text-xs text-black/70 w-full p-3 bg-white/40 border border-black/10 rounded-md mt-2 flex gap-2 items-center hover:bg-white/70 transition"
         >
             <svg
                 width="24"
@@ -171,14 +175,14 @@ const { query, pluginsMapper, tip } = Astro.props;
         </a>
         <a
             href={`https://github.com/${query.author}`}
-            class="text-xs text-white/70 w-full p-3 bg-black border border-gray-600/50 rounded-md mt-2 flex gap-2 items-center"
+            class="text-xs text-black/70 w-full p-3 bg-white/40 border border-black/10 rounded-md mt-2 flex gap-2 items-center hover:bg-white/70 transition"
         >
             <svg
                 width="24"
                 height="24"
                 viewBox="0 0 48 48"
                 xmlns="http://www.w3.org/2000/svg"
-                class="text-white"
+                class="text-ink"
                 ><path
                     fill="currentColor"
                     stroke="currentColor"
@@ -191,7 +195,7 @@ const { query, pluginsMapper, tip } = Astro.props;
             Author
         </a>
 
-        <h2 class="text-lg mt-8">Tip</h2>
-        <p class="text-xs text-white/50 mt-1" set:html={tip} />
+        <h2 class="text-lg mt-8 font-display">Tip</h2>
+        <p class="text-xs text-black/50 mt-1" set:html={tip} />
     </main>
 </Main>

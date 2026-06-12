@@ -41,6 +41,17 @@ article h6 code {
     font-family: var(--font-ui);
 }
 
+article h1, article h2, article h3, article h4, article h5, article h6 {
+    text-decoration-color: #f4d870;
+}
+
+article p, article li, article table, article a {
+    text-decoration-color: #e1c047;
+    text-decoration-thickness: 2px;
+    text-decoration-skip-ink: auto;
+    /* text-decoration-style:dotted; */
+}
+
 article p,
 article li,
 article table {
@@ -51,6 +62,7 @@ article blockquote {
     padding-left: 1rem;
     margin-left: 0;
     margin-bottom: 1rem;
+    margin-top: 0.4rem;
 }
 article blockquote p,
 article blockquote li,
@@ -68,7 +80,7 @@ article pre:has(code) {
     margin-top: 0.4rem;
 }
 
-article > pre:has(code),
+article pre:has(code),
 .expressive-code {
     background: #1d2320;
     padding: 20px 20px;
@@ -77,7 +89,6 @@ article > pre:has(code),
 
 /* Inline code */
 article > p code,
-article li code,
 article > h1 code,
 article > h2 code,
 article > h3 code,
@@ -85,38 +96,31 @@ article > h4 code,
 article > h5 code,
 article > h6 code {
     @apply text-black/70 text-[0.825rem];
-    background: #ffffff24;
+    background: #0000001e;
     padding: 2px 4px;
     border-radius: 4px;
     font-family: var(--font-ui);
 }
 
+/* Tables — mono uppercase header, hairline rows */
 article table {
-    border-collapse: collapse;
-    @apply mt-3 bg-[#faf6ee] w-full;
+    @apply w-full  rounded-md overflow-hidden border border-black/10 mt-2;
+    border-collapse: separate;
+    border-spacing: 0;
 }
-
-article table tr {
-    
+article th {
+    @apply font-mono font-medium text-[11px] tracking-[0.12em] uppercase text-ink-3 bg-paper-2 border-0 border-b border-solid border-ink/15 px-3.5 py-2.5 text-left;
 }
-article table tr:not(:last-child) {
-    @apply border-b border-black/20;
-    
+article td {
+    @apply text-sm text-ink border-0 border-b border-dashed border-ink/15 px-3.5 py-2.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
-article table td {
-    @apply p-2 md:py-2 md:px-8;
-
+article tbody tr {
+    @apply bg-paper-2/50 even:bg-white/50;
 }
-article table td:not(:last-child) {
-
-}
-
-article table thead th {
-    @apply md:px-2 md:py-1 p-1 text-black/40 text-[0.75rem] font-semibold uppercase tracking-wide;
-}
-article table thead {
-    background: #fff7e8;
-    @apply  border-b border-black/20;
+article tbody tr:last-child td {
+    @apply border-b-0;
 }
 
 
@@ -124,9 +128,10 @@ article ol,
 article ul,
 article menu {
     margin: 0.5rem 0;
-    padding: 0 1rem;
     @apply list-disc list-inside;
 }
+
+
 /* article h1,
 article h2 {
     @apply mt-5 mb-1;
@@ -143,6 +148,11 @@ article p {
 
 article a {
     @apply underline underline-offset-2;
+}
+
+article img {
+    @apply rounded-sm mb-6 mt-2;
+    max-width: 100%;
 }
 
 /* Code */
