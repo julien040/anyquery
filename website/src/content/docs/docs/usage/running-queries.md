@@ -62,7 +62,7 @@ anyquery
 
 to enter the shell mode in SQL mode by default. 
 ![Example of running the shell](/images/docs/Hyper_labH4rXg@2x.png)
-AnyQuery will prompt you for a SQL query, run it, and finally return the result until you exit. To exit the shell, type `.exit`.
+Anyquery will prompt you for a SQL query, run it, and finally return the result until you exit. To exit the shell, type `.exit`.
 
 You can also run initialization queries before entering the shell. For example, to create a table and insert some data, create a file `init.sql` with the following content:
 

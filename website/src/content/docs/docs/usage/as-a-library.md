@@ -1,6 +1,6 @@
 ---
 title: As a library
-description: Using AnyQuery as a go library
+description: Using Anyquery as a go library
 ---
 
 

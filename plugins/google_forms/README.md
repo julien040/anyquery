@@ -43,7 +43,7 @@ Then, you need to authenticate with Google. Go to the [Google Cloud Console](htt
     ![alt text](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/google_forms/images/consentScreen.png)
     1. Select `External` and click on Create
     2. And fill the form with the required information
-        - Application name: AnyQuery
+        - Application name: Anyquery
         - User support email: Your email
         - Developer contact information: Your email
         - Leave the rest as it is

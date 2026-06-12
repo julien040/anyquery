@@ -19,7 +19,7 @@ anyquery install spotify
    4. Accept the terms and conditions and click on the "Save" button.
     ![registration](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/registration.png)
 2. Click on settings in the top right hand corner and copy the Client ID and Client Secret (click on View client secret).
-3. Go to the [AnyQuery Spotify plugin page](https://integration.anyquery.dev/spotify), fill in the Client ID and Client Secret and click on the "Submit" button.
+3. Go to the [Anyquery Spotify plugin page](https://integration.anyquery.dev/spotify), fill in the Client ID and Client Secret and click on the "Submit" button.
     ![connect](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/connect.png)
 4. Click on the green button to connect your Spotify account.
    ![connect_spotify](https://cdn.jsdelivr.net/gh/julien040/anyquery@main/plugins/spotify/images/spotify-agree.png)
