@@ -222,7 +222,9 @@ const {
                 >
                     {title}
                 </h1>
-                <p class="text-black/80 text-sm mb-2 text-center">{description}</p>
+                <p class="text-black/80 text-sm mb-2 text-center">
+                    {description}
+                </p>
             </div>
             <div
                 class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] p-6 rounded-md mt-3 w-full text-sm"
@@ -272,7 +274,7 @@ const {
                         </h2>
                         <ul class="mt-0 font-mono text-sm text-black/80 list-disc list-inside">
                             {tables.map((table: any) => (
-                                <li>{`${rawTitle}_${table}`}</li>
+                                <li class="wrap-anywhere">{`${rawTitle}_${table}`}</li>
                             ))}
                         </ul>
                     </div>
@@ -305,17 +307,28 @@ const {
                     Versions
                 </h2>
                 <div class="flex flex-col gap-2 mt-0">
-                    {versions.slice(0, 10).map((version: string, i: number) => (<div
-                    class:list={[
-                        "px-3 py-1 rounded-md text-sm max-w-fit",
-                        {"bg-[#eae6e0] text-black/60": i !== 0},
-                        {"bg-lavender text-black/90": i === 0},
-                    ]}
-                >
-                    {version} {i === 0 && "(latest)"}
-                </div>))}
-
-
+                    {
+                        versions
+                            .slice(0, 10)
+                            .map((version: string, i: number) => (
+                                <div
+                                    class:list={[
+                                        "px-3 py-1 rounded-md text-sm max-w-fit",
+                                        {
+                                            "bg-[#eae6e0] text-black/60":
+                                                i !== 0,
+                                        },
+                                        {
+                                            "bg-lavender text-black/90":
+                                                i === 0,
+                                        },
+                                    ]}
+                                >
+                                    {version} {i === 0 && "(latest)"}
+                                </div>
+                            ))
+                    }
+                </div>
             </div>
         </aside>
     </main>

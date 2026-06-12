@@ -62,6 +62,21 @@ const chats = await getCollection("chats");
     >
     </div>
 
+    <div
+        class="absolute h-[360px] w-[360px] -right-24 top-[1800px] rounded-full bg-orange-300 opacity-20 blur-[40px]"
+    >
+    </div>
+
+    <div
+        class="absolute h-[360px] w-[360px] -left-24 top-[2400px] rounded-full bg-teal-200 opacity-20 blur-[40px]"
+    >
+    </div>
+
+    <div
+        class="absolute h-[360px] w-[360px] -right-24 top-[3000px] rounded-full bg-orange-300 opacity-20 blur-[40px]"
+    >
+    </div>
+
     <h1 class="text-5xl font-display text-ink font-normal" id="plugins">
         Extend with <em class="text-peach-700">plugins</em>
     </h1>
@@ -112,7 +127,8 @@ const chats = await getCollection("chats");
                         <p class="text-xs text-black/60">By {plugin.author}</p>
                         <p class="text-xs text-black/60">
                             {" "}
-                            • {plugin.tables?.length} {plugin.tables?.length === 1 ? "table" : "tables"}
+                            • {plugin.tables?.length}{" "}
+                            {plugin.tables?.length === 1 ? "table" : "tables"}
                         </p>
                     </div>
                 </a>
@@ -212,7 +228,7 @@ const chats = await getCollection("chats");
                         alt={integration.data.title}
                         class="w-10 h-10"
                     />
-                    <h2 class="text-lg mt-3">{integration.data.title}</h2>
+                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">{integration.data.title}</h2>
                     <p class="break-words text-sm text-black/60">
                         {integration.data.description}
                     </p>
@@ -239,7 +255,7 @@ const chats = await getCollection("chats");
                         alt={chat.data.name}
                         class="w-10 h-10"
                     />
-                    <h2 class="text-lg mt-3">{chat.data.name}</h2>
+                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">{chat.data.name}</h2>
                     <p class="break-words text-sm text-black/60">
                         {chat.data.description}
                     </p>
