@@ -1,5 +1,27 @@
 ---
 import Main from "../layouts/main.astro";
+
+type Sponsor = {
+    name: string;
+    url: string;
+    logo?: string; // wordmark logo (gold & silver)
+    icon?: string; // icon-only logo (bronze)
+    description?: string;
+};
+
+const SPONSORS: Record<"gold" | "silver" | "bronze", Sponsor[]> = {
+    gold: [
+        {
+            name: "Atlas Cloud",
+            url: "https://www.atlascloud.ai/?utm_source=website&utm_medium=link&utm_campaign=anyquery",
+            logo: "/images/brand/atlas-cloud/atlas-cloud-logo-black.svg",
+            description:
+                "Atlas Cloud provides serverless inference and GPU clusters for open-source AI models.",
+        },
+    ],
+    silver: [],
+    bronze: [],
+};
 ---
 
 <Main
@@ -539,6 +561,97 @@ import Main from "../layouts/main.astro";
                     >
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- ============ SPONSORS ============ -->
+    <section class="bg-paper py-20" id="sponsors">
+        <div class="wrap text-center">
+            <span
+                class="font-mono text-xs uppercase tracking-[0.14em] text-ink-3"
+                >Sponsored by</span
+            >
+
+            {
+                SPONSORS.gold.length > 0 && (
+                    <div class="mt-8 flex flex-col items-center gap-10">
+                        {SPONSORS.gold.map((s) => (
+                            <div>
+                                <a
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="sponsored noopener"
+                                    class="mx-auto block w-fit opacity-90 transition hover:opacity-100"
+                                >
+                                    <img
+                                        src={s.logo}
+                                        alt={s.name}
+                                        loading="lazy"
+                                        class="mx-auto h-8 w-auto"
+                                    />
+                                </a>
+                                {s.description && (
+                                    <p class="mx-auto mt-4 max-w-[48ch] text-sm text-ink-3">
+                                        {s.description}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+
+            {
+                SPONSORS.silver.length > 0 && (
+                    <div class="mt-10 flex flex-wrap items-start justify-center gap-x-12 gap-y-8">
+                        {SPONSORS.silver.map((s) => (
+                            <div>
+                                <a
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="sponsored noopener"
+                                    class="mx-auto block w-fit opacity-90 transition hover:opacity-100"
+                                >
+                                    <img
+                                        src={s.logo}
+                                        alt={s.name}
+                                        loading="lazy"
+                                        class="mx-auto h-5 w-auto"
+                                    />
+                                </a>
+                                {s.description && (
+                                    <p class="mx-auto mt-2.5 max-w-[36ch] text-xs text-ink-3">
+                                        {s.description}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
+
+            {
+                SPONSORS.bronze.length > 0 && (
+                    <div class="mt-9 flex flex-wrap items-center justify-center gap-7">
+                        {SPONSORS.bronze.map((s) => (
+                            <a
+                                href={s.url}
+                                target="_blank"
+                                rel="sponsored noopener"
+                                title={s.name}
+                                class="opacity-80 transition hover:opacity-100"
+                            >
+                                <img
+                                    src={s.icon}
+                                    alt={s.name}
+                                    loading="lazy"
+                                    class="h-8 w-8"
+                                />
+                            </a>
+                        ))}
+                    </div>
+                )
+            }
         </div>
     </section>
 </Main>
