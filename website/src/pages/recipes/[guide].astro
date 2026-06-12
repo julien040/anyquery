@@ -1,6 +1,9 @@
 ---
 import Main from "../../layouts/main.astro";
+import "../../font.css";
+import "../../styles/global.css";
 import "../../markdown.css";
+
 import { getCollection } from "astro:content";
 import DOMPurify from "isomorphic-dompurify";
 import { Marked } from "marked";
@@ -15,7 +18,7 @@ export async function getStaticPaths() {
                 const language = hljs.getLanguage(lang) ? lang : "plaintext";
                 return hljs.highlight(code, { language }).value;
             },
-        })
+        }),
     );
     const entries: {
         params: { guide: string };
@@ -53,39 +56,42 @@ const randomGuides = guides.sort(() => 0.5 - Math.random()).slice(0, 6);
     flex-wrap
     justify-between">
         <article class="px-1 md:w-4/6 w-full max-w-[75ch]" set:html={content} />
-        <aside
-            class="w-[31%] p-4 rounded-lg bg-black/20 hidden md:block border border-white/10 max-h-min"
-        >
-            <h2 class="text-lg mt-0">What is Anyquery?</h2>
-            <p class="text-white/70 text-sm">
-                <a class="underline" href="https://anyquery.dev">Anyquery</a> is
-                a SQL query engine that allows you to query data from multiple sources
-                (Airtable, Google Sheets, CSV, Shopify, etc.) using SQL.
-                <br /><br /> You can use Anyquery to create a single source of truth
-                for your data, create custom dashboards using third-party tools like
-                Metabase, and extract your data from Saas platforms.
-                <h2 class="text-lg">Other cool guides</h2>
-                <div class="flex flex-col gap-4">
+        <aside class="w-[31%] hidden md:flex flex-col max-h-min">
+            <h2 class="text-2xl mt-0 font-display mb-2">What is Anyquery?</h2>
+            <div
+                class="flex flex-col bg-white/40 border border-[#eae6e0] p-6 rounded-md"
+            >
+                <p class="text-black/60 text-sm m-0">
+                    <a
+                        class="underline text-lavender-700"
+                        href="https://anyquery.dev">Anyquery</a
+                    > is a SQL query engine that allows you to query data from multiple
+                    sources (Airtable, Google Sheets, CSV, Shopify, etc.) using SQL.
+                    <br /><br /> You can use Anyquery to create a single source of
+                    truth for your data, create custom dashboards using third-party
+                    tools like Metabase, and extract your data from Saas platforms.
+                </p>
+            </div>
+            <h2 class="text-xl mt-4 mb-2 font-display">Other cool guides</h2>
+            <div class="flex flex-col">
+                <div class="flex flex-col gap-2">
                     {
                         randomGuides.map((guide) => (
                             <a
-                                class="flex flex-col p-4 bg-white/10 rounded-md "
+                                class="flex flex-col p-4 bg-white/40 border border-black/10 rounded-md hover:bg-white/80 transition"
                                 href={`/recipes/${guide.slug}`}
                             >
-                                <p class="text-md font-semibold tracking-tight mb-1 flex ">
+                                <p class="text-md font-semibold tracking-tight mb-1 flex text-ink">
                                     {guide.data.title}
                                 </p>
-                                <p
-                                    class="text-white/50
-                                 text-xs"
-                                >
+                                <p class="text-black/50 text-xs">
                                     {guide.data.description}
                                 </p>
                             </a>
                         ))
                     }
                 </div>
-            </p>
+            </div>
         </aside>
     </main>
 </Main>

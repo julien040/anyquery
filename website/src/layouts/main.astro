@@ -7,6 +7,7 @@ type Props = {
     ogImage?: string;
     ogDescription?: string;
     noIndex?: boolean;
+    fullBleed?: boolean;
 };
 
 const {
@@ -17,19 +18,21 @@ const {
     ogDescription,
     ogTitle,
     noIndex,
+    fullBleed = false,
 } = Astro.props;
 import "../font.css";
+import "../styles/global.css";
+import "../styles/pastel.css";
 import NavBar from "../components/navBar.astro";
 import Footer from "../components/footer.astro";
-import "../styles/global.css";
 ---
 
 <html lang="en">
     <head>
         <title>{title}</title>
         <meta charset="utf-8" />
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-        <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="icon" type="image/svg+xml" href="/new-anyquery-logo.svg" />
+        <link rel="icon" type="image/png" href="/new-anyquery-logo.png" />
         <meta name="viewport" content="width=device-width" />
         <meta property="og:sitename" content="Anyquery" />
         {description && <meta name="description" content={description} />}
@@ -43,14 +46,17 @@ import "../styles/global.css";
             )
         }
     </head>
-    <body class="max-w-5xl mx-auto p-6 min-h-screen flex flex-col">
-        <NavBar />
-        <div class="py-2"><!-- Hey, hello you ! --></div>
+    <body
+        class:list={[
+            "aq-grain",
+            !fullBleed && "max-w-5xl mx-auto min-h-screen flex flex-col p-6",
+        ]}
+    >
+        <NavBar fullBleed={fullBleed} />
+        {!fullBleed && <div class="py-2"><!-- Hey, hello you ! --></div>}
         <slot />
-        <div class="py-2 mt-auto">
-            <!-- I guess it's a good time to say goodbye -->
-        </div>
-        <Footer footnote={footnote} />
+        {!fullBleed && <div class="py-2 mt-auto"><!-- goodbye --></div>}
+        <Footer footnote={footnote} fullBleed={fullBleed} />
         <script
             data-collect-dnt="true"
             async
@@ -64,50 +70,4 @@ import "../styles/global.css";
             />
         </noscript>
     </body>
-    <style is:global>
-        html {
-            background: linear-gradient(180deg, #1b0438 -0.08%, #08090a 67.19%);
-            background-repeat: no-repeat;
-            font-family: "Inter", sans-serif;
-            color: #ffffffb8;
-        }
-        a,
-        p {
-            letter-spacing: -0.12px;
-        }
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: "Inter", sans-serif;
-            color: #ffffff;
-            letter-spacing: -0.9px;
-            font-weight: 600;
-        }
-
-        .button {
-            display: inline-flex;
-            padding: 10px 14px;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.15);
-            font-size: 0.875rem;
-            color: #ffffff;
-            font-weight: 500;
-            transition: all 0.2s ease-in-out;
-        }
-        .button:hover {
-            background: rgba(255, 255, 255, 0.25);
-        }
-        .button-silent {
-            background: none;
-        }
-        .button-silent:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-    </style>
 </html>

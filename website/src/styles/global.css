@@ -2,14 +2,7 @@
 
 @layer base, starlight, theme, components, utilities;
 
-/* boxShadow: {
-				"outline-primary": "0px 0px 100px 0px rgba(135, 124, 255, 0.22)",
-				"outline-secondary": "0px 0px 68.5px 0px rgba(255, 255, 255, 0.04)",
-				glow: "0px 0px 100px 40px rgba(135, 124, 255, 0.18)",
-			},
-			borderColor: {
-				primary: "#202020",
-			}, */
+/* Legacy violet tokens — kept for pages not yet migrated to the pastel theme. */
 @theme {
     --shadow-outline-primary: 0px 0px 100px 0px rgba(135, 124, 255, 0.22);
     --shadow-outline-secondary: 0px 0px 68.5px 0px rgba(255, 255, 255, 0.04);
@@ -17,8 +10,111 @@
     --border-color-primary: #202020;
 }
 
-/* Import Starlight’s compatibility styles. */
-@import '@astrojs/starlight-tailwind';
-@import 'tailwindcss/utilities.css' layer(utilities);
-@import 'tailwindcss/theme.css' layer(theme);
+/* ============================================================
+   Pastel design tokens → Tailwind utilities
+   (bg-paper, text-ink, font-display, rounded-lg, shadow-lift, …)
+   ============================================================ */
+@theme {
+    /* Paper / ink */
+    --color-paper: #faf6ee;
+    --color-paper-2: #f3ecdc;
+    --color-paper-3: #ece3ce;
+    --color-ink: #1b2320;
+    --color-ink-2: #3a4a43;
+    --color-ink-3: #6a7a72;
 
+    /* Pastels (data-source aliased) */
+    --color-pistachio: #c8e6b4;
+    --color-butter: #f6e29a;
+    --color-peach: #ffbfa0;
+    --color-lavender: #d4c7ff;
+    --color-sky: #bcd8ff;
+    --color-rose: #ffc8d8;
+    --color-mint: #b8e6dc;
+    --color-pistachio-700: #5e8a45;
+    --color-butter-700: #a38a1c;
+    --color-peach-700: #c26a4a;
+    --color-lavender-700: #6b5bb3;
+    --color-sky-700: #4c7fc7;
+    --color-rose-700: #b85a82;
+    --color-mint-700: #3c8a7a;
+
+    /* Syntax (on cream) */
+    --color-syn-keyword: #6b5bb3;
+    --color-syn-operator: #b85a82;
+    --color-syn-builtin: #4c7fc7;
+    --color-syn-string: #3c8a7a;
+    --color-syn-comment: #9aa59e;
+
+    /* Type */
+    --font-display: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
+    --font-ui: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+        Arial, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo,
+        monospace;
+
+    /* Radii */
+    --radius-md: 14px;
+    --radius-lg: 22px;
+    --radius-xl: 32px;
+
+    /* Shadows — soft, warm */
+    --shadow-soft: 0 6px 18px -8px rgba(27, 35, 32, 0.18),
+        0 2px 6px rgba(27, 35, 32, 0.06);
+    --shadow-lift: 0 24px 48px -18px rgba(27, 35, 32, 0.22),
+        0 8px 16px -8px rgba(27, 35, 32, 0.1);
+    --inset-shadow-hair: inset 0 0 0 1px rgba(27, 35, 32, 0.08);
+
+    /* Marquee */
+    --animate-marquee: aq-marquee 48s linear infinite;
+}
+
+@keyframes aq-marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+
+/* Reusable primitives — composed entirely from Tailwind utilities. */
+@layer components {
+    .wrap {
+        @apply relative mx-auto w-full max-w-6xl px-5 sm:px-8;
+    }
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full bg-ink px-[18px] py-3 text-[15px] font-medium text-paper transition hover:-translate-y-px hover:bg-black;
+    }
+    .btn-ghost {
+        @apply bg-transparent text-ink inset-shadow-hair hover:bg-ink/5;
+    }
+    .btn-sm {
+        @apply px-4 py-2 text-sm;
+    }
+    .aq-code {
+        @apply rounded-[6px] bg-paper-2 px-1.5 py-0.5 font-mono text-sm text-ink;
+    }
+}
+
+
+/* Import Starlight’s compatibility styles. */
+@import "@astrojs/starlight-tailwind";
+@import "tailwindcss/utilities.css" layer(utilities);
+@import "tailwindcss/theme.css" layer(theme);
+
+
+
+.font-display {
+    font-family: var(--font-display);
+}
+.font-ui {
+    font-family: var(--font-ui);
+}
+ @layer components {
+      .font-title-sans {
+          font-family: var(--font-ui);
+          letter-spacing: -0.03em;
+          font-weight: 600;
+      }
+  }

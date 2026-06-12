@@ -63,12 +63,12 @@ const { queries, plugin } = Astro.props;
         <img src={plugin.icon} class="w-10 h-10 rounded-lg" />
         <div>
             <a
-                class="text-2xl text-white hover:underline font-bold tracking-tight"
+                class="text-2xl text-black hover:underline font-bold tracking-tight"
                 href={`/integrations/${plugin.name}`}
             >
                 {plugin.display_name}
             </a>
-            <p class="text-sm text-white/60">
+            <p class="text-sm text-black/60">
                 {plugin.description} - Here are predefined queries for the {
                     plugin.display_name
                 } plugin.
@@ -81,7 +81,7 @@ const { queries, plugin } = Astro.props;
         aria-label="Search queries"
         type="text"
         placeholder="🔍 Search queries"
-        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-lg text-sm text-white/70"
+        class="w-full mt-4 p-2 pl-4 bg-white border border-[#262626]/20 rounded-md text-sm text-black/70"
     />
     <script>
         const searchElement = document.getElementById("search");

@@ -38,8 +38,12 @@ const { Content } = await entry.render();
                     class="w-12 h-12"
                 />
                 <div>
-                    <h1 class="p-0 m-0 text-2xl">{entry.data.title}</h1>
-                    <p class="m-0 text-white/60">{entry.data.description}</p>
+                    <h1 class="p-0 m-0 font-ui tracking-tight text-2xl">
+                        {entry.data.title}
+                    </h1>
+                    <p class="m-0 font-ui tracking-tight text-black/60">
+                        {entry.data.description}
+                    </p>
                 </div>
             </div>
         </div>
