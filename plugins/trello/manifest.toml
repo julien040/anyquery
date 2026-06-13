@@ -1,6 +1,6 @@
 
 name = "trello"
-version = "0.1.1"
+version = "0.1.5"
 description = "Query and insert/update/delete cards from your Trello boards"
 author = "julien040"
 license = "UNLICENSED"
