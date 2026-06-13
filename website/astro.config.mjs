@@ -22,7 +22,12 @@ export default defineConfig({
                 alt: "Anyquery logo",
             },
             expressiveCode: {
-                themes: ["light-plus" /* "github-dark-default" */],
+                themes: ["catppuccin-mocha"],
+                // Wrap long lines instead of horizontal scroll, matching
+                // src/markdown.css (white-space: pre-wrap; word-wrap: break-word).
+                defaultProps: {
+                    wrap: true,
+                },
             },
 
             components: {},
@@ -100,10 +105,14 @@ export default defineConfig({
                 },
                 {
                     label: "Database",
-                    autogenerate: {
-                        directory: "docs/database",
-                    },
                     collapsed: false,
+                    items: [
+                        {
+                            autogenerate: {
+                                directory: "docs/database",
+                            },
+                        },
+                    ],
                 },
 
                 {
@@ -115,24 +124,36 @@ export default defineConfig({
                         },
                         {
                             label: "CLI commands",
-                            autogenerate: {
-                                directory: "docs/reference/Commands",
-                            },
                             collapsed: true,
+                            items: [
+                                {
+                                    autogenerate: {
+                                        directory: "docs/reference/Commands",
+                                    },
+                                },
+                            ],
                         },
                     ],
                 },
                 {
-                    autogenerate: {
-                        directory: "docs/developers",
-                    },
                     label: "Developers",
+                    items: [
+                        {
+                            autogenerate: {
+                                directory: "docs/developers",
+                            },
+                        },
+                    ],
                 },
                 {
-                    autogenerate: {
-                        directory: "connection-guide",
-                    },
                     label: "Connection guide",
+                    items: [
+                        {
+                            autogenerate: {
+                                directory: "connection-guide",
+                            },
+                        },
+                    ],
                 },
             ],
             head: [

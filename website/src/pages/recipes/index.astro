@@ -28,7 +28,7 @@ const recipes = await getCollection("recipes");
             recipes.map((guide) => (
                 <a
                     class="flex flex-col p-6 bg-white/30 rounded-md border border-black/10 hover:bg-white/70 transition"
-                    href={`/recipes/${guide.slug}`}
+                    href={`/recipes/${guide.id}`}
                 >
                     <h2 class="text-xl mt-0 font-display">{guide.data.title}</h2>
                     <p class="text-black/60 text-sm">

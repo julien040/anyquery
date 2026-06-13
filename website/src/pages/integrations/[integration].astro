@@ -1,7 +1,7 @@
 ---
 import Main from "../../layouts/main.astro";
 import "../../markdown.css";
-import { getCollection } from "astro:content";
+import { getCollection, render } from "astro:content";
 
 export async function getStaticPaths() {
     const entries: {
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
 
     for (const plugin of integrations) {
         entries.push({
-            params: { integration: plugin.slug },
+            params: { integration: plugin.id },
             props: {
                 entry: plugin,
             },
@@ -25,7 +25,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
-const { Content } = await entry.render();
+const { Content } = await render(entry);
 ---
 
 <Main title={entry.data.title + " - Anyquery"}>

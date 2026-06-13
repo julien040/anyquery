@@ -76,6 +76,22 @@ const chats = await getCollection("chats");
         class="absolute h-[360px] w-[360px] -right-24 top-[3000px] rounded-full bg-orange-300 opacity-20 blur-[40px]"
     >
     </div>
+    <div class="flex flex-col z-[2] mb-8">
+        <h1 class="font-display text-7xl text-ink font-normal tracking-tight">
+            <span class="italic">Every</span> tool, as a <span class="hl-underline">table</span>
+        </h1>
+        <p class="text-black/60 mt-2">
+            Anyquery speaks SQL to the databases, services and files you already
+            use. Whether you want to query a database, an API, or a local file,
+            Anyquery can help you get the data you need, and even combine it all
+            together in one query.
+            <br />
+            Missing an integration? <a
+                href="/docs/developers/plugins/create-plugin/"
+                class="underline">Create a plugin</a
+            >
+        </p>
+    </div>
 
     <h1 class="text-5xl font-display text-ink font-normal" id="plugins">
         Extend with <em class="text-peach-700">plugins</em>
@@ -220,7 +236,7 @@ const chats = await getCollection("chats");
         {
             integrations.map((integration) => (
                 <a
-                    href={`/integrations/${integration.slug}`}
+                    href={`/integrations/${integration.id}`}
                     class="flex flex-col p-8 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
                 >
                     <img
@@ -228,7 +244,9 @@ const chats = await getCollection("chats");
                         alt={integration.data.title}
                         class="w-10 h-10"
                     />
-                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">{integration.data.title}</h2>
+                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">
+                        {integration.data.title}
+                    </h2>
                     <p class="break-words text-sm text-black/60">
                         {integration.data.description}
                     </p>
@@ -255,7 +273,9 @@ const chats = await getCollection("chats");
                         alt={chat.data.name}
                         class="w-10 h-10"
                     />
-                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">{chat.data.name}</h2>
+                    <h2 class="text-lg mt-3 font-ui tracking-tight font-medium">
+                        {chat.data.name}
+                    </h2>
                     <p class="break-words text-sm text-black/60">
                         {chat.data.description}
                     </p>

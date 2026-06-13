@@ -30,7 +30,7 @@ export async function getStaticPaths() {
 
     for (const guide of guides) {
         entries.push({
-            params: { guide: guide.slug },
+            params: { guide: guide.id },
             props: {
                 entry: guide,
                 content: DOMPurify.sanitize(await marked.parse(guide.body)),
@@ -79,7 +79,7 @@ const randomGuides = guides.sort(() => 0.5 - Math.random()).slice(0, 6);
                         randomGuides.map((guide) => (
                             <a
                                 class="flex flex-col p-4 bg-white/40 border border-black/10 rounded-md hover:bg-white/80 transition"
-                                href={`/recipes/${guide.slug}`}
+                                href={`/recipes/${guide.id}`}
                             >
                                 <p class="text-md font-semibold tracking-tight mb-1 flex text-ink">
                                     {guide.data.title}

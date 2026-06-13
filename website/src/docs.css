@@ -576,29 +576,37 @@ mobile-starlight-toc nav {
    !important to win.
    ============================================================ */
 .expressive-code {
-    --ec-brdRad: 22px !important;
+    /* Code blocks are dark (matches src/markdown.css: #1d2320 body),
+       so syntax tokens come from the github-dark Shiki theme. The
+       surrounding frame/tab chrome uses a slightly darker shade so
+       it reads as a separate strip on cream pages. */
+    --aq-code-bg: #1d2320;
+    --aq-code-chrome: #161b18;
+    --aq-code-hairline: rgba(255, 255, 255, 0.1);
+
+    --ec-brdRad: 16px !important;
     --ec-brdWd: 1px !important;
-    --ec-brdCol: rgba(27, 35, 32, 0.12) !important;
-    --ec-codeBg: var(--aq-paper) !important;
-    --ec-codeFg: var(--aq-ink) !important;
-    --ec-codeSelBg: #eae4ff !important;
+    --ec-brdCol: var(--aq-code-hairline) !important;
+    --ec-codeBg: var(--aq-code-bg) !important;
+    --ec-codeFg: rgba(255, 255, 255, 0.9) !important;
+    --ec-codeSelBg: rgba(212, 199, 255, 0.25) !important;
     --ec-codeFontSize: 0.84375rem !important;
     --ec-codeLineHt: 1.65 !important;
     --ec-codePadBlk: 1.1rem !important;
     --ec-codePadInl: 1.25rem !important;
-    --ec-gtrFg: #8b968f !important;
-    --ec-gtrBrdCol: rgba(27, 35, 32, 0.1) !important;
-    --ec-sbThumbCol: rgba(27, 35, 32, 0.15) !important;
-    --ec-sbThumbHoverCol: rgba(27, 35, 32, 0.3) !important;
-    --ec-focusBrd: var(--aq-lavender-700) !important;
+    --ec-gtrFg: rgba(255, 255, 255, 0.35) !important;
+    --ec-gtrBrdCol: var(--aq-code-hairline) !important;
+    --ec-sbThumbCol: rgba(255, 255, 255, 0.2) !important;
+    --ec-sbThumbHoverCol: rgba(255, 255, 255, 0.35) !important;
+    --ec-focusBrd: var(--aq-lavender) !important;
 
     /* Editor frames + tabs */
-    --ec-frm-edBg: var(--aq-paper) !important;
-    --ec-frm-edTabBarBg: var(--aq-paper-2) !important;
+    --ec-frm-edBg: var(--aq-code-bg) !important;
+    --ec-frm-edTabBarBg: var(--aq-code-chrome) !important;
     --ec-frm-edTabBarBrdCol: transparent !important;
-    --ec-frm-edTabBarBrdBtmCol: var(--aq-hairline) !important;
-    --ec-frm-edActTabBg: var(--aq-ink) !important;
-    --ec-frm-edActTabFg: var(--aq-paper) !important;
+    --ec-frm-edTabBarBrdBtmCol: var(--aq-code-hairline) !important;
+    --ec-frm-edActTabBg: var(--aq-code-bg) !important;
+    --ec-frm-edActTabFg: rgba(255, 255, 255, 0.95) !important;
     --ec-frm-edActTabBrdCol: transparent !important;
     --ec-frm-edActTabIndTopCol: transparent !important;
     --ec-frm-edActTabIndBtmCol: transparent !important;
@@ -607,32 +615,32 @@ mobile-starlight-toc nav {
     --ec-frm-edTabsMargBlkStart: 6px !important;
 
     /* Terminal frames */
-    --ec-frm-trmBg: var(--aq-paper) !important;
-    --ec-frm-trmTtbBg: var(--aq-paper-2) !important;
-    --ec-frm-trmTtbFg: var(--aq-ink-3) !important;
-    --ec-frm-trmTtbBrdBtmCol: var(--aq-hairline) !important;
-    --ec-frm-trmTtbDotsFg: var(--aq-ink) !important;
-    --ec-frm-trmTtbDotsOpa: 0.18 !important;
+    --ec-frm-trmBg: var(--aq-code-bg) !important;
+    --ec-frm-trmTtbBg: var(--aq-code-chrome) !important;
+    --ec-frm-trmTtbFg: rgba(255, 255, 255, 0.6) !important;
+    --ec-frm-trmTtbBrdBtmCol: var(--aq-code-hairline) !important;
+    --ec-frm-trmTtbDotsFg: rgba(255, 255, 255, 1) !important;
+    --ec-frm-trmTtbDotsOpa: 0.3 !important;
 
-    /* No dark drop shadows */
+    /* No dark drop shadows; keep a faint light inset hairline */
     --ec-frm-shdCol: transparent !important;
-    --ec-frm-frameBoxShdCssVal: var(--aq-inset-hair) !important;
+    --ec-frm-frameBoxShdCssVal: inset 0 0 0 1px rgba(255, 255, 255, 0.06) !important;
 
     /* Copy button + tooltip */
-    --ec-frm-inlBtnFg: var(--aq-ink-2) !important;
-    --ec-frm-inlBtnBg: var(--aq-ink) !important;
-    --ec-frm-inlBtnBrd: var(--aq-ink) !important;
+    --ec-frm-inlBtnFg: rgba(255, 255, 255, 0.6) !important;
+    --ec-frm-inlBtnBg: rgba(255, 255, 255, 0.15) !important;
+    --ec-frm-inlBtnBrd: rgba(255, 255, 255, 0.2) !important;
     --ec-frm-tooltipSuccessBg: var(--aq-pistachio-700) !important;
 
-    /* Text markers (mark / ins / del) */
-    --ec-tm-markBg: rgba(212, 199, 255, 0.35) !important;
-    --ec-tm-markBrdCol: var(--aq-lavender-700) !important;
-    --ec-tm-insBg: rgba(200, 230, 180, 0.5) !important;
-    --ec-tm-insBrdCol: var(--aq-pistachio-700) !important;
-    --ec-tm-insDiffIndCol: var(--aq-pistachio-700) !important;
-    --ec-tm-delBg: rgba(255, 200, 216, 0.5) !important;
-    --ec-tm-delBrdCol: var(--aq-rose-700) !important;
-    --ec-tm-delDiffIndCol: var(--aq-rose-700) !important;
+    /* Text markers (mark / ins / del) — translucent tints over dark */
+    --ec-tm-markBg: rgba(212, 199, 255, 0.2) !important;
+    --ec-tm-markBrdCol: var(--aq-lavender) !important;
+    --ec-tm-insBg: rgba(200, 230, 180, 0.18) !important;
+    --ec-tm-insBrdCol: var(--aq-pistachio) !important;
+    --ec-tm-insDiffIndCol: var(--aq-pistachio) !important;
+    --ec-tm-delBg: rgba(255, 200, 216, 0.18) !important;
+    --ec-tm-delBrdCol: var(--aq-rose) !important;
+    --ec-tm-delDiffIndCol: var(--aq-rose) !important;
 }
 
 /* ---------- Syntax token remap → pastel inks ----------
