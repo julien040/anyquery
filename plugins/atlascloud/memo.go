@@ -17,7 +17,12 @@ import (
 // enough that generations are not silently re-served across unrelated
 // queries. Nothing is ever persisted to disk.
 const (
-	memoTTL        = 5 * time.Minute
+	memoTTL = 5 * time.Minute
+	// A submit failure is never billed (the request was rejected before a task
+	// was created), so it is cached only briefly: long enough to absorb
+	// re-scans within one statement, short enough that a manual retry is not
+	// blocked for the full memo TTL.
+	memoFailureTTL = 30 * time.Second
 	memoMaxEntries = 1024
 )
 
@@ -46,6 +51,10 @@ func (m *memoStore) get(key string) ([]interface{}, bool) {
 }
 
 func (m *memoStore) set(key string, row []interface{}) {
+	m.setWithTTL(key, row, memoTTL)
+}
+
+func (m *memoStore) setWithTTL(key string, row []interface{}, ttl time.Duration) {
 	m.mutex.Lock()
 	defer m.mutex.Unlock()
 	now := time.Now()
@@ -71,7 +80,7 @@ func (m *memoStore) set(key string, row []interface{}) {
 		delete(m.entries, oldestKey)
 	}
 
-	m.entries[key] = memoEntry{row: row, expires: now.Add(memoTTL)}
+	m.entries[key] = memoEntry{row: row, expires: now.Add(ttl)}
 }
 
 // memoKey hashes the input tuple of a generation call. A separator byte

@@ -6,6 +6,9 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
+
+	"github.com/julien040/anyquery/rpc"
 )
 
 func TestFlexStrings(t *testing.T) {
@@ -338,6 +341,68 @@ func TestMemoStore(t *testing.T) {
 	// ("ab", "c") must not collide with ("a", "bc")
 	if memoKey("ab", "c") == memoKey("a", "bc") {
 		t.Fatalf("memo keys collide across part boundaries")
+	}
+}
+
+func TestMemoStoreTTL(t *testing.T) {
+	memo := newMemoStore()
+	key := memoKey("image", "model", "prompt", "", "")
+	row := []interface{}{nil, nil, statusFailed, "boom"}
+
+	// setWithTTL honors a short TTL (used for submit failures, which are never
+	// billed and must not block a retry for the full memo TTL)
+	memo.setWithTTL(key, row, 10*time.Millisecond)
+	if _, hit := memo.get(key); !hit {
+		t.Fatalf("expected a hit immediately after setWithTTL")
+	}
+	time.Sleep(25 * time.Millisecond)
+	if _, hit := memo.get(key); hit {
+		t.Fatalf("the short-TTL entry should have expired")
+	}
+
+	// The default TTL (set) outlives the same wait
+	memo.set(key, row)
+	time.Sleep(25 * time.Millisecond)
+	if _, hit := memo.get(key); !hit {
+		t.Fatalf("the default-TTL entry should not have expired")
+	}
+}
+
+// TestLLMCursorContentSelection exercises the full llm cursor against a mock
+// chat server: it must use message.content when present, and fall back to
+// reasoning_content when content is empty (reasoning models).
+func TestLLMCursorContentSelection(t *testing.T) {
+	run := func(responseBody string) []interface{} {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(responseBody))
+		}))
+		defer server.Close()
+
+		table := &llmTable{client: newAtlasClient("test-key", server.URL), memo: newMemoStore()}
+		rows, done, err := table.CreateReader().Query(rpc.QueryConstraint{Columns: []rpc.ColumnConstraint{
+			{ColumnID: 0, Operator: rpc.OperatorEqual, Value: "thinker"},
+			{ColumnID: 1, Operator: rpc.OperatorEqual, Value: "What is 2+2?"},
+		}})
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if !done || len(rows) != 1 {
+			t.Fatalf("expected exactly one row (done=%v, rows=%d)", done, len(rows))
+		}
+		return rows[0]
+	}
+
+	// content present: returned as-is
+	row := run(`{"choices":[{"message":{"role":"assistant","content":"4"},"finish_reason":"stop"}]}`)
+	if row[0] != "4" {
+		t.Fatalf("expected content '4', got %v", row[0])
+	}
+
+	// content empty: fall back to reasoning_content
+	row = run(`{"choices":[{"message":{"role":"assistant","content":"","reasoning_content":"The answer is 4."},"finish_reason":"stop"}]}`)
+	if row[0] != "The answer is 4." {
+		t.Fatalf("expected reasoning_content fallback, got %v", row[0])
 	}
 }
 

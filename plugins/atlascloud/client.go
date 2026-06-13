@@ -153,6 +153,9 @@ func modalityFromType(modelType string) interface{} {
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
+	// Some reasoning models return the answer in reasoning_content and leave
+	// content empty. omitempty keeps it out of request bodies.
+	ReasoningContent string `json:"reasoning_content,omitempty"`
 }
 
 type chatRequest struct {

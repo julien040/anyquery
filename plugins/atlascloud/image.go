@@ -129,7 +129,9 @@ func (t *imageCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 	prediction, err := t.client.submitGeneration(endpointGenerateImage, body)
 	if err != nil {
 		row := []interface{}{nil, nil, statusFailed, err.Error()}
-		t.memo.set(key, row)
+		// A submit failure was never billed, so cache it only briefly: a retry
+		// must not be blocked for the full memo TTL
+		t.memo.setWithTTL(key, row, memoFailureTTL)
 		return [][]interface{}{row}, true, nil
 	}
 
@@ -141,7 +143,7 @@ func (t *imageCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, b
 	for status == statusProcessing {
 		if time.Now().After(deadline) {
 			status = statusTimeout
-			errMsg = fmt.Sprintf("the generation was still processing after %s; it may still complete on Atlas Cloud (prediction id %s)", imageTimeout, prediction.ID)
+			errMsg = fmt.Sprintf("the generation was still processing after %s; it may still complete on Atlas Cloud — fetch it later with SELECT * FROM atlascloud_predictions WHERE prediction_id = '%s'", imageTimeout, prediction.ID)
 			break
 		}
 		time.Sleep(imagePollInterval)

@@ -2,19 +2,19 @@
 name = "atlascloud"
 version = "0.1.0"
 description = "Query the Atlas Cloud model catalog and run LLM, image and video generation with SQL"
-author = "Julien040"
+author = "julien040"
 license = "UNLICENSED"
 repository = "https://github.com/julien040/anyquery/tree/main/plugins/atlascloud"
 homepage = "https://github.com/julien040/anyquery/tree/main/plugins/atlascloud"
 type = "anyquery"
 minimumAnyqueryVersion = "0.4.0"
 
-tables = ["models", "llm", "image", "video_jobs"]
+tables = ["models", "llm", "image", "video_jobs", "predictions"]
 
 # The user configuration schema
 [[userConfig]]
 name = "api_key"
-description = "The Atlas Cloud API key (Console → Settings → API Keys). Get one at https://www.atlascloud.ai"
+description = "The Atlas Cloud API key (Console → Settings → API Keys). Get one at https://www.atlascloud.ai/console/api-keys"
 type = "string"
 required = true
 

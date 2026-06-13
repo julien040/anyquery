@@ -90,7 +90,9 @@ func (t *modelsTable) CreateReader() rpc.ReaderInterface {
 }
 
 func (t *modelsCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, bool, error) {
-	const cacheKey = "models"
+	// Version-stamp the key: a schema change in a new plugin release must not
+	// read wrong-shape rows left in the 6-hour cache by the previous version
+	cacheKey := "models:" + pluginVersion
 
 	rows, _, err := t.cache.Get(cacheKey)
 	if err == nil && len(rows) > 0 {

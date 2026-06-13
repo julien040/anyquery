@@ -158,8 +158,15 @@ func (t *llmCursor) Query(constraints rpc.QueryConstraint) ([][]interface{}, boo
 		completionTokens = response.Usage.CompletionTokens
 	}
 
+	// Reasoning models may leave content empty and put the answer in
+	// reasoning_content
+	content := response.Choices[0].Message.Content
+	if content == "" {
+		content = response.Choices[0].Message.ReasoningContent
+	}
+
 	row := []interface{}{
-		response.Choices[0].Message.Content,
+		content,
 		stringOrNil(response.Choices[0].FinishReason),
 		promptTokens,
 		completionTokens,
