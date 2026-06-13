@@ -1,9 +1,9 @@
 ---
 title: SQL Functions
-description: Learn about the functions supported by AnyQuery
+description: Learn about the functions supported by Anyquery
 ---
 
-AnyQuery supports all the functions provided by SQLite as well as some additional functions. The functions are divided into two categories: SQLite functions and additional functions.
+Anyquery supports all the functions provided by SQLite as well as some additional functions. The functions are divided into two categories: SQLite functions and additional functions.
 
 ## SQLite functions
 

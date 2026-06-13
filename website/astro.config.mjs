@@ -21,6 +21,9 @@ export default defineConfig({
                 src: "./public/images/logo.png",
                 alt: "Anyquery logo",
             },
+            expressiveCode: {
+                themes: ["light-plus" /* "github-dark-default" */],
+            },
 
             components: {},
             description:

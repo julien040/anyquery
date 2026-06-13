@@ -37,7 +37,7 @@ You need to authenticate with Google to access your Google Sheets. Follow these 
 1. Click on **Create Credentials**, and select **OAuth client ID**.
 2. Configure the consent screen if prompted:
     - **Application type**: External
-    - **Application name**: AnyQuery
+    - **Application name**: Anyquery
     - Fill out the required fields and click **Save and Continue**.
     - Add the authorized redirect URI: `https://integration.anyquery.dev/google-result`
     - Add authorized JavaScript origins: `https://integration.anyquery.dev`
