@@ -1,6 +1,6 @@
 
 name = "ip_api"
-version = "0.1.1"
+version = "0.1.3"
 description = "Query IP information using ip-api.com"
 author = "julien040"
 license = "UNLICENSED"

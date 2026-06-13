@@ -375,7 +375,7 @@ func (t *ClickHouseTable) Destroy() error {
 // To find the method, we will ask the database to explain the query and return the best method
 func (t *ClickHouseTable) BestIndex(cst []sqlite3.InfoConstraint, ob []sqlite3.InfoOrderBy, info sqlite3.IndexInformation) (*sqlite3.IndexResult, error) {
 	// Create the SQL query
-	queryBuilder, limitCstIndex, offsetCstIndex, used := efficientConstructSQLQuery(cst, ob, t.schema, t.tableName, info.ColUsed)
+	queryBuilder, limitCstIndex, offsetCstIndex, used := efficientConstructSQLQuery(cst, ob, t.schema, t.tableName, info.ColUsed, sqlbuilder.ClickHouse)
 	queryBuilder.SetFlavor(sqlbuilder.ClickHouse)
 	rawQuery, args := queryBuilder.Build()
 	rawQuery += sqlQuerySuffix

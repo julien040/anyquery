@@ -1,5 +1,8 @@
 # Chrome plugin
 
+> [!IMPORTANT]
+> Please update this plugin to version 0.2.0 or later. Versions below 0.2.0 are subject to [CVE-2026-47252](https://github.com/julien040/anyquery/security/advisories), an AppleScript code injection vulnerability in the `tabs` table. Run `anyquery install chrome` (or `anyquery plugin update chrome`) to upgrade.
+
 Query and modify tabs of a Chromium based browser.
 
 ## Installation

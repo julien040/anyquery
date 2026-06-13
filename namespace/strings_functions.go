@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/julien040/anyquery/module"
 	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
 )
 
@@ -15,7 +16,31 @@ import (
 //
 // If the function has multiple alias, please specify the different names in the comment
 
-func registerStringFunctions(conn *sqlite3.SQLiteConn) error {
+func registerStringFunctions(conn *sqlite3.SQLiteConn, restrictions *module.Restrictions) error {
+	// load_file / load_file_bytes read arbitrary files from disk, so under a
+	// sandbox they must obey the same allowed-directory policy as the read_*
+	// modules — otherwise they are a local-file-read bypass. CheckFileRead is a
+	// no-op on a nil policy (unrestricted CLI use), so behavior is unchanged
+	// there. A genuine read failure still yields SQL NULL (as before); only a
+	// policy violation surfaces an error.
+	loadFileBytes := func(filename string) ([]byte, error) {
+		if err := restrictions.CheckFileRead(filename); err != nil {
+			return nil, err
+		}
+		content, err := os.ReadFile(filename)
+		if err != nil {
+			return nil, nil
+		}
+		return content, nil
+	}
+	loadFile := func(filename string) (string, error) {
+		content, err := loadFileBytes(filename)
+		if err != nil {
+			return "", err
+		}
+		return string(content), nil
+	}
+
 	functions := []struct {
 		Name          string
 		Func          interface{}
@@ -57,8 +82,8 @@ func registerStringFunctions(conn *sqlite3.SQLiteConn) error {
 		{"position", locate_from, true},
 		{"lcase", lcase, true},
 		{"left", left, true},
-		{"load_file", load_file, true},
-		{"load_file_bytes", load_file_bytes, true},
+		{"load_file", loadFile, true},
+		{"load_file_bytes", loadFileBytes, true},
 		{"lpad", lpad, true},
 		{"rpad", rpad, true},
 		{"octet_length", octet_length, true},
@@ -321,19 +346,6 @@ func left(str string, length int) string {
 		length = len(str)
 	}
 	return str[:length]
-}
-
-// Read the file and return its content
-func load_file_bytes(filename string) []byte {
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return nil
-	}
-	return content
-}
-
-func load_file(filename string) string {
-	return string(load_file_bytes(filename))
 }
 
 // Pad the string with the specified character to the specified length

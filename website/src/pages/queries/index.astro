@@ -33,8 +33,10 @@ const allQueries = remoteQueries;
     description={`The query hub is a place where you can find pre-made SQL queries for Anyquery. 
 Anyquery allows you to run SQL queries on pretty-much any data source`}
 >
-    <h1 class="text-3xl">Query hub</h1>
-    <p class="text-sm text-white/70 mt-1">
+    <h1 class="text-5xl font-display text-ink font-normal">
+        Query <em class="text-peach-700">hub</em>
+    </h1>
+    <p class="text-sm text-black/60 mt-1">
         The query hub is a place where you can find pre-made SQL queries for
         Anyquery. <br />
         Answer questions on your data easily using Anyquery and its hub of queries.
@@ -45,7 +47,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
         aria-label="Search queries"
         type="text"
         placeholder="🔍 Search queries"
-        class="w-full mt-4 p-2 pl-4 bg-black border border-[#262626] rounded-lg text-sm text-white/70"
+        class="w-full mt-4 p-2 pl-4 bg-white/30 border border-black/10 rounded-lg text-sm text-ink placeholder:text-black/40"
     />
     <script>
         const searchElement = document.getElementById("search");
@@ -84,7 +86,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
             });
         }
     </script>
-    <h2 class="text-md mt-4 font-semibold text-white/90 mb-1 tracking-tight">
+    <h2 class="text-md mt-4 font-semibold text-ink mb-1 tracking-tight">
         Filter by plugin
     </h2>
     <div class="flex flex-wrap gap-2">
@@ -96,7 +98,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
                 }
                 return (
                     <a
-                        class="flex items-center text-xs bg-white/10 px-4 py-2 rounded-md"
+                        class="flex items-center text-xs bg-white/30 border border-black/10 px-4 py-2 rounded-md text-black/70 hover:bg-white/70 transition"
                         href={`/queries/plugin/${plugin.name}`}
                     >
                         <img class="h-4 w-4 mr-2" src={plugin.icon} alt="" />
@@ -108,7 +110,7 @@ Anyquery allows you to run SQL queries on pretty-much any data source`}
     </div>
     <a
         href="https://github.com/julien040/anyquery/tree/main/queries#how-to-submit-a-query"
-        class="flex gap-2 mt-1 text-xs text-blue-400 items-center ml-auto hover:bg-white/10 px-4 py-2 rounded-md"
+        class="flex gap-2 mt-1 text-xs text-lavender-700 items-center ml-auto hover:bg-black/5 px-4 py-2 rounded-md"
     >
         <svg
             width="20"

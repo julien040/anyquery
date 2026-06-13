@@ -1,6 +1,6 @@
 
 name = "google_contacts"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query your Google Contacts"
 author = "julien040"
 license = "UNLICENSED"

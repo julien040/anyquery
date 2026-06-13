@@ -1,6 +1,6 @@
 
 name = "pypi"
-version = "0.1.1"
+version = "0.1.3"
 description = "Query information about Python packages from PyPI"
 author = "julien040"
 license = "UNLICENSED"

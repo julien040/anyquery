@@ -1,0 +1,57 @@
+
+name = "atlascloud"
+version = "0.1.0"
+description = "Query the Atlas Cloud model catalog and run LLM, image and video generation with SQL"
+author = "julien040"
+license = "UNLICENSED"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/atlascloud"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/atlascloud"
+type = "anyquery"
+minimumAnyqueryVersion = "0.4.0"
+
+tables = ["models", "llm", "image", "video_jobs", "predictions"]
+
+# The user configuration schema
+[[userConfig]]
+name = "api_key"
+description = "The Atlas Cloud API key (Console → Settings → API Keys). Get one at https://www.atlascloud.ai/console/api-keys"
+type = "string"
+required = true
+
+[[userConfig]]
+name = "base_url"
+description = "Override of the Atlas Cloud API endpoint. Defaults to https://api.atlascloud.ai"
+type = "string"
+required = false
+
+# Results of GoReleaser
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/anyquery_linux_amd64_v1"
+executablePath = "atlascloud"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/anyquery_linux_arm64"
+executablePath = "atlascloud"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/anyquery_darwin_amd64_v1"
+executablePath = "atlascloud"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/anyquery_darwin_arm64"
+executablePath = "atlascloud"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/anyquery_windows_amd64_v1"
+executablePath = "atlascloud.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/anyquery_windows_arm64"
+executablePath = "atlascloud.exe"

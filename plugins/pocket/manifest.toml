@@ -1,6 +1,6 @@
 
 name = "pocket"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query, insert and delete your Pocket articles."
 author = "julien040"
 license = "UNLICENSED"

@@ -1,46 +1,73 @@
+@import "tailwindcss";
 @reference "./styles/global.css";
-h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    color: #ffffff;
+
+article h1 {
+    font-size: 2.9rem;
+    font-weight: 500;
+    color: #000000;
     margin-bottom: 1rem;
-    line-height: 1.2;
+    line-height: 1.0;
+
+    font-family: var(--font-display);
 }
-h2 {
-    font-size: 1.6rem;
-    font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 1rem;
-}
-h3 {
+article h2, article h2 code {
     font-size: 1.3rem;
+    color: #000000;
+    margin-top: 2rem !important;
+    letter-spacing: -0.025em;
     font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 1rem;
+    font-family: var(--font-ui);
 }
-h4,
-h5,
-h6 {
-    font-size: 1.2rem;
+article h3, article h3 code {
+    font-size: 1.1rem;
+    color: #000000;
+    margin-top: 1.4rem !important;
+    letter-spacing: -0.025em;
     font-weight: 600;
-    color: #ffffff;
-    margin-bottom: 1rem;
+    font-family: var(--font-ui);
 }
-p,
-li,
-table {
-    @apply text-white/80 text-sm;
+article h4,
+article h5,
+article h6,
+article h4 code,
+article h5 code,
+article h6 code {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #000000;
+    margin-top: 0.5rem !important;
+    letter-spacing: -0.025em;
+    font-weight: 600;
+    font-family: var(--font-ui);
 }
-blockquote {
-    border-left: 4px solid #ffffff87;
+
+article h1, article h2, article h3, article h4, article h5, article h6 {
+    text-decoration-color: #f4d870;
+}
+
+article p, article li, article table, article a {
+    text-decoration-color: #e1c047;
+    text-decoration-thickness: 2px;
+    text-decoration-skip-ink: auto;
+    /* text-decoration-style:dotted; */
+}
+
+article p,
+article li,
+article table {
+    @apply text-black/80 text-sm leading-[21px];
+}
+article blockquote {
+    border-left: 2px solid #21212187;
     padding-left: 1rem;
     margin-left: 0;
     margin-bottom: 1rem;
+    margin-top: 0.4rem;
 }
-blockquote p,
-blockquote li,
-blockquote a {
-    @apply text-white/60 text-sm;
+article blockquote p,
+article blockquote li,
+article blockquote a {
+    @apply text-black/80 text-sm;
 }
 /* Top level code */
 article pre:has(code) {
@@ -50,94 +77,124 @@ article pre:has(code) {
     white-space: pre-wrap;
     word-wrap: break-word;
     margin-bottom: 1rem;
+    margin-top: 0.4rem;
 }
 
-article > pre:has(code),
+article pre:has(code),
 .expressive-code {
-    background: #ffffff1a;
-    padding: 12px 16px;
-    border-radius: 4px;
+    background: #1d2320;
+    padding: 20px 20px;
+    border-radius: 8px;
 }
 
 /* Inline code */
 article > p code,
-article li code,
 article > h1 code,
 article > h2 code,
 article > h3 code,
 article > h4 code,
 article > h5 code,
 article > h6 code {
-    @apply text-white/70 text-[0.825rem];
-    background: #ffffff24;
+    @apply text-black/70 text-[0.825rem];
+    background: #0000001e;
     padding: 2px 4px;
     border-radius: 4px;
+    font-family: var(--font-ui);
 }
 
-table {
+/* Tables — mono uppercase header, hairline rows */
+article table {
+    @apply w-full  rounded-md overflow-hidden border border-black/10 mt-2;
     border-collapse: separate;
-    @apply mt-3 border border-white/20 rounded-md bg-white/10;
+    border-spacing: 0;
 }
-table tr {
+article th {
+    @apply font-mono font-medium text-[11px] tracking-[0.12em] uppercase text-ink-3 bg-paper-2 border-0 border-b border-solid border-ink/15 px-3.5 py-2.5 text-left;
 }
-table td {
-    @apply p-2 md:py-2 md:px-8;
-    @apply border-t border-white/20;
+article td {
+    @apply text-sm text-ink border-0 border-b border-dashed border-ink/15 px-3.5 py-2.5;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
-table td:not(:last-child) {
-    border-right: 1px solid #ffffff20;
+article tbody tr {
+    @apply bg-paper-2/50 even:bg-white/50;
 }
-table th:not(:last-child) {
-    @apply border-r border-white/20;
-}
-table thead th {
-    @apply md:px-2 md:py-1 p-1 text-white/70 text-[0.825rem] font-semibold;
+article tbody tr:last-child td {
+    @apply border-b-0;
 }
 
-ol,
-ul,
-menu {
-    list-style: circle;
+
+article ol,
+article ul,
+article menu {
     margin: 0.5rem 0;
-    padding: 0 1rem;
+    @apply list-disc list-inside;
 }
-h1,
-h2 {
+
+
+/* article h1,
+article h2 {
     @apply mt-5 mb-1;
 }
-h3,
-h4,
-h5,
-h6 {
+article h3,
+article h4,
+article h5,
+article h6 {
     @apply mt-4 mb-1;
 }
 article p {
-    @apply mt-1 mb-2;
-}
+    @apply mt-1 mb-4;
+} */
 
 article a {
     @apply underline underline-offset-2;
 }
 
-/* Code */
-
-code .hljs-comment {
-    @apply text-white/50;
+article img {
+    @apply rounded-sm mb-6 mt-2;
+    max-width: 100%;
 }
 
-code .hljs-operator {
+/* Code */
+
+article code .hljs-comment {
+    @apply text-white/30;
+}
+
+article code .hljs-operator {
     color: #ff79c6;
 }
 
-code .hljs-keyword {
+article code .hljs-keyword {
     color: #bd93f9;
 }
 
-code .hljs-attr,
-code .hljs-built_in {
+article code .hljs-attr,
+article code .hljs-built_in {
     color: #8be9fd;
 }
 
-code .hljs-string {
-    color: #50fa7b;
+article code .hljs-string {
+    color: #4ed771;
+}
+
+.markdown-alert {
+    @apply  text-black/80 p-4 rounded-md mt-4 mb-8; 
+}
+
+.markdown-alert-important {
+    @apply bg-yellow-200/40;
+}
+
+
+.markdown-alert-title {
+    @apply font-semibold text-black/90 mb-2;
+}
+
+.markdown-alert-title > svg {
+    @apply inline-block w-5 h-5 mr-2;
+}
+
+article h2 code, article h3  code, article h4  code, article h5  code, article h6  code {
+    @apply text-[1.2rem];
 }

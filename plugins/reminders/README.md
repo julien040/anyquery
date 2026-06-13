@@ -1,5 +1,8 @@
 # Reminder plugin
 
+> [!IMPORTANT]
+> Please update this plugin to version 0.2.0 or later. Versions below 0.2.0 are subject to [CVE-2026-47252](https://github.com/julien040/anyquery/security/advisories), an AppleScript code injection vulnerability when inserting/updating reminders. Run `anyquery install reminders` (or `anyquery plugin update reminders`) to upgrade.
+
 This plugin allows you to add/modify/delete/view reminders from Apple's Reminders app with SQL
 It's obviously only available on macOS.
 

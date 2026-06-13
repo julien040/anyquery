@@ -1,168 +1,35 @@
 ---
 import Main from "../layouts/main.astro";
 
-type TerminalProps = {
-    title: string;
-    code: string;
+type Sponsor = {
     name: string;
-    footer: string;
-    icon: string;
+    url: string;
+    logo?: string; // wordmark logo (gold & silver)
+    icon?: string; // icon-only logo (bronze)
+    description?: string;
 };
 
-const elements: TerminalProps[] = [
-    {
-        title: "GitHub stars from rauchg",
-        name: "GitHub",
-        code: `<span class="hljs-comment">-- List starred repositories from rauchg</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> 
-<span class="hljs-keyword">FROM</span> github_stars_from_user(<span class="hljs-string">&#x27;rauchg&#x27;</span>);`,
-        footer: "Elapsed time 27ms · 274 rows in result set",
-        icon: `
-        <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 31 31" fill="none">
-          <path
-            d="M15.5002 2.58337C13.8039 2.58337 12.1243 2.91747 10.5572 3.5666C8.99005 4.21572 7.56612 5.16715 6.3667 6.36658C3.94436 8.78892 2.5835 12.0743 2.5835 15.5C2.5835 21.2092 6.29058 26.053 11.4185 27.7709C12.0643 27.8742 12.271 27.4738 12.271 27.125V24.9421C8.69308 25.7171 7.931 23.2113 7.931 23.2113C7.33683 21.713 6.49725 21.3125 6.49725 21.3125C5.32183 20.5117 6.58766 20.5375 6.58766 20.5375C7.87933 20.628 8.56391 21.868 8.56391 21.868C9.68766 23.8313 11.5864 23.25 12.3227 22.94C12.4389 22.1005 12.7747 21.5321 13.1364 21.2092C10.2689 20.8863 7.25933 19.7755 7.25933 14.8542C7.25933 13.4205 7.75016 12.2709 8.58975 11.3538C8.46058 11.0309 8.0085 9.68754 8.71891 7.94379C8.71891 7.94379 9.80391 7.59504 12.271 9.26129C13.2914 8.97712 14.4022 8.83504 15.5002 8.83504C16.5981 8.83504 17.7089 8.97712 18.7293 9.26129C21.1964 7.59504 22.2814 7.94379 22.2814 7.94379C22.9918 9.68754 22.5397 11.0309 22.4106 11.3538C23.2502 12.2709 23.741 13.4205 23.741 14.8542C23.741 19.7884 20.7185 20.8734 17.8381 21.1963C18.3031 21.5967 18.7293 22.3846 18.7293 23.5859V27.125C18.7293 27.4738 18.936 27.8871 19.5947 27.7709C24.7227 26.04 28.4168 21.2092 28.4168 15.5C28.4168 13.8038 28.0827 12.1242 27.4336 10.557C26.7845 8.98992 25.833 7.566 24.6336 6.36658C23.4342 5.16715 22.0103 4.21572 20.4432 3.5666C18.876 2.91747 17.1964 2.58337 15.5002 2.58337Z"
-            fill="white"
-            fill-opacity="0.79"
-          />
-        </svg>
-      `,
-    },
-    {
-        title: "Query your Notion database",
-        name: "Notion",
-        code: `<span class="hljs-comment">-- Select all data in the table</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> notion_table;
-<span class="hljs-comment">-- Insert a new row</span>
-<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> notion_table (name, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
-<span class="hljs-comment">-- Update rows</span>
-<span class="hljs-keyword">UPDATE</span> notion_table <span class="hljs-keyword">SET</span> age <span class="hljs-operator">=</span> <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Julien&#x27;</span>;
-<span class="hljs-comment">-- Delete rows</span>
-<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> notion_table <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
-        footer: "Elapsed time 13ms · 66 rows in result set",
-        icon: `
-    <svg class="w-10 h-10" class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
-  <g clip-path="url(#clip0_300_901)">
-    <path d="M6.25975 5.43526C7.22334 6.21801 7.585 6.15859 9.39592 6.03717L26.4653 5.01288C26.827 5.01288 26.526 4.65121 26.4059 4.5918L23.5694 2.54192C23.0269 2.12084 22.3022 1.63776 20.915 1.75788L4.38813 2.9643C3.78621 3.02372 3.66479 3.32596 3.90504 3.56621L6.25975 5.43526ZM7.28404 9.41359V27.3729C7.28404 28.3378 7.76584 28.6995 8.85213 28.6388L27.611 27.5538C28.6973 27.4943 28.8187 26.8304 28.8187 26.0464V8.20717C28.8187 7.42442 28.5177 7.00205 27.8525 7.06146L8.24892 8.20717C7.52559 8.26788 7.28404 8.63084 7.28404 9.41359ZM25.8027 10.3759C25.9228 10.9184 25.8027 11.4609 25.2602 11.5229L24.356 11.7037V24.9614C23.5707 25.3838 22.8473 25.6253 22.2441 25.6253C21.278 25.6253 21.0364 25.323 20.3131 24.4202L14.4011 15.1383V24.1179L16.2715 24.5416C16.2715 24.5416 16.2715 25.6266 14.7628 25.6266L10.601 25.8668C10.4809 25.6266 10.601 25.0234 11.0234 24.9033L12.1084 24.6023V12.728L10.6036 12.6066C10.4822 12.0641 10.7845 11.2813 11.6279 11.2206L16.0919 10.9197L22.2454 20.3217V12.0034L20.676 11.8238C20.5559 11.1599 21.0377 10.6781 21.6409 10.6187L25.8027 10.3759ZM3.00088 1.3368L20.193 0.0709654C22.3035 -0.109868 22.8473 0.0102571 24.1739 0.975132L29.6622 4.83205C30.5663 5.49467 30.8686 5.67551 30.8686 6.39884V27.5538C30.8686 28.879 30.3868 29.6643 28.6986 29.7832L8.732 30.9896C7.46617 31.0503 6.86167 30.8695 6.19775 30.0247L2.15613 24.7805C1.43279 23.8157 1.13184 23.0936 1.13184 22.2489V3.4448C1.13184 2.36109 1.61492 1.45563 3.00088 1.3368Z" fill="white" fill-opacity="0.79"/>
-  </g>
-  <defs>
-    <clipPath id="clip0_300_901">
-      <rect width="31" height="31" fill="white" transform="translate(0.5)"/>
-    </clipPath>
-  </defs>
-</svg>`,
-    },
-    {
-        title: "Query macOS logs",
-        name: "Logs",
-        code: `<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> 
-<span class="hljs-keyword">FROM</span> read_log(<span class="hljs-string">&#x27;https://github.com/logpai/loghub/raw/master/Mac/Mac_2k.log&#x27;</span>, <span class="hljs-string">&#x27;&lt;truncated grok pattern&gt;&#x27;</span>);`,
-        footer: "Elapsed time 105ms · 1999 rows in result set",
-        icon: `<svg class="w-10 h-10" viewBox="0 0 15 15" xmlns="http://www.w3.org/2000/svg">
-    <path fill="currentColor" fill-rule="evenodd"
-        d="M0 1.5A.5.5 0 0 1 .5 1h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m4 0a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-4 3A.5.5 0 0 1 .5 7h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m4 0a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5m0 3a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-4 3a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 0 1h-2a.5.5 0 0 1-.5-.5m4 0a.5.5 0 0 1 .5-.5h10a.5.5 0 0 1 0 1h-10a.5.5 0 0 1-.5-.5"
-        clip-rule="evenodd" />
-</svg>`,
-    },
-    {
-        title: "Count rows in a real-world 75MB CSV",
-        name: "CSV",
-        code: `<span class="hljs-keyword">SELECT</span> <span class="hljs-built_in">count</span>(<span class="hljs-operator">*</span>)
-<span class="hljs-keyword">FROM</span> read_csv(<span class="hljs-string">&#x27;https://github.com/datadesk/california-coronavirus-data/raw/master/latimes-place-totals.csv&#x27;</span>);`,
-        footer: "Elapsed time 470ms · 1 row in result set",
-        icon: `
-    <svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 31" fill="none">
-  <path d="M8.625 19.375H13.125V17.4375H9.375V13.5625H13.125V11.625H8.625C8.2 11.625 7.844 11.749 7.557 11.997C7.27 12.245 7.126 12.5515 7.125 12.9166V18.0833C7.125 18.4493 7.269 18.7563 7.557 19.0043C7.845 19.2523 8.201 19.3758 8.625 19.375ZM14.475 19.375H18.975C19.4 19.375 19.7565 19.251 20.0445 19.003C20.3325 18.755 20.476 18.4484 20.475 18.0833V16.1458C20.475 15.7798 20.331 15.4405 20.043 15.128C19.755 14.8154 19.399 14.6595 18.975 14.6604H16.725V13.5625H20.475V11.625H15.975C15.55 11.625 15.194 11.749 14.907 11.997C14.62 12.245 14.476 12.5515 14.475 12.9166V14.8541C14.475 15.2201 14.619 15.5486 14.907 15.8397C15.195 16.1307 15.551 16.2758 15.975 16.275H18.225V17.4375H14.475V19.375ZM24.375 19.375H26.625L29.25 11.625H27L25.5 16.0812L24 11.625H21.75L24.375 19.375ZM6 25.8333C5.175 25.8333 4.469 25.5806 3.882 25.0751C3.295 24.5696 3.001 23.9612 3 23.25V7.74996C3 7.03954 3.294 6.4316 3.882 5.92613C4.47 5.42065 5.176 5.16749 6 5.16663H30C30.825 5.16663 31.5315 5.41979 32.1195 5.92613C32.7075 6.43246 33.001 7.0404 33 7.74996V23.25C33 23.9604 32.7065 24.5688 32.1195 25.0751C31.5325 25.5814 30.826 25.8342 30 25.8333H6Z" fill="white" fill-opacity="0.8"/>
-</svg>`,
-    },
-    {
-        title: "Use Google Sheets as a database",
-        name: "Sheets",
-        code: `<span class="hljs-comment">-- Get all rows from the google_sheets table</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> google_sheets;
-<span class="hljs-comment">-- Insert a new row</span>
-<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> google_sheets (name, age) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;Julien&#x27;</span>, <span class="hljs-number">20</span>);
-<span class="hljs-comment">-- Update rows</span>
-<span class="hljs-keyword">UPDATE</span> google_sheets <span class="hljs-keyword">SET</span> age <span class="hljs-operator">=</span> <span class="hljs-number">21</span> <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Julien&#x27;</span>;
-<span class="hljs-comment">-- Delete rows</span>
-<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> google_sheets <span class="hljs-keyword">WHERE</span> name <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;Julien&#x27;</span>;`,
-        footer: "Elapsed time 760ms · 150 rows in result set",
-        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
-  <path d="M15.119 16.204H10.717V13.7382H15.1216V16.2052L15.119 16.204ZM19.5236 0V7.75H27.2736L19.5236 0ZM21.2841 13.7382H16.8795V16.2052H21.2841V13.7382ZM21.2841 17.9658H16.8795V20.4329H21.2841V17.9658ZM27.2723 8.39583V28.8868C27.2723 30.0545 26.3268 31 25.1591 31H6.84071C6.5632 31 6.28841 30.9453 6.03203 30.8391C5.77565 30.7329 5.5427 30.5773 5.34647 30.3811C4.95018 29.9848 4.72754 29.4473 4.72754 28.8868V2.11317C4.72754 0.9455 5.67304 0 6.84071 0H18.8765V8.39583H27.2723ZM23.0447 11.9776H8.95387V22.1934H23.046V11.9763L23.0447 11.9776ZM15.119 17.9658H10.717V20.4329H15.1216V17.9658H15.119Z" fill="white" fill-opacity="0.79"/>
-</svg>`,
-    },
-    {
-        title: "Query your Pocket articles",
-        name: "Pocket",
-        code: `<span class="hljs-comment">-- Select all your pocket items</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> pocket_items;
-<span class="hljs-comment">-- Insert a new article</span>
-<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> pocket_items (given_url, title) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;https://www.example.com&#x27;</span>, <span class="hljs-string">&#x27;Example article&#x27;</span>);
-<span class="hljs-comment">-- Delete an article</span>
-<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> pocket_items <span class="hljs-keyword">WHERE</span> given_url <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;https://www.example.com&#x27;</span>;`,
-        footer: "Elapsed time 78ms · 2539 rows in result set",
-        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
-  <path d="M28.7902 5.41725C28.6249 4.96584 28.3251 4.57598 27.9313 4.30022C27.5376 4.02445 27.0687 3.87604 26.588 3.875H5.42529C4.80503 3.87839 4.21116 4.12639 3.77269 4.5651C3.33421 5.00382 3.08655 5.59782 3.0835 6.21808V14.0133L3.17262 15.5633C3.5472 19.0895 5.3775 22.1715 8.21012 24.3195C8.2592 24.3582 8.31087 24.3957 8.36254 24.4345L8.39483 24.4577C9.89572 25.5603 11.6194 26.3216 13.4452 26.6884C15.1722 27.0371 16.952 27.0309 18.6765 26.6703C18.7052 26.6641 18.733 26.6541 18.7592 26.6406C20.5102 26.26 22.1617 25.5159 23.6068 24.4564L23.6391 24.4332C23.6907 24.3944 23.7424 24.3582 23.7928 24.3169C26.6241 22.1689 28.4544 19.0883 28.8277 15.562L28.9168 14.012V6.21808C28.9221 5.94577 28.8792 5.67467 28.7902 5.41725ZM23.32 13.538L17.244 19.3673C16.9141 19.6836 16.4747 19.8602 16.0176 19.8602C15.5605 19.8602 15.1211 19.6836 14.7912 19.3673L8.71516 13.5367C8.54732 13.3757 8.41283 13.1832 8.31936 12.9703C8.2259 12.7573 8.17529 12.5281 8.17043 12.2956C8.16557 12.063 8.20656 11.8319 8.29105 11.6152C8.37554 11.3985 8.50188 11.2006 8.66285 11.0328C8.82382 10.8649 9.01628 10.7304 9.22923 10.637C9.44218 10.5435 9.67146 10.4929 9.90396 10.488C10.1365 10.4832 10.3677 10.5242 10.5843 10.6087C10.801 10.6931 10.9989 10.8195 11.1667 10.9805L16.0182 15.6318L20.8697 10.9817C21.2127 10.6805 21.6587 10.5233 22.1148 10.5428C22.5708 10.5623 23.0018 10.757 23.3178 11.0863C23.6339 11.4157 23.8107 11.8543 23.8113 12.3108C23.812 12.7673 23.6364 13.2064 23.3213 13.5367" fill="white" fill-opacity="0.8"/>
-</svg>`,
-    },
-    {
-        title: "Retrieve your saved musics from Spotify",
-        name: "Spotify",
-        code: `<span class="hljs-comment">-- Select all your saved tracks</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> spotify_saved_tracks;
-<span class="hljs-comment">-- List tracks of the album &quot;Number 1 Angel&quot; by Charli XCX</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> spotify_album(<span class="hljs-string">&#x27;37rI2gAtakAmSFtbIE9THq&#x27;</span>);`,
-        footer: "Elapsed time 45ms · 819 rows in result set",
-        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
-  <g clip-path="url(#clip0_300_921)">
-    <path d="M16 0C11.8891 0 7.94666 1.63303 5.03984 4.53984C2.13303 7.44666 0.5 11.3891 0.5 15.5C0.5 19.6109 2.13303 23.5533 5.03984 26.4602C7.94666 29.367 11.8891 31 16 31C20.1109 31 24.0533 29.367 26.9602 26.4602C29.867 23.5533 31.5 19.6109 31.5 15.5C31.5 11.3891 29.867 7.44666 26.9602 4.53984C24.0533 1.63303 20.1109 0 16 0ZM23.1087 22.3549C22.9744 22.5731 22.7592 22.7292 22.5101 22.7891C22.261 22.8491 21.9984 22.8079 21.7796 22.6746C18.139 20.4522 13.5588 19.9485 8.16281 21.1827C7.91282 21.2397 7.65041 21.1951 7.43331 21.0587C7.21621 20.9222 7.06219 20.7051 7.00516 20.4552C6.94812 20.2052 6.99272 19.9428 7.12916 19.7257C7.2656 19.5085 7.4827 19.3545 7.73269 19.2975C13.6382 17.949 18.7028 18.5283 22.7871 21.0258C23.0056 21.1597 23.1621 21.3748 23.2224 21.6239C23.2827 21.873 23.2418 22.1358 23.1087 22.3549ZM25.0055 18.135C24.8376 18.408 24.5683 18.6032 24.2565 18.6777C23.9448 18.7522 23.6163 18.6998 23.3431 18.5322C19.1775 15.9727 12.8264 15.2307 7.89738 16.7264C7.59736 16.7977 7.28145 16.7519 7.01409 16.5982C6.74672 16.4446 6.54804 16.1948 6.45857 15.8997C6.3691 15.6045 6.39558 15.2864 6.53261 15.0102C6.66965 14.7339 6.90691 14.5204 7.196 14.4131C12.8244 12.7061 19.8227 13.5334 24.6064 16.4726C24.8797 16.6402 25.0753 16.9094 25.1502 17.2212C25.225 17.5329 25.173 17.8616 25.0055 18.135ZM25.1683 13.7408C20.1734 10.7725 11.9312 10.4993 7.16112 11.9466C6.7932 12.0581 6.39606 12.0189 6.05705 11.8376C5.71804 11.6563 5.46494 11.3477 5.35344 10.9798C5.24193 10.6119 5.28115 10.2147 5.46246 9.87574C5.64377 9.53673 5.95233 9.28363 6.32025 9.17213C11.7937 7.51169 20.8961 7.83137 26.6485 11.2452C26.9794 11.4415 27.2188 11.7613 27.314 12.1341C27.4092 12.5069 27.3524 12.9022 27.1561 13.2331C26.9598 13.564 26.6401 13.8034 26.2673 13.8986C25.8945 13.9938 25.4992 13.937 25.1683 13.7408Z" fill="white" fill-opacity="0.79"/>
-  </g>
-  <defs>
-    <clipPath id="clip0_300_921">
-      <rect width="31" height="31" fill="white" transform="translate(0.5)"/>
-    </clipPath>
-  </defs>
-</svg>`,
-    },
-    {
-        title: "Use Airtable as a database",
-        name: "Airtable",
-        code: `<span class="hljs-comment">-- Select all records from the table</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> airtable_table;
-<span class="hljs-comment">-- Insert a new record into the table</span>
-<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> airtable_table (column1, column2) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;value1&#x27;</span>, <span class="hljs-string">&#x27;value2&#x27;</span>);
-<span class="hljs-comment">-- Update a record in the table</span>
-<span class="hljs-keyword">UPDATE</span> airtable_table <span class="hljs-keyword">SET</span> column1 <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;new_value&#x27;</span> <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;rec123&#x27;</span>;
-<span class="hljs-comment">-- Delete a record from the table</span>
-<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> airtable_table <span class="hljs-keyword">WHERE</span> id <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;rec123&#x27;</span>;`,
-        footer: "Elapsed time 522ms · 45 463 rows in result set",
-        icon: `<svg class="w-10 h-10" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="currentColor" d="M11.992 1.966c-.434 0-.87.086-1.28.257L1.779 5.917c-.503.208-.49.908.012 1.116l8.982 3.558a3.27 3.27 0 0 0 2.454 0l8.982-3.558c.503-.196.503-.908.012-1.116l-8.957-3.694a3.3 3.3 0 0 0-1.272-.257M23.4 8.056a.6.6 0 0 0-.222.045l-10.012 3.877a.61.61 0 0 0-.38.564v8.896a.6.6 0 0 0 .821.552L23.62 18.1a.58.58 0 0 0 .38-.551V8.653a.6.6 0 0 0-.6-.596zM.676 8.095a.64.64 0 0 0-.48.19C.086 8.396 0 8.53 0 8.69v8.355c0 .442.515.737.908.54l6.27-3.006l.307-.147l2.969-1.436c.466-.22.43-.908-.061-1.092L.883 8.138a.6.6 0 0 0-.207-.044z"/></svg>`,
-    },
-    {
-        title: "Query your Raindrop.io bookmarks",
-        name: "Raindrop",
-        code: `<span class="hljs-comment">-- Select all your bookmarks</span>
-<span class="hljs-keyword">SELECT</span> <span class="hljs-operator">*</span> <span class="hljs-keyword">FROM</span> raindrop_items;
-<span class="hljs-comment">-- Insert a new bookmark</span>
-<span class="hljs-keyword">INSERT</span> <span class="hljs-keyword">INTO</span> raindrop_items(title, link, created_at, reminder) <span class="hljs-keyword">VALUES</span> (<span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>, <span class="hljs-string">&#x27;https://anyquery.dev&#x27;</span>, <span class="hljs-string">&#x27;2024-07-10&#x27;</span>, <span class="hljs-string">&#x27;2024-07-20&#x27;</span>);
-<span class="hljs-comment">-- Delete a bookmark by title</span>
-<span class="hljs-keyword">DELETE</span> <span class="hljs-keyword">FROM</span> raindrop_items <span class="hljs-keyword">WHERE</span> title <span class="hljs-operator">=</span> <span class="hljs-string">&#x27;A cool SQL tool&#x27;</span>;`,
-        footer: "Elapsed time 20ms · 360 rows in result set",
-        icon: `<svg class="w-10 h-10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 31" fill="none">
-  <path d="M16 19.1199C16 18.293 15.8371 17.4741 15.5207 16.7102C15.2042 15.9462 14.7404 15.252 14.1557 14.6673C13.571 14.0826 12.8768 13.6188 12.1128 13.3023C11.3489 12.9859 10.53 12.823 9.70312 12.823C8.03309 12.823 6.43146 13.4864 5.25056 14.6673C4.06967 15.8482 3.40625 17.4498 3.40625 19.1199C3.40625 20.7899 4.06967 22.3915 5.25056 23.5724C6.43146 24.7533 8.03309 25.4167 9.70312 25.4167H16M16 19.1199V25.4167M16 19.1199C16 17.4498 16.6634 15.8482 17.8443 14.6673C19.0252 13.4864 20.6268 12.823 22.2969 12.823C23.1238 12.823 23.9426 12.9859 24.7066 13.3023C25.4706 13.6188 26.1647 14.0826 26.7494 14.6673C27.3342 15.252 27.798 15.9462 28.1144 16.7102C28.4309 17.4741 28.5937 18.293 28.5937 19.1199C28.5937 19.9468 28.4309 20.7656 28.1144 21.5296C27.798 22.2936 27.3342 22.9877 26.7494 23.5724C26.1647 24.1572 25.4706 24.621 24.7066 24.9374C23.9426 25.2539 23.1238 25.4167 22.2969 25.4167H16" stroke="white" stroke-opacity="0.79" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M21.8092 7.98956C22.5721 8.75239 23.1772 9.65802 23.5901 10.6547C24.0029 11.6514 24.2154 12.7197 24.2154 13.7985C24.2154 14.8773 24.0029 15.9456 23.5901 16.9423C23.1772 17.939 22.5721 18.8446 21.8092 19.6075L16 25.4161L10.1913 19.6075C9.42849 18.8446 8.82336 17.939 8.4105 16.9423C7.99765 15.9456 7.78516 14.8773 7.78516 13.7985C7.78516 12.7197 7.99765 11.6514 8.4105 10.6547C8.82336 9.65802 9.42849 8.75239 10.1913 7.98956C10.9542 7.2267 11.8598 6.62158 12.8565 6.20872C13.8532 5.79587 14.9215 5.58337 16.0003 5.58337C17.0791 5.58337 18.1474 5.79587 19.1441 6.20872C20.1408 6.62158 21.0464 7.2267 21.8092 7.98956Z" stroke="white" stroke-opacity="0.79" stroke-width="0.75" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>`,
-    },
-];
+const SPONSORS: Record<"gold" | "silver" | "bronze", Sponsor[]> = {
+    gold: [
+        {
+            name: "Atlas Cloud",
+            url: "https://www.atlascloud.ai/?utm_source=website&utm_medium=link&utm_campaign=anyquery",
+            logo: "/images/brand/atlas-cloud/atlas-cloud-logo-black.svg",
+            description:
+                "Atlas Cloud provides serverless inference and GPU clusters for open-source AI models.",
+        },
+    ],
+    silver: [],
+    bronze: [],
+};
 ---
 
 <Main
-    title="Anyquery - Use SQL for anything"
-    description="SQL queries for any data source (e.g. Google Sheets, logs, JSON, Trello, Github, Notion, etc.). Open source and free."
-    ,
-    footnote=`Trademarks are the property of their respective owners.
-All benchmarks are performed on a MacBook Air M1 16GB.`
+    title="Anyquery — One SQL engine for everything you already use"
+    description="Run SQL on GitHub, Notion, Spotify, Gmail, Airtable, Google Sheets, CSVs, Parquet, logs — and 40+ more. One binary, one dialect. Then hand it to an LLM over MCP. Open source, AGPL-3.0."
+    fullBleed={true}
+    footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned. Illustrative data shown."
 >
-    <!-- Header -->
     <div itemscope itemtype="https://schema.org/WebSite">
         <link itemprop="url" href="https://anyquery.dev" />
         <meta itemprop="name" content="Anyquery" />
@@ -171,528 +38,1107 @@ All benchmarks are performed on a MacBook Air M1 16GB.`
             content="SQL queries for any data source (e.g. GSheets, logs, JSON, Salesforce, Notion, etc.). Open source and free."
         />
     </div>
-    <div
-        class="p-4 bg-linear-to-bl from-[#a863ff] to-[#9642ff] rounded-xl flex gap-4 items-center"
-    >
-        <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            class="text-white/80"
-            xmlns="http://www.w3.org/2000/svg"
-            ><g fill="none"
-                ><path
-                    d="m12.594 23.258l-.012.002l-.071.035l-.02.004l-.014-.004l-.071-.036q-.016-.004-.024.006l-.004.01l-.017.428l.005.02l.01.013l.104.074l.015.004l.012-.004l.104-.074l.012-.016l.004-.017l-.017-.427q-.004-.016-.016-.018m.264-.113l-.014.002l-.184.093l-.01.01l-.003.011l.018.43l.005.012l.008.008l.201.092q.019.005.029-.008l.004-.014l-.034-.614q-.005-.019-.02-.022m-.715.002a.02.02 0 0 0-.027.006l-.006.014l-.034.614q.001.018.017.024l.015-.002l.201-.093l.01-.008l.003-.011l.018-.43l-.003-.012l-.01-.01z"
-                ></path><path
-                    fill="currentColor"
-                    d="M9.107 5.448c.598-1.75 3.016-1.803 3.725-.159l.06.16l.807 2.36a4 4 0 0 0 2.276 2.411l.217.081l2.36.806c1.75.598 1.803 3.016.16 3.725l-.16.06l-2.36.807a4 4 0 0 0-2.412 2.276l-.081.216l-.806 2.361c-.598 1.75-3.016 1.803-3.724.16l-.062-.16l-.806-2.36a4 4 0 0 0-2.276-2.412l-.216-.081l-2.36-.806c-1.751-.598-1.804-3.016-.16-3.724l.16-.062l2.36-.806A4 4 0 0 0 8.22 8.025l.081-.216zM19 2a1 1 0 0 1 .898.56l.048.117l.35 1.026l1.027.35a1 1 0 0 1 .118 1.845l-.118.048l-1.026.35l-.35 1.027a1 1 0 0 1-1.845.117l-.048-.117l-.35-1.026l-1.027-.35a1 1 0 0 1-.118-1.845l.118-.048l1.026-.35l.35-1.027A1 1 0 0 1 19 2"
-                ></path></g
-            ></svg
-        >
-        <p class="font-medium tracking-tight text-sm">
-            Interested in connecting LLM to your data? Check out the <a
-                class="underline"
-                href="/llm">LLM</a
-            > page.
-        </p>
-    </div>
-    <div
-        x-data={`{ title: \`${elements[0].title}\`, code: \`${elements[0].code}\`, footer: \`${elements[0].footer}\`}`}
-    >
-        <header
-            class="flex
-        flex-col
-        md:flex-row
-        justify-center
-        md:justify-between
-        gap-4
-        md:gap-24
-        py-4
-        md:mt-6"
-        >
-            <div id="left-header" class="md:basis-5/12">
-                <h1
-                    class="md:text-4xl text-3xl font-bold font-['Inter'] md:leading-[42px] leading-[36px] text-white/90"
-                >
-                    <style>
-                        .gradient-header {
-                            background: linear-gradient(
-                                90deg,
-                                #7970e9 0%,
-                                #f7233f 150%
-                            );
-                            background-clip: text;
-                            -webkit-background-clip: text;
-                            -webkit-text-fill-color: transparent;
-                        }
-                    </style>
-                    <a class="gradient-header tracking-tight" href="/recipes"
-                        >Query anything</a
-                    >
-                    <span class="tracking-tight">
-                        with old-school cool SQL
-                    </span>
-                </h1>
-                <p class="text-white/70 text-sm mt-3">
-                    Anyquery is a CLI tool to run SQL queries on any data
-                    source, no matter if it's a file, an API, logs, or a local
-                    app.<br />
-                    See the <a class="underline" href="/integrations"
-                        >integrations</a
-                    > for the full extent of what you can do.
-                </p>
-                <div class="flex mt-6 gap-3">
-                    <a href="/docs/#installation" class="button"> Install </a>
-                    <a href="/docs" class="button button-silent">
-                        Documentation
-                    </a>
-                </div>
 
-                <p class="text-white/40 text-xs mt-4">
-                    Supports GNU/Linux, macOS and Windows
-                </p>
-            </div>
-            <style>
-                #fake-terminal {
-                    background: #171717;
-                    transition: transform 0.2s ease-in-out;
-                    box-shadow: 0px 0px 94.2px 7px rgba(124, 111, 231, 0.17);
-                }
-                #fake-terminal:hover {
-                    transform: rotateX(-6deg) rotateY(-6deg);
-                }
-            </style>
-            <div
-                id="right-header"
-                class="flex flex-col basis-7/12 mt-4 md:mt-0"
-            >
-                <div
-                    id="fake-terminal"
-                    class="bg-neutral-900/10 rounded-lg overflow-hidden shadow border border-[#655cc327] w-full
-         flex flex-col justify-between text-wrap min-h-72"
-                >
-                    <div class="text-xs flex items-center justify-between p-3">
-                        <svg
-                            viewBox="0 0 64 12"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-3 w-16"
-                        >
-                            <circle cx="6" cy="6" r="5" fill="#FF5F56"></circle>
-                            <circle cx="24" cy="6" r="5" fill="#FFBD2E"
-                            ></circle>
-                            <circle cx="42" cy="6" r="5" fill="#27C93F"
-                            ></circle>
-                        </svg>
-                        <p x-text="title"></p>
-                        <div class="h-3 w-16"></div>
-                    </div>
-                    <style is:global>
-                        code .hljs-comment {
-                            color: rgba(255, 255, 255, 0.5);
-                        }
-
-                        code .hljs-operator {
-                            color: #ff79c6;
-                        }
-
-                        code .hljs-keyword,
-                        code .hljs-selector-tag {
-                            color: #bd93f9;
-                        }
-
-                        code .hljs-attr,
-                        code .hljs-built_in {
-                            color: #8be9fd;
-                        }
-
-                        code .hljs-string {
-                            color: #50fa7b;
-                        }
-                    </style>
-                    <pre
-                        class="text-white/70 text-sm min-h-[20ex] px-4 py-1 flex overflow-auto break-all whitespace-pre-wrap"><code x-html="code" class="my-auto" />
-          </pre>
-                    <div
-                        class="bg-neutral-950/30 text-xs flex items-center gap-4 p-3"
-                    >
-                        <svg
-                            viewBox="0 0 100 100"
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-2 fill-green-300"
-                            style="filter: drop-shadow(0px 0px 9.8px rgba(100, 243, 157, 1.53));"
-                        >
-                            <circle cx="
-              50" cy="50" r="50"
-                            ></circle>
-                        </svg>
-                        <p class="text-white/50" x-text="footer"></p>
-                    </div>
-                </div>
-                <p class="text-xs mt-3 text-white/40">
-                    Each elapsed time corresponds to the real result of the
-                    first query after a warm-up query
-                </p>
-            </div>
-        </header>
-        <script>
-            const callback = async (elem: Element) => {
-                elem.classList.add("bg-[#242424]", "shadow-outline-primary");
-
-                // Wait 0.8s before removing the bg-[#242424] class
-                await new Promise((resolve) => setTimeout(resolve, 400));
-                elem.classList.remove("bg-[#242424]", "shadow-outline-primary");
-            };
-
-            // For each element in the icon-hover-header
-            // call the callback and wait 300ms
-            const elements = document.querySelectorAll(
-                ".icon-hover-header-elem"
-            );
-            let i = 0;
-            const interval = setInterval(() => {
-                if (i >= elements.length) {
-                    clearInterval(interval);
-                    return;
-                }
-                callback(elements[i]);
-                i++;
-            }, 100);
-        </script>
+    <!-- ============ HERO ============ -->
+    <section class="relative overflow-hidden pt-8 pb-20">
         <div
-            id="icon-hover-header"
-            class="w-full flex gap-2 overflow-y-auto justify-between py-6"
+            class="absolute inset-[-40px] z-0 pointer-events-none"
+            aria-hidden="true"
         >
-            {
-                elements.map((element) => (
-                    <div
-                        class="icon-hover-header-elem p-4 min-w-24 rounded-lg bg-black hover:bg-[#111111] border-white/10 border-2 transition-all flex-col justify-start items-center gap-3 inline-flex
-            hover:shadow-outline-primary cursor-pointer text-white/70
-            "
-                        x-on:mouseover={`title = '${element.title}'; code = \`${element.code}\`; footer = '${element.footer}'`}
+            <div
+                class="absolute h-[480px] w-[480px] -right-20 top-20 rounded-full bg-lavender opacity-80 blur-[40px]"
+            >
+            </div>
+            <div
+                class="absolute h-[360px] w-[360px] -left-24 top-72 rounded-full bg-peach opacity-80 blur-[40px]"
+            >
+            </div>
+            <div
+                class="absolute h-[260px] w-[260px] right-[260px] top-[520px] rounded-full bg-pistachio opacity-55 blur-[40px]"
+            >
+            </div>
+        </div>
+        <div class="wrap z-[2]">
+            <h1
+                class="mt-6 font-display text-[clamp(62px,8vw,80px)] font-normal leading-[0.96] tracking-[-0.035em] text-ink"
+            >
+                One <span class="italic">SQL</span> engine<br />
+                for <span class="hl-underline">everything</span><br />
+                you already <span class="italic">use.</span>
+            </h1>
+
+            <div
+                class="mt-7 flex flex-wrap items-baseline gap-x-[18px] gap-y-3.5 font-mono text-[clamp(20px,2.6vw,24px)]"
+                aria-live="polite"
+                id="kinetic"
+            >
+                <span class="font-medium text-syn-keyword">SELECT</span>
+                <span class="text-syn-operator">*</span>
+                <span class="font-medium text-syn-keyword">FROM</span>
+                <span
+                    id="slot"
+                    class="kin-slot relative inline-flex min-h-[52px] min-w-[280px] items-center gap-2.5 overflow-hidden rounded-full bg-paper-2 px-4 pt-1.5 pb-2 inset-shadow-hair"
+                >
+                    <span
+                        id="slotDot"
+                        class="h-3.5 w-3.5 shrink-0 rounded bg-pistachio"
+                    ></span>
+                    <span
+                        id="slotWord"
+                        class="kin-word inline-block font-display text-[1.2em] italic tracking-[-0.02em] text-ink"
+                        >github</span
                     >
-                        <div class="text-white/70" set:html={element.icon} />
-                        <p class=" text-sm">{element.name}</p>
+                </span>
+                <span class="text-ink-3">;</span>
+            </div>
+
+            <div
+                class="relative mt-1 grid grid-cols-1 items-center gap-8 md:grid-cols-[1.1fr_0.9fr]"
+            >
+                <div>
+                    <p
+                        class="max-w-[560px] text-base md:text-lg leading-[1.45] text-ink-2"
+                    >
+                        Anyquery turns <b class="font-medium text-ink"
+                            >GitHub, Notion, Spotify, Gmail, Airtable, Google
+                            Sheets, CSVs, Parquet, logs</b
+                        > — and forty more — into queryable tables. One binary, one
+                        dialect, one way of asking questions. Then hand it to an LLM
+                        so Claude can answer them for you.
+                    </p>
+                    <div class="mt-7 flex flex-wrap items-center gap-3">
+                        <a class="btn" href="#install">Get anyquery →</a>
+                        <a class="btn btn-ghost" href="#engine"
+                            >See it in action</a
+                        >
+                        <div
+                            class="inline-flex items-center gap-2.5 rounded-full bg-ink px-4 py-3 font-mono text-[13px] text-paper"
+                        >
+                            <span class="opacity-50">$</span><span
+                                >brew install anyquery</span
+                            >
+                        </div>
                     </div>
-                ))
-            }
-        </div>
-        <p class="text-xs text-white/60">
-            Hover over the icons to see the query examples
-        </p>
-    </div>
-    <!-- Features -->
-    <div>
-        <div class="py-6 w-full text-center">
-            <h2
-                class="md:text-4xl text-3xl font-bold bg-linear-to-r from-[#FF7EA5] to-[#FF4C83] bg-clip-text text-transparent"
-            >
-                Full of features
-            </h2>
-            <p class="text-white/70 text-sm mt-1">and more to come</p>
-        </div>
-        <div class="md:grid-cols-3 md:grid-rows-4 grid gap-2">
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg row-start-1 col-start-1 md:row-span-3 text-center"
-            >
-                <img
-                    src="/images/mysql-compatibility.png"
-                    alt="MySQL compatibility"
-                    class="aspect-520/360 w-auto h-auto opacity-70"
-                />
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Built-in MySQL server
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    so that you can connect Anyquery to Metabase, Drizzle or
-                    your favourite ORM
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-2"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    JSON, CSV, TSV, Parquet support
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Import/export data from/to your favourite file format
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-2"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    It’s just SQLite
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Supports the whole SQLite ecosystem e.g. <a
-                        class="underline underline-offset-2"
-                        href="https://litestream.io/">Litestream</a
-                    >, <a
-                        class="underline underline-offset-2"
-                        href="https://datasette.io/">Datasette</a
-                    >
-                </p>
-            </div>
-            <div
-                id="hal"
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-1 md:col-start-3"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Join support
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Do SQL join between APIs, files, and SQLite tables
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-2 md:col-start-3"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Supports alternative query language
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    You don’t like SQL. Fine, use <a
-                        class="underline underline-offset-2"
-                        href="https://prql-lang.org/">PRQL</a
-                    >. Used to Microsoft Kusto, all good use <a
-                        class="underline underline-offset-2"
-                        href="https://pql.dev/">PQL</a
-                    >
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-3 md:col-start-2 md:col-span-2"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Write on APIs / DML support
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Anyquery can query Notion, Google Sheets, and Airtable as if
-                    they were a database with INSERT/UPDATE/DELETE support.
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-4 md:col-start-1 md:col-span-1"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Log querying
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Using <a
-                        class="underline underline-offset-2"
-                        href="https://www.elastic.co/guide/en/elasticsearch/reference/current/grok.html"
-                        >Grok</a
-                    >, you can parse and query logs locally and remotely
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-4 md:col-start-2 md:col-span-1"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Data visualization
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Connect your favorite SaaS to BI tools using the MySQL
-                    compatibility
-                </p>
-            </div>
-            <div
-                class="bg-black border-primary border shadow-outline-secondary p-4 rounded-lg md:row-start-4 md:col-start-3 md:col-span-1"
-            >
-                <h3 class="text-white/90 font-medium text-sm tracking-tight">
-                    Query export
-                </h3>
-                <p class="text-white/50 text-xs mt-1">
-                    Export your query results to JSON, CSV, TSV, Markdown, HTML,
-                    etc.
-                </p>
-            </div>
-        </div>
-    </div>
+                    <p class="mt-3.5 text-sm text-ink-3">
+                        Free & open-source · AGPL-3.0 · macOS · Linux · Windows
+                    </p>
+                </div>
 
-    <!-- Integrations -->
-    <div
-        class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
-        style="background-image: url('/images/integrations_logo.png'); 
-    background-size: cover; 
-    background-repeat:no-repeat;
-    background-position: center center;"
-    >
-        <h2 class="text-2xl font-bold">
-            An extensive list of <span class="text-[#7C91FF]">integrations</span
-            >
-        </h2>
-        <p class="text-white/70 text-sm">that you will love using</p>
-        <a href="/integrations" class="button mt-4">See all integrations</a>
-    </div>
-    <!-- Use cases -->
-    <div class="w-full">
-        <h2 class="md:text-3xl text-2xl font-bold mb-4">Use cases</h2>
-        <div class="flex md:flex-row flex-col justify-between gap-4">
-            <div
-                class="p-6 rounded-2xl border border-[#202020] flex-1 flex-col justify-start items-start gap-1.5 inline-flex"
-            >
-                <h3 class="text-white/90 font-lg tracking-tight">
-                    Migrate your data
-                </h3>
-                <p class="text-sm text-white/60">
-                    Migrate your data between SaaS platforms with ease!
-                    Effortlessly transfer your Safari tabs to Pocket, your
-                    Hacker News comments into a Google Sheets spreadsheet, etc.
-                    The possibilities are limitless
-                </p>
-            </div>
-            <div
-                class="p-6 rounded-2xl border border-[#202020] flex-col flex-1 justify-start items-start gap-1.5 inline-flex"
-            >
-                <h3 class="text-white/90 font-lg tracking-tight">
-                    Explore your data
-                </h3>
-                <p class="text-sm text-white/60">
-                    Struggling to retrieve data from API endpoints? Anyquery
-                    does it for you. Simply craft your SQL query and we handle
-                    everything else. And thanks to the MySQL compatibility, you
-                    can use any MySQL client for data exploration such as
-                    Metabase, Redash, Tableau, etc.
-                </p>
+                <div
+                    id="resultCard"
+                    class="result-card relative min-h-[360px] overflow-hidden rounded-lg bg-paper shadow-lift inset-shadow-hair"
+                >
+                    <div
+                        class="flex items-center justify-between border-b border-ink/15 px-[18px] py-3.5 text-[13px] text-ink-2"
+                    >
+                        <span
+                            class="inline-flex items-center gap-2 font-mono text-[13px] font-medium text-ink"
+                        >
+                            <span
+                                id="rcSq"
+                                class="h-3.5 w-3.5 rounded bg-pistachio"></span>
+                            <span id="rcTitle">github_my_stars</span>
+                        </span>
+                        <span id="rcSub" class="text-sm text-ink-3"
+                            >6 of 274 rows</span
+                        >
+                    </div>
+                    <table class="rc-table" id="rcTable"></table>
+                    <div
+                        class="flex justify-between border-t border-ink/15 px-[18px] py-2.5 font-mono text-[11px] text-ink-3"
+                    >
+                        <span
+                            class="inline-flex items-center gap-1.5 text-pistachio-700"
+                            ><span
+                                class="h-[7px] w-[7px] rounded-full bg-pistachio-700"
+                            ></span><span id="rcTime">27ms</span></span
+                        >
+                        <span id="rcRows2">274 rows</span>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-    <!-- Community repository -->
-    <div
-        class="min-h-72 w-full text-center flex flex-col items-center justify-center mt-8 mb-8"
-        style="background-image: url('/images/bg-community-repository.png'); 
-    background-size: cover; 
-    background-repeat:no-repeat;
-    background-position: center center;"
-    >
-        <h2
-            class="text-3xl font-bold bg-linear-to-r from-[#FF7EA5] to-[#FF4C83] bg-clip-text text-transparent"
-        >
-            Query hub
-        </h2>
-        <p class="text-white/70 text-sm mt-1">
-            Reuse SQL queries from the community to query anything, even without
-            SQL knowledge. <br /> Answer data questions in seconds
-        </p>
-        <a href="/queries" class="button mt-4">See the queries</a>
-    </div>
+    </section>
 
-    <!-- Open source disclaimer -->
-    <div class="w-full text-center py-10">
-        <h3 class="text-2xl md:text-3xl">We ❤️ open source</h3>
-        <p class="text-white/70 text-sm mt-1">
-            Anyquery is AGPL-3.0-or-later licensed
-        </p>
-    </div>
-    <!-- Download -->
-    <div
-        class="flex flex-col md:flex-row gap-4 justify-between items-center mb-12 mt-8"
-    >
-        <div class="">
-            <h2 class="md:text-3xl text-2xl font-bold">Getting started</h2>
-            <p class="text-white/70 text-sm mt-1">
-                Anyquery runs locally with a CLI that you can install with this
-                command
+    <!-- ============ ONE ENGINE ============ -->
+    <section class="relative bg-paper py-24" id="engine">
+        <div class="wrap">
+            <div
+                class="grid grid-cols-1 items-start gap-12 md:grid-cols-[1.1fr_1fr] md:gap-[72px]"
+            >
+                <div>
+                    <h2
+                        class="mt-3.5 mb-7 max-w-[20ch] font-display text-[clamp(36px,4vw,52px)] font-normal leading-[1.06] tracking-[-0.03em]"
+                    >
+                        The same <em class="italic text-peach-700">SELECT</em>,
+                        no matter where the data lives.
+                    </h2>
+                    <p
+                        class="max-w-[52ch] text-base md:text-lg leading-[1.45] text-ink-2"
+                    >
+                        You don't learn the Notion API. You don't write a Gmail
+                        scraper. You don't install four CLI tools. You write <code
+                            class="aq-code">SELECT</code
+                        > and Anyquery does the rest — across 40+ services and every
+                        file on disk.
+                    </p>
+
+                    <div
+                        class="mt-14 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3"
+                    >
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-pistachio font-display text-[22px] leading-none text-ink"
+                            >
+                                ⟨⟩
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                One dialect, 40+ sources
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                Built on SQLite. Everything from GitHub to
+                                Parquet looks like a table. <code
+                                    class="aq-code">JOIN</code
+                                > them freely.
+                            </p>
+                        </div>
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-butter font-display text-[22px] leading-none text-ink"
+                            >
+                                ⇌
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                BI tools just work
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                Exposes the MySQL wire protocol, so Metabase,
+                                Tableau, Drizzle, and Looker connect in one
+                                click.
+                            </p>
+                        </div>
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-peach font-display text-[22px] leading-none text-ink"
+                            >
+                                ♁
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                Local-first, yours
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                Runs on your laptop. No cloud, no pipeline, no
+                                ETL. Your API tokens never leave the machine.
+                            </p>
+                        </div>
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-lavender font-display text-[22px] leading-none text-ink"
+                            >
+                                ✱
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                Write back, too
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                <code class="aq-code">INSERT</code>, <code
+                                    class="aq-code">UPDATE</code
+                                >, and <code class="aq-code">DELETE</code> on Notion,
+                                Airtable, and Google Sheets like they were Postgres.
+                            </p>
+                        </div>
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-sky font-display text-[22px] leading-none text-ink"
+                            >
+                                ◎
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                Query hub included
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                Re-use hundreds of community queries without
+                                writing SQL — from "close my Chrome tabs" to
+                                "summarise my week".
+                            </p>
+                        </div>
+                        <div
+                            class="flex flex-col gap-3 rounded-lg bg-paper p-6 inset-shadow-hair"
+                        >
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-[10px] bg-rose font-display text-[22px] leading-none text-ink"
+                            >
+                                ✺
+                            </div>
+                            <h3
+                                class="text-base font-medium tracking-[-0.01em]"
+                            >
+                                Not just SQL
+                            </h3>
+                            <p class="text-sm leading-[1.5] text-ink-2">
+                                Prefer PRQL? Kusto (PQL)? We support those too.
+                                The engine doesn't care.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Playground -->
+                <div
+                    class="sticky top-6 rounded-xl bg-paper-2 p-5 inset-shadow-hair"
+                    id="playground"
+                >
+                    <div class="mb-3.5 flex flex-wrap gap-1.5" id="pgTabs">
+                    </div>
+                    <div class="pg-sql" id="pgSql"></div>
+                    <div class="pg-out">
+                        <table id="pgTable"></table>
+                        <div class="pg-foot">
+                            <span id="pgFootTime">27ms</span>
+                            <span id="pgFootRows">5 rows</span>
+                        </div>
+                    </div>
+                    <p class="mt-3 text-center text-sm text-ink-3">
+                        ↑ click a source to change the query — same dialect,
+                        different data
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ MCP / LLM ============ -->
+    <section class="relative bg-paper-3 py-24" id="mcp">
+        <div class="wrap">
+            <div
+                class="grid grid-cols-1 items-center gap-10 md:grid-cols-[1.1fr_0.9fr] md:gap-16"
+            >
+                <div>
+                    <h2
+                        class="mt-4 mb-6 font-display text-[clamp(36px,4vw,52px)] font-normal leading-[1.06] tracking-[-0.03em]"
+                    >
+                        Give <em class="italic text-lavender-700">Claude</em> SQL
+                        access<br />to the tools you already use.
+                    </h2>
+                    <p class="md:text-lg text-base text-ink-2">
+                        Anyquery ships as an <b class="font-medium text-ink"
+                            >MCP server</b
+                        >. Claude Desktop, ChatGPT, Cursor, TypingMind and any
+                        MCP-aware client can ask it questions in plain English —
+                        and Anyquery answers with real data from your Spotify
+                        history, your Apple Reminders, your Notion pages, your
+                        Gmail inbox.
+                    </p>
+                    <p class="mt-3.5 md:text-lg text-ink-2">
+                        One command: <code class="aq-code">anyquery mcp</code>.
+                        No wrappers. No prompt gymnastics.
+                    </p>
+                    <div class="mt-6 flex flex-wrap items-center gap-3">
+                        <a class="btn" href="/llm">Connect to Claude</a>
+                        <a
+                            class="btn btn-ghost"
+                            href="https://modelcontextprotocol.io"
+                            >What is MCP?</a
+                        >
+                    </div>
+                </div>
+
+                <div
+                    class="relative min-h-[440px] rounded-xl bg-paper p-7 inset-shadow-hair"
+                >
+                    <div class="flex flex-col gap-3">
+                        <div
+                            class="max-w-[85%] self-end rounded-[18px] rounded-br-[6px] bg-ink px-4 py-3 text-sm leading-[1.45] text-paper"
+                        >
+                            Which artists do I have the most saved tracks from
+                            on Spotify?
+                        </div>
+                        <div
+                            class="max-w-[85%] self-start rounded-[18px] rounded-bl-[6px] bg-lavender px-4 py-3 text-sm leading-[1.45] text-ink"
+                        >
+                            Let me roll up your saved tracks with Anyquery.
+                            <span
+                                class="mt-2 block break-words rounded-lg bg-ink/[0.06] px-2.5 py-2 font-mono text-[11px] text-ink-2"
+                                ><span class="font-medium text-lavender-700"
+                                    >anyquery.query</span
+                                > · <span class="sql-k">SELECT</span> artist_name,
+                                <span class="sql-k">COUNT</span>(*) saves
+                                <span class="sql-k">FROM</span> spotify_saved_tracks
+                                <span class="sql-k">GROUP BY</span> artist_name
+                                <span class="sql-k">ORDER BY</span> saves
+                                <span class="sql-k">DESC LIMIT</span> 5</span
+                            >
+                            <span
+                                class="mt-1 block break-words rounded-lg bg-ink/[0.06] px-2.5 py-2 font-mono text-[11px] text-ink-2"
+                                >→ 5 rows · 41ms</span
+                            >
+                        </div>
+                        <div
+                            class="max-w-[85%] self-start rounded-[18px] rounded-bl-[6px] bg-lavender px-4 py-3 text-sm leading-[1.45] text-ink"
+                        >
+                            Your top five: <i>Fred again..</i> (38),
+                            <i>Bladee</i> (29), <i>Charli XCX</i> (24),
+                            <i>Magdalena Bay</i> (19), <i>Jamie xx</i> (17). Want
+                            me to save them to a Notion page?
+                        </div>
+                        <div
+                            class="max-w-[85%] self-end rounded-[18px] rounded-br-[6px] bg-ink px-4 py-3 text-sm leading-[1.45] text-paper"
+                        >
+                            Yes — append them to my "Listening log" database.
+                        </div>
+                    </div>
+                    <p class="mt-5 text-center text-xs italic text-ink-3">
+                        Illustrative conversation — sample data, not a live
+                        session.
+                    </p>
+                </div>
+            </div>
+
+            <div class="mt-14">
+                <h3
+                    class="mb-[18px] font-mono text-sm font-medium uppercase tracking-[0.12em] text-ink-3"
+                >
+                    Works with every MCP client
+                </h3>
+                <div class="flex flex-wrap gap-2.5">
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-peach-700"
+                        ></span>Claude Desktop</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-pistachio-700"
+                        ></span>ChatGPT</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-lavender-700"
+                        ></span>Cursor</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-sky-700"
+                        ></span>TypingMind</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-rose-700"
+                        ></span>LibreChat</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-butter-700"
+                        ></span>Zed</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-mint-700"
+                        ></span>Windsurf</span
+                    >
+                    <span
+                        class="inline-flex items-center gap-2.5 rounded-full bg-paper px-[18px] py-3 text-sm inset-shadow-hair"
+                        ><span class="h-2.5 w-2.5 rounded-full bg-ink"></span>+
+                        function-calling APIs</span
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ INTEGRATIONS ============ -->
+    <section class="overflow-hidden bg-paper py-20" id="integrations">
+        <div class="wrap">
+            <h3
+                class="mb-4 max-w-[16ch] font-display text-[clamp(36px,4vw,52px)] font-normal leading-[1.06] tracking-[-0.03em]"
+            >
+                Forty-something <em class="italic text-mint-700">sources</em>,
+                and counting.
+            </h3>
+            <p class="mb-10 text-lg text-ink-2">
+                All queried the same way. Install only the ones you use.
             </p>
         </div>
-
-        <div class="flex flex-col w-full md:max-w-[50%]">
-            <div
-                class="px-4 py-3 min-h-14 bg-[#191919] flex flex-row justify-start gap-3 items-center rounded-lg shadow border border-[#373737]
-        text-xs overflow-x-scroll max-w-fit ml-auto"
-            >
-                <img
-                    id="install-logo"
-                    src={"/images/apple-logo.svg"}
-                    alt="Apple logo"
-                    class="w-6 h-6 aspect-square fill-white text-white/70"
-                />
-                <pre><code id="install-code">brew install anyquery</code></pre>
-            </div>
-            <a
-                href="/docs/#installation"
-                class="underline text-right text-sm ml-auto mt-2 text-white/60"
-                >See other platforms</a
+        <div
+            class="flex w-max gap-3.5 py-2.5 animate-marquee motion-reduce:animate-none"
+            id="marquee"
+        >
+        </div>
+        <div
+            class="flex w-max gap-3.5 py-2.5 animate-marquee motion-reduce:animate-none"
+            id="marquee2"
+            style="animation-delay:-24s"
+        >
+        </div>
+        <div class="wrap mt-10 text-center">
+            <a class="btn btn-ghost" href="/integrations"
+                >Browse all integrations →</a
             >
         </div>
-        <script defer>
-            // Detect the OS so that we can display the correct command
+    </section>
 
-            /* Credit: https://stackoverflow.com/a/38241481 */
-            function getOS() {
-                const userAgent = window.navigator.userAgent,
-                    platform =
-                        window.navigator?.userAgentData?.platform ||
-                        window.navigator.platform,
-                    macosPlatforms = [
-                        "macOS",
-                        "Macintosh",
-                        "MacIntel",
-                        "MacPPC",
-                        "Mac68K",
-                    ],
-                    windowsPlatforms = ["Win32", "Win64", "Windows", "WinCE"],
-                    iosPlatforms = ["iPhone", "iPad", "iPod"];
-                let os = null;
+    <!-- ============ INSTALL ============ -->
+    <section class="bg-paper-3 py-24" id="install">
+        <div class="wrap">
+            <div
+                class="grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12"
+            >
+                <div>
+                    <span
+                        class="font-mono text-xs uppercase tracking-[0.14em] text-ink-3"
+                        >Get started</span
+                    >
+                    <h2
+                        class="mt-3.5 mb-6 font-display text-[clamp(36px,4vw,52px)] font-normal leading-[1.06] tracking-[-0.03em]"
+                    >
+                        One <em class="italic text-rose-700">command</em>,<br
+                        />and you're querying.
+                    </h2>
+                    <p class="max-w-[42ch] text-xl text-ink-2">
+                        Pick your OS. We detect your platform but you can flip
+                        between them to copy the right command.
+                    </p>
+                </div>
+                <div>
+                    <div class="mb-3.5 flex gap-1.5" id="osTabs">
+                        <button
+                            class="os-tab rounded-full bg-paper px-3.5 py-2 font-ui text-[13px] text-ink-2 inset-shadow-hair on"
+                            data-os="mac">macOS</button
+                        >
+                        <button
+                            class="os-tab rounded-full bg-paper px-3.5 py-2 font-ui text-[13px] text-ink-2 inset-shadow-hair"
+                            data-os="linux">Linux</button
+                        >
+                        <button
+                            class="os-tab rounded-full bg-paper px-3.5 py-2 font-ui text-[13px] text-ink-2 inset-shadow-hair"
+                            data-os="win">Windows</button
+                        >
+                    </div>
+                    <div
+                        class="flex items-center justify-between gap-5 rounded-lg bg-ink p-6 font-mono text-[15px] text-paper"
+                    >
+                        <div class="flex items-start gap-2 overflow-x-auto">
+                            <span class="opacity-50">$</span><span
+                                id="osCmd"
+                                class="whitespace-pre-wrap break-words"
+                                >brew install anyquery</span
+                            >
+                        </div>
+                        <button
+                            class="shrink-0 cursor-pointer rounded-full border-0 bg-paper/[0.08] px-3.5 py-2 font-ui text-[13px] text-paper transition hover:bg-paper/[0.16]"
+                            id="copyBtn">Copy</button
+                        >
+                    </div>
+                    <p class="mt-3 text-sm text-ink-3">
+                        Then: <code class="aq-code"
+                            >anyquery i github spotify notion</code
+                        > to install your first plugins.
+                    </p>
+                    <a
+                        href="/docs/#installation"
+                        class="mt-3.5 inline-block text-sm text-ink-3 underline underline-offset-2"
+                        >See every install option →</a
+                    >
+                </div>
+            </div>
+        </div>
+    </section>
 
-                if (macosPlatforms.indexOf(platform) !== -1) {
-                    os = "Mac OS";
-                } else if (iosPlatforms.indexOf(platform) !== -1) {
-                    os = "iOS";
-                } else if (windowsPlatforms.indexOf(platform) !== -1) {
-                    os = "Windows";
-                } else if (/Android/.test(userAgent)) {
-                    os = "Android";
-                } else if (/Linux/.test(platform)) {
-                    os = "Linux";
-                }
+    <!-- ============ SPONSORS ============ -->
+    <section class="bg-paper py-20" id="sponsors">
+        <div class="wrap text-center">
+            <span
+                class="font-mono text-xs uppercase tracking-[0.14em] text-ink-3"
+                >Sponsored by</span
+            >
 
-                return os;
+            {
+                SPONSORS.gold.length > 0 && (
+                    <div class="mt-8 flex flex-col items-center gap-10">
+                        {SPONSORS.gold.map((s) => (
+                            <div>
+                                <a
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="sponsored noopener"
+                                    class="mx-auto block w-fit opacity-90 transition hover:opacity-100"
+                                >
+                                    <img
+                                        src={s.logo}
+                                        alt={s.name}
+                                        loading="lazy"
+                                        class="mx-auto h-8 w-auto"
+                                    />
+                                </a>
+                                {s.description && (
+                                    <p class="mx-auto mt-4 max-w-[48ch] text-sm text-ink-3">
+                                        {s.description}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )
             }
 
-            try {
-                const os = getOS();
-                let command = "";
-                let logoURL = "";
-                switch (os) {
-                    case "Mac OS":
-                    case "iOS":
-                        command = "brew install anyquery";
-                        logoURL = "/images/apple-logo.svg";
-                        break;
-                    case "Windows":
-
-                    case "Android":
-                        command = "choco install anyquery";
-                        logoURL = "/images/windows-logo.svg";
-                        break;
-
-                    case "Linux":
-                        command = `echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
-sudo apt update
-sudo apt install anyquery`;
-                        logoURL = "/images/ubuntu-logo.svg";
-                        break;
-
-                    default:
-                        command = "brew install anyquery";
-                        logoURL = "/images/apple-logo.svg";
-                        break;
-                }
-                // Update the command
-                const code = document.getElementById("install-code");
-                if (code) {
-                    code.innerText = command;
-                }
-                // Update the logo
-                const logoCode = document.getElementById("install-logo");
-                if (logoCode) {
-                    logoCode.src = logoURL;
-                }
-            } catch (e) {
-                console.error(e);
+            {
+                SPONSORS.silver.length > 0 && (
+                    <div class="mt-10 flex flex-wrap items-start justify-center gap-x-12 gap-y-8">
+                        {SPONSORS.silver.map((s) => (
+                            <div>
+                                <a
+                                    href={s.url}
+                                    target="_blank"
+                                    rel="sponsored noopener"
+                                    class="mx-auto block w-fit opacity-90 transition hover:opacity-100"
+                                >
+                                    <img
+                                        src={s.logo}
+                                        alt={s.name}
+                                        loading="lazy"
+                                        class="mx-auto h-5 w-auto"
+                                    />
+                                </a>
+                                {s.description && (
+                                    <p class="mx-auto mt-2.5 max-w-[36ch] text-xs text-ink-3">
+                                        {s.description}
+                                    </p>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )
             }
-        </script>
-    </div>
+
+            {
+                SPONSORS.bronze.length > 0 && (
+                    <div class="mt-9 flex flex-wrap items-center justify-center gap-7">
+                        {SPONSORS.bronze.map((s) => (
+                            <a
+                                href={s.url}
+                                target="_blank"
+                                rel="sponsored noopener"
+                                title={s.name}
+                                class="opacity-80 transition hover:opacity-100"
+                            >
+                                <img
+                                    src={s.icon}
+                                    alt={s.name}
+                                    loading="lazy"
+                                    class="h-8 w-8"
+                                />
+                            </a>
+                        ))}
+                    </div>
+                )
+            }
+        </div>
+    </section>
 </Main>
+
+<script>
+    /* ==============================================================
+       Data sources for kinetic hero + result card + playground
+       (illustrative sample data)
+    ============================================================== */
+    type Row = { a: string; b: string; pill: string; p: string };
+    type Source = {
+        color: string;
+        word: string;
+        table: string;
+        time: string;
+        rows: number;
+        data: Row[];
+        cols: string[];
+        pg: string;
+    };
+
+    const SOURCES: Record<string, Source> = {
+        github: {
+            color: "pistachio",
+            word: "github",
+            table: "github_my_stars",
+            time: "27ms",
+            rows: 274,
+            data: [
+                { a: "tldraw/tldraw", b: "★ 36.9k", pill: "TS", p: "sky" },
+                {
+                    a: "anthropics/mcp",
+                    b: "★ 8.2k",
+                    pill: "TS",
+                    p: "sky",
+                },
+                { a: "rauchg/slackin", b: "★ 5.3k", pill: "JS", p: "butter" },
+                { a: "sst/sst", b: "★ 22.1k", pill: "TS", p: "sky" },
+                { a: "vercel/next.js", b: "★ 121k", pill: "JS", p: "butter" },
+                {
+                    a: "astral-sh/uv",
+                    b: "★ 30.8k",
+                    pill: "Rust",
+                    p: "peach",
+                },
+            ],
+            cols: ["repo", "stars", "language"],
+            pg: `-- your starred repos, newest first
+SELECT full_name, stargazers_count, language
+FROM github_my_stars
+ORDER BY starred_at DESC;`,
+        },
+        notion: {
+            color: "peach",
+            word: "notion",
+            table: "notion_database",
+            time: "54ms",
+            rows: 128,
+            data: [
+                { a: "Q2 OKRs", b: "In progress", pill: "High", p: "rose" },
+                {
+                    a: "Hiring pipeline",
+                    b: "Done",
+                    pill: "Low",
+                    p: "pistachio",
+                },
+                { a: "Design review", b: "Blocked", pill: "High", p: "rose" },
+                {
+                    a: "Launch post",
+                    b: "Not started",
+                    pill: "Med",
+                    p: "butter",
+                },
+                {
+                    a: "Runbook audit",
+                    b: "In progress",
+                    pill: "Med",
+                    p: "butter",
+                },
+                {
+                    a: "Customer interviews",
+                    b: "Done",
+                    pill: "Low",
+                    p: "pistachio",
+                },
+            ],
+            cols: ["task", "status", "priority"],
+            pg: `-- bump the priority on every blocked task
+UPDATE notion_database
+SET priority = 'High'
+WHERE status = 'Blocked';`,
+        },
+        spotify: {
+            color: "lavender",
+            word: "spotify",
+            table: "spotify_saved_tracks",
+            time: "45ms",
+            rows: 819,
+            data: [
+                { a: "Bladee — Disco", b: "2:14", pill: "2021", p: "lavender" },
+                {
+                    a: "Fred again.. — Marea",
+                    b: "4:03",
+                    pill: "2022",
+                    p: "lavender",
+                },
+                { a: "Charli XCX — 360", b: "3:12", pill: "2024", p: "peach" },
+                {
+                    a: "Magdalena Bay — Image",
+                    b: "3:54",
+                    pill: "2024",
+                    p: "peach",
+                },
+                {
+                    a: "Caroline Polachek — Bunny",
+                    b: "3:44",
+                    pill: "2019",
+                    p: "butter",
+                },
+                { a: "Jamie xx — Gosh", b: "6:18", pill: "2015", p: "butter" },
+            ],
+            cols: ["track", "length", "year"],
+            pg: `-- the tracks you've saved, newest first
+SELECT track_name, duration_ms, album_release_date
+FROM spotify_saved_tracks
+ORDER BY saved_at DESC;`,
+        },
+        gmail: {
+            color: "rose",
+            word: "your inbox",
+            table: "imap_emails",
+            time: "312ms",
+            rows: 4412,
+            data: [
+                {
+                    a: "Stripe · Receipt #3048",
+                    b: "receipts@stripe.com",
+                    pill: "Jun 2",
+                    p: "butter",
+                },
+                {
+                    a: "Vercel · Your invoice",
+                    b: "invoices@vercel.com",
+                    pill: "May 28",
+                    p: "sky",
+                },
+                {
+                    a: "Notion · Payment receipt",
+                    b: "team@mail.notion.so",
+                    pill: "May 14",
+                    p: "peach",
+                },
+                {
+                    a: "OpenAI · Your receipt",
+                    b: "billing@openai.com",
+                    pill: "May 1",
+                    p: "butter",
+                },
+                {
+                    a: "GitHub · Payment confirmed",
+                    b: "billing@github.com",
+                    pill: "Apr 30",
+                    p: "sky",
+                },
+                {
+                    a: "Spotify · Premium receipt",
+                    b: "no-reply@spotify.com",
+                    pill: "Apr 3",
+                    p: "butter",
+                },
+            ],
+            cols: ["subject", "from", "received"],
+            pg: `-- every receipt that hit your inbox this year
+SELECT subject, _from, received_at
+FROM imap_emails
+WHERE (subject LIKE '%receipt%' OR subject LIKE '%invoice%')
+  AND received_at > date('now','-1 year');`,
+        },
+        airtable: {
+            color: "sky",
+            word: "airtable",
+            table: "airtable_table",
+            time: "522ms",
+            rows: 45463,
+            data: [
+                {
+                    a: "Customer 3048",
+                    b: "Active",
+                    pill: "€240",
+                    p: "pistachio",
+                },
+                { a: "Customer 3049", b: "Churned", pill: "€0", p: "rose" },
+                { a: "Customer 3050", b: "Trial", pill: "€0", p: "butter" },
+                {
+                    a: "Customer 3051",
+                    b: "Active",
+                    pill: "€120",
+                    p: "pistachio",
+                },
+                {
+                    a: "Customer 3052",
+                    b: "Active",
+                    pill: "€980",
+                    p: "pistachio",
+                },
+                { a: "Customer 3053", b: "Trial", pill: "€0", p: "butter" },
+            ],
+            cols: ["customer", "status", "mrr"],
+            pg: `-- every customer, straight from your Airtable base
+SELECT name, status, mrr
+FROM airtable_table;`,
+        },
+        sheets: {
+            color: "butter",
+            word: "a Google Sheet",
+            table: "google_sheets_spreadsheet",
+            time: "760ms",
+            rows: 150,
+            data: [
+                { a: "Alice Chen", b: "Design", pill: "L3", p: "lavender" },
+                { a: "Ben Okafor", b: "Eng", pill: "L4", p: "sky" },
+                { a: "Carla Ruiz", b: "Eng", pill: "L5", p: "sky" },
+                { a: "Dev Patel", b: "PM", pill: "L3", p: "peach" },
+                { a: "Emi Takahashi", b: "Design", pill: "L4", p: "lavender" },
+                { a: "Farah Haddad", b: "Eng", pill: "L3", p: "sky" },
+            ],
+            cols: ["name", "team", "level"],
+            pg: `-- treat a Google Sheet as a live table
+SELECT name, team, level
+FROM google_sheets_spreadsheet
+ORDER BY team;`,
+        },
+        parquet: {
+            color: "mint",
+            word: "a parquet file",
+            table: "read_parquet",
+            time: "18ms",
+            rows: 1200000,
+            data: [
+                { a: "2026-04-01", b: "1,204", pill: "$24.1k", p: "pistachio" },
+                { a: "2026-04-02", b: "1,451", pill: "$29.3k", p: "pistachio" },
+                { a: "2026-04-03", b: "1,089", pill: "$21.8k", p: "butter" },
+                { a: "2026-04-04", b: "1,632", pill: "$32.7k", p: "pistachio" },
+                { a: "2026-04-05", b: "1,812", pill: "$36.4k", p: "pistachio" },
+                { a: "2026-04-06", b: "1,455", pill: "$29.1k", p: "pistachio" },
+            ],
+            cols: ["date", "orders", "revenue"],
+            pg: `-- 1.2M rows from a parquet file, no import
+SELECT date, COUNT(*) orders, SUM(amount) rev
+FROM read_parquet('orders-2026.parquet')
+GROUP BY date ORDER BY date DESC;`,
+        },
+    };
+
+    const ORDER = [
+        "github",
+        "notion",
+        "spotify",
+        "gmail",
+        "airtable",
+        "sheets",
+        "parquet",
+    ];
+
+    const reduceMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+    ).matches;
+
+    const $ = (id: string) => document.getElementById(id);
+
+    /* ==============================================================
+       Kinetic hero — cycle words & result card
+    ============================================================== */
+    const slot = $("slot")!;
+    const slotWord = $("slotWord")!;
+    const slotDot = $("slotDot")!;
+    const rc = $("resultCard")!;
+    const rcTable = $("rcTable")!;
+    const rcTitle = $("rcTitle")!;
+    const rcSq = $("rcSq")!;
+    const rcTime = $("rcTime")!;
+    const rcSub = $("rcSub")!;
+    const rcRows2 = $("rcRows2")!;
+
+    function paintResult(key: string) {
+        const s = SOURCES[key];
+        const colorVar = `var(--color-${s.color})`;
+        slotDot.style.background = colorVar;
+        slot.style.background = `color-mix(in oklab, ${colorVar} 40%, var(--color-paper-2))`;
+        rcSq.style.background = colorVar;
+        rc.style.background = `linear-gradient(180deg, color-mix(in oklab, ${colorVar} 18%, var(--color-paper)) 0%, var(--color-paper) 40%)`;
+        rcTitle.textContent = s.table;
+        rcTime.textContent = s.time;
+        rcSub.textContent = "6 of " + s.rows.toLocaleString() + " rows";
+        rcRows2.textContent = s.rows.toLocaleString() + " rows";
+
+        const cols = s.cols;
+        rcTable.innerHTML = `
+      <thead><tr>
+        <th>#</th>
+        <th>${cols[0]}</th>
+        <th>${cols[1]}</th>
+        <th style="text-align:right;padding-right:18px">${cols[2]}</th>
+      </tr></thead>
+      <tbody>${s.data
+          .map(
+              (r, i) => `
+        <tr>
+          <td class="idx">${String(i + 1).padStart(2, "0")}</td>
+          <td>${r.a}</td>
+          <td class="c-meta" style="text-align:left;width:auto;padding-right:12px">${r.b}</td>
+          <td style="text-align:right;padding-right:18px;width:90px"><span class="pill" style="background:var(--color-${r.p});color:var(--color-ink)">${r.pill}</span></td>
+        </tr>
+      `,
+          )
+          .join("")}</tbody>`;
+    }
+
+    let ki = 0;
+    paintResult(ORDER[0]);
+
+    function cycle() {
+        ki = (ki + 1) % ORDER.length;
+        const key = ORDER[ki];
+        const s = SOURCES[key];
+
+        slot.classList.add("leaving");
+        rc.classList.toggle("tilt");
+        setTimeout(() => {
+            slotWord.textContent = s.word;
+            slot.classList.remove("leaving");
+            slot.classList.add("entering");
+            paintResult(key);
+            requestAnimationFrame(() => slot.classList.remove("entering"));
+        }, 380);
+    }
+    if (!reduceMotion) {
+        setInterval(cycle, 2400);
+    }
+
+    /* ==============================================================
+       Playground — tabs of same-dialect queries
+    ============================================================== */
+    const tabsEl = $("pgTabs")!;
+    const sqlEl = $("pgSql")!;
+    const tableEl = $("pgTable")!;
+    const footT = $("pgFootTime")!;
+    const footR = $("pgFootRows")!;
+
+    function hl(code: string) {
+        return code
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/(--[^\n]*)/g, '<span class="sql-c">$1</span>')
+            .replace(
+                /\b(SELECT|FROM|WHERE|GROUP BY|ORDER BY|JOIN|ON|UPDATE|SET|INSERT INTO|VALUES|DELETE|LIMIT|AND|AS|COUNT|SUM|AVG)\b/g,
+                '<span class="sql-k">$1</span>',
+            )
+            .replace(/('[^']*')/g, '<span class="sql-s">$1</span>')
+            .replace(
+                /\b(read_parquet|date|now)\b/g,
+                '<span class="sql-b">$1</span>',
+            );
+    }
+
+    function selectPg(key: string, btn?: HTMLElement) {
+        document
+            .querySelectorAll(".pg-tab")
+            .forEach((b) => b.classList.remove("on"));
+        if (btn) btn.classList.add("on");
+        const s = SOURCES[key];
+        sqlEl.innerHTML = hl(s.pg);
+        const cols = s.cols;
+        tableEl.innerHTML = `
+      <thead><tr>${cols.map((c) => `<th>${c}</th>`).join("")}</tr></thead>
+      <tbody>${s.data
+          .slice(0, 5)
+          .map(
+              (r) => `
+        <tr>
+          <td>${r.a}</td>
+          <td>${r.b}</td>
+          <td><span class="cell-pill" style="background:var(--color-${r.p})">${r.pill}</span></td>
+        </tr>
+      `,
+          )
+          .join("")}</tbody>`;
+        footT.textContent = s.time;
+        footR.textContent = s.rows.toLocaleString() + " rows total";
+    }
+
+    ORDER.forEach((key, i) => {
+        const s = SOURCES[key];
+        const b = document.createElement("button");
+        b.className = "pg-tab" + (i === 0 ? " on" : "");
+        b.innerHTML = `<span class="sq" style="background:var(--color-${s.color})"></span>${s.word}`;
+        b.onclick = () => selectPg(key, b);
+        tabsEl.appendChild(b);
+    });
+    selectPg("github");
+
+    /* ==============================================================
+       Integrations marquee
+    ============================================================== */
+    const INTS: [string, string][] = [
+        ["GitHub", "pistachio"],
+        ["Notion", "peach"],
+        ["Spotify", "lavender"],
+        ["Gmail", "rose"],
+        ["Airtable", "sky"],
+        ["Google Sheets", "butter"],
+        ["Apple Notes", "mint"],
+        ["Apple Reminders", "peach"],
+        ["Apple Calendar", "rose"],
+        ["Trello", "sky"],
+        ["ClickHouse", "lavender"],
+        ["Postgres", "pistachio"],
+        ["Salesforce", "sky"],
+        ["Linear", "lavender"],
+        ["Pocket", "peach"],
+        ["Raindrop", "rose"],
+        ["HackerNews", "butter"],
+        ["Discord", "lavender"],
+        ["Slack", "pistachio"],
+        ["YouTube", "rose"],
+        ["Chrome Tabs", "butter"],
+        ["Safari Tabs", "sky"],
+        ["Brave Tabs", "peach"],
+        ["CSV", "mint"],
+        ["Parquet", "mint"],
+        ["JSON", "butter"],
+        ["Logs · Grok", "rose"],
+        ["MySQL", "sky"],
+        ["SQLite", "lavender"],
+        ["DuckDB", "peach"],
+        ["Cassandra", "butter"],
+        ["Docker", "sky"],
+        ["Git", "rose"],
+        ["RSS", "peach"],
+        ["Imap", "pistachio"],
+        ["Hugging Face", "butter"],
+    ];
+    function tag(n: string, c: string) {
+        return `<span class="inline-flex items-center gap-2.5 whitespace-nowrap rounded-full bg-paper-2 px-[22px] py-3.5 text-[15px] inset-shadow-hair"><span class="h-3.5 w-3.5 shrink-0 rounded" style="background:var(--color-${c})"></span>${n}</span>`;
+    }
+    const row = INTS.map((i) => tag(i[0], i[1])).join("");
+    $("marquee")!.innerHTML = row + row;
+    $("marquee2")!.innerHTML = row + row;
+
+    /* ==============================================================
+       Install OS tabs (real commands)
+    ============================================================== */
+    const CMD: Record<string, string> = {
+        mac: "brew install anyquery",
+        linux: `echo "deb [trusted=yes] https://apt.julienc.me/ /" | sudo tee /etc/apt/sources.list.d/anyquery.list
+sudo apt update
+sudo apt install anyquery`,
+        win: "choco install anyquery",
+    };
+    const osCmd = $("osCmd")!;
+    document.querySelectorAll<HTMLButtonElement>(".os-tab").forEach((b) => {
+        b.onclick = () => {
+            document
+                .querySelectorAll(".os-tab")
+                .forEach((x) => x.classList.remove("on"));
+            b.classList.add("on");
+            osCmd.textContent = CMD[b.dataset.os!];
+        };
+    });
+    // auto-detect
+    (function () {
+        const p = (navigator.userAgent || "").toLowerCase();
+        let os = "mac";
+        if (p.includes("win")) os = "win";
+        else if (p.includes("linux") && !p.includes("android")) os = "linux";
+        const b = document.querySelector<HTMLButtonElement>(
+            `.os-tab[data-os="${os}"]`,
+        );
+        if (b) b.click();
+    })();
+
+    const copyBtn = $("copyBtn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", () => {
+            navigator.clipboard?.writeText(osCmd.textContent || "");
+            copyBtn.textContent = "Copied";
+            setTimeout(() => (copyBtn.textContent = "Copy"), 1400);
+        });
+    }
+</script>

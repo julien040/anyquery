@@ -1,116 +1,772 @@
+/* ============================================================
+   Anyquery docs — pastel theme for Starlight
+   Matches the "Documentation" design mock (cream paper, ink,
+   Instrument Serif display, Geist UI, JetBrains Mono, lavender
+   accent). Loaded via `customCss` in astro.config.mjs, so it
+   must be self-contained (no Tailwind on docs pages).
+
+   Starlight ships its styles inside `@layer starlight.*`;
+   everything here is unlayered so it wins the cascade without
+   needing extra specificity. Expressive Code injects its CSS
+   after this file, hence the `!important` on `--ec-*` vars.
+   ============================================================ */
+
+/* ---------- Self-hosted fonts (docs pages don't load font.css) ---------- */
+@font-face {
+    font-display: swap;
+    font-family: "Instrument Serif";
+    font-style: normal;
+    font-weight: 400;
+    src: url("/fonts/instrument-serif-400-normal.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "Instrument Serif";
+    font-style: italic;
+    font-weight: 400;
+    src: url("/fonts/instrument-serif-400-italic.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 400;
+    src: url("/fonts/geist-400-normal.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 500;
+    src: url("/fonts/geist-500-normal.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 600;
+    src: url("/fonts/geist-600-normal.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 400;
+    src: url("/fonts/jetbrains-mono-400-normal.woff2") format("woff2");
+}
+@font-face {
+    font-display: swap;
+    font-family: "JetBrains Mono";
+    font-style: normal;
+    font-weight: 500;
+    src: url("/fonts/jetbrains-mono-500-normal.woff2") format("woff2");
+}
+
+/* ============================================================
+   Design tokens + Starlight custom-property overrides.
+   The pastel theme is light-only, so the same values apply to
+   both color schemes (the theme switcher is hidden below).
+   ============================================================ */
+:root,
+:root[data-theme="light"],
+:root[data-theme="dark"],
+[data-theme="dark"] ::backdrop {
+    /* Pastel tokens */
+    --aq-paper: #faf6ee;
+    --aq-paper-2: #f3ecdc;
+    --aq-paper-3: #ece3ce;
+    --aq-ink: #1b2320;
+    --aq-ink-2: #3a4a43;
+    --aq-ink-3: #6a7a72;
+    --aq-hairline: rgba(27, 35, 32, 0.15);
+    --aq-inset-hair: inset 0 0 0 1px rgba(27, 35, 32, 0.08);
+    --aq-lavender: #d4c7ff;
+    --aq-lavender-700: #6b5bb3;
+    --aq-pistachio: #c8e6b4;
+    --aq-pistachio-700: #5e8a45;
+    --aq-butter: #f6e29a;
+    --aq-peach: #ffbfa0;
+    --aq-peach-700: #c26a4a;
+    --aq-sky: #bcd8ff;
+    --aq-sky-700: #4c7fc7;
+    --aq-rose: #ffc8d8;
+    --aq-rose-700: #b85a82;
+    --aq-mint-700: #3c8a7a;
+
+    /* 800s — stronger inks for syntax highlighting on cream */
+    --aq-lavender-800: #4f3da0;
+    --aq-sky-800: #2f64ad;
+    --aq-mint-800: #28705f;
+    --aq-rose-800: #9f3863;
+    --aq-peach-800: #a9502d;
+    --aq-font-display: "Instrument Serif", "Cormorant Garamond", Georgia, serif;
+
+    /* Starlight grayscale → paper/ink */
+    --sl-color-white: var(--aq-ink);
+    --sl-color-gray-1: #28332e;
+    --sl-color-gray-2: var(--aq-ink-2);
+    --sl-color-gray-3: var(--aq-ink-3);
+    --sl-color-gray-4: #8b968f;
+    --sl-color-gray-5: #ddd5c2;
+    --sl-color-gray-6: var(--aq-paper-2);
+    --sl-color-gray-7: #f7f1e4;
+    --sl-color-black: var(--aq-paper);
+
+    /* Accent → lavender */
+    --sl-color-accent-low: #eae4ff;
+    --sl-color-accent: var(--aq-lavender-700);
+    --sl-color-accent-high: #50439c;
+
+    /* Hues → pastel inks (asides, badges) */
+    --sl-color-orange-low: #ffe6d9;
+    --sl-color-orange: var(--aq-peach-700);
+    --sl-color-orange-high: #a05538;
+    --sl-color-green-low: #e7f4dc;
+    --sl-color-green: var(--aq-pistachio-700);
+    --sl-color-green-high: #4a7034;
+    --sl-color-blue-low: #e1edff;
+    --sl-color-blue: var(--aq-sky-700);
+    --sl-color-blue-high: #3a5f95;
+    --sl-color-purple-low: #eae4ff;
+    --sl-color-purple: var(--aq-lavender-700);
+    --sl-color-purple-high: #564897;
+    --sl-color-red-low: #ffe4ec;
+    --sl-color-red: var(--aq-rose-700);
+    --sl-color-red-high: #9a4a6c;
+
+    --sl-color-text: var(--aq-ink-2);
+    --sl-color-text-accent: var(--aq-lavender-700);
+    --sl-color-text-invert: var(--aq-paper);
+    --sl-color-bg: var(--aq-paper);
+    --sl-color-bg-nav: rgba(250, 246, 238, 0.88);
+    --sl-color-bg-sidebar: var(--aq-paper);
+    --sl-color-bg-inline-code: var(--aq-paper-2);
+    --sl-color-bg-accent: var(--aq-lavender-700);
+    --sl-color-hairline-light: rgba(27, 35, 32, 0.1);
+    --sl-color-hairline: var(--aq-hairline);
+    --sl-color-hairline-shade: var(--aq-hairline);
+    --sl-color-backdrop-overlay: rgba(27, 35, 32, 0.35);
+
+    /* Soft, warm shadows */
+    --sl-shadow-sm: 0 1px 0 rgba(27, 35, 32, 0.06), 0 2px 6px rgba(27, 35, 32, 0.06);
+    --sl-shadow-md: 0 6px 18px -8px rgba(27, 35, 32, 0.18), 0 2px 6px rgba(27, 35, 32, 0.06);
+    --sl-shadow-lg: 0 24px 48px -18px rgba(27, 35, 32, 0.22), 0 8px 16px -8px rgba(27, 35, 32, 0.1);
+
+    /* Type */
+    --sl-font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --sl-font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sl-line-height: 1.65;
+
+    /* Slightly wider content column, like the mock */
+    --sl-content-width: 47rem;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01", "ss02", "cv11";
+}
+
+/* ---------- Background blobs (fixed, soft pastel washes) ---------- */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+        radial-gradient(circle 480px at calc(100% - 60px) -80px, rgba(212, 199, 255, 0.5), transparent 70%),
+        radial-gradient(circle 360px at -120px 520px, rgba(255, 191, 160, 0.4), transparent 70%),
+        radial-gradient(circle 340px at 92% 1100px, rgba(246, 226, 154, 0.35), transparent 70%);
+}
+
+/* ---------- Paper grain overlay ---------- */
+body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(27, 35, 32, 0.05) 1px, transparent 1px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+    opacity: 0.35;
+}
+
+/* ============================================================
+   Topbar
+   ============================================================ */
+header.header {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.site-title {
+    font-family: var(--aq-font-display);
+    font-weight: 400;
+    font-size: 1.55rem;
+    letter-spacing: -0.02em;
+    color: var(--aq-ink);
+}
+
+/* Search button → cream pill */
+button[data-open-modal] {
+    border: 0;
+    border-radius: 999px;
+    background: var(--aq-paper-2);
+    box-shadow: var(--aq-inset-hair);
+    color: var(--aq-ink-3);
+    font-size: 13px;
+    padding-inline-start: 14px;
+    padding-inline-end: 10px;
+}
+button[data-open-modal]:hover {
+    border: 0;
+    background: var(--aq-paper-3);
+    color: var(--aq-ink);
+}
+button[data-open-modal] kbd {
+    background: var(--aq-paper);
+    box-shadow: var(--aq-inset-hair);
+    border-radius: 6px;
+    font-family: var(--sl-font-mono);
+    font-size: 11px;
+    color: var(--aq-ink-3);
+}
+
+/* The pastel theme is light-only: hide the theme switcher */
+starlight-theme-select {
+    display: none;
+}
+/* No social icons configured — hide the leftover header divider */
+.social-icons::after {
+    display: none;
+}
+
+/* ============================================================
+   Left sidebar
+   ============================================================ */
+.sidebar-pane {
+    border-inline-end: 0;
+}
+.sidebar-content {
+    padding-block-start: 1.75rem;
+}
+
+/* Group heads → mono uppercase labels */
+.sidebar-content summary {
+    padding: 10px 14px;
+    margin-bottom: 4px;
+}
+.sidebar-content .group-label span,
+.sidebar-content .group-label span.large {
+    font-family: var(--sl-font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--aq-ink-3);
+}
+.sidebar-content summary .caret {
+    color: var(--aq-ink-3);
+}
+
+/* Links */
+.sidebar-content a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 14px;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--aq-ink-2);
+    font-weight: 400;
+}
+/* Hairline dash before nested (grouped) links */
+.sidebar-content details a::before {
+    content: "";
+    width: 12px;
+    height: 1px;
+    flex-shrink: 0;
+    background: var(--aq-hairline);
+}
+.sidebar-content a:hover {
+    background: var(--aq-paper-2);
+    color: var(--aq-ink);
+}
+.sidebar-content a[aria-current="page"],
+.sidebar-content a[aria-current="page"]:hover,
+.sidebar-content a[aria-current="page"]:focus {
+    background: var(--aq-lavender);
+    color: var(--aq-ink);
+    box-shadow: var(--aq-inset-hair);
+    font-weight: 500;
+}
+.sidebar-content details a[aria-current="page"]::before {
+    background: var(--aq-lavender-700);
+}
+
+/* Top-level single links ("Getting started") → featured card */
+.sidebar-content ul.top-level > li > a {
+    background: var(--aq-paper-2);
+    box-shadow: var(--aq-inset-hair);
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--aq-ink);
+    margin-bottom: 6px;
+}
+.sidebar-content ul.top-level > li > a:hover {
+    background: var(--aq-paper-3);
+}
+.sidebar-content ul.top-level > li > a[aria-current="page"] {
+    background: var(--aq-lavender);
+}
+
+/* Sidebar scrollbar */
+.sidebar-pane::-webkit-scrollbar,
+.sidebar-content::-webkit-scrollbar {
+    width: 6px;
+}
+.sidebar-pane::-webkit-scrollbar-thumb,
+.sidebar-content::-webkit-scrollbar-thumb {
+    background: var(--aq-hairline);
+    border-radius: 3px;
+}
+
+/* ============================================================
+   Right TOC — "On this page"
+   ============================================================ */
+.right-sidebar {
+    border-inline-start: 0;
+}
+.right-sidebar-panel h2 {
+    font-family: var(--sl-font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--aq-ink-3);
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--aq-hairline);
+    margin-bottom: 6px;
+}
+starlight-toc a {
+    border-inline-start: 2px solid transparent;
+    color: var(--aq-ink-3);
+    font-size: 12.5px;
+    line-height: 1.5;
+}
+starlight-toc a:hover {
+    color: var(--aq-ink);
+}
+starlight-toc a[aria-current="true"] {
+    color: var(--aq-ink);
+    font-weight: 500;
+    border-inline-start-color: var(--aq-lavender-700);
+    border-radius: 0;
+}
+
+/* Mobile TOC dropdown needs an opaque surface */
+mobile-starlight-toc nav {
+    background-color: var(--aq-paper);
+    border-color: var(--aq-hairline);
+}
+
+/* ============================================================
+   Content typography
+   ============================================================ */
+
+/* Page title → big Instrument Serif */
+.content-panel h1 {
+    font-family: var(--aq-font-display);
+    font-weight: 400;
+    font-size: clamp(2.75rem, 7vw, 4.5rem);
+    line-height: 0.98;
+    letter-spacing: -0.03em;
+    color: var(--aq-ink);
+}
+
+.sl-markdown-content {
+    font-size: 0.95rem;
+    color: var(--aq-ink-2);
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+    font-family: var(--aq-font-display);
+    font-weight: 400;
+    color: var(--aq-ink);
+    letter-spacing: -0.02em;
+}
+.sl-markdown-content h2 {
+    font-size: 2.375rem;
+    line-height: 1.05;
+    margin-top: 1.6em;
+}
+.sl-markdown-content h3 {
+    font-size: 1.75rem;
+    line-height: 1.1;
+    margin-top: 1.5em;
+}
+.sl-markdown-content h4,
+.sl-markdown-content h5,
+.sl-markdown-content h6 {
+    font-family: var(--sl-font);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--aq-ink);
+}
+.sl-markdown-content h4 {
+    font-size: 1.125rem;
+}
+
+.sl-markdown-content p,
+.sl-markdown-content li {
+    line-height: 1.6;
+}
+.sl-markdown-content strong {
+    color: var(--aq-ink);
+    font-weight: 600;
+}
+
+/* Links → ink with a lavender underline */
+.sl-markdown-content a:not(:where(.not-content *)) {
+    color: var(--aq-ink);
+    text-decoration: underline;
+    text-decoration-color: var(--aq-lavender-700);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+}
+.sl-markdown-content a:not(:where(.not-content *)):hover {
+    color: var(--aq-lavender-700);
+}
+
+/* Inline code → cream chip */
+.sl-markdown-content code:not(:where(.expressive-code *)) {
+    font-family: var(--sl-font-mono);
+    font-size: 0.88em;
+    background: var(--aq-paper-2);
+    box-shadow: var(--aq-inset-hair);
+    border-radius: 6px;
+    padding: 2px 7px;
+    color: var(--aq-ink);
+}
+
+/* Lists */
 .sl-markdown-content ul:not([role="tablist"]) {
     list-style-type: disc;
     margin-left: 12px;
 }
-
 .sl-markdown-content ol:not(.sl-steps) {
     list-style-type: decimal;
     margin-left: 12px;
 }
-
 .sl-markdown-content li:not(:last-child) {
     margin-bottom: 0.3rem;
 }
-
 .sl-markdown-content ul li {
     margin-top: 0;
 }
-
-/* inter-regular - latin */
-@font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 400;
-    src: url("/fonts/inter-v13-latin-regular.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
+.sl-markdown-content li::marker {
+    color: var(--aq-ink-3);
 }
-/* inter-500 - latin */
-@font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 500;
-    src: url("/fonts/inter-v13-latin-500.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-/* inter-600 - latin */
-@font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 600;
-    src: url("/fonts/inter-v13-latin-600.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-/* inter-700 - latin */
-@font-face {
-    font-display: swap; /* Check https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display for other options. */
-    font-family: "Inter";
-    font-style: normal;
-    font-weight: 700;
-    src: url("/fonts/inter-v13-latin-700.woff2") format("woff2"); /* Chrome 36+, Opera 23+, Firefox 39+, Safari 12+, iOS 10+ */
-}
-
-p,
-li,
-table,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-    font-family: "Inter", sans-serif;
-}
-
-.sl-markdown-content a,
-.sl-markdown-content p,
-.sl-markdown-content li,
-.sl-markdown-content table {
-    letter-spacing: -0.12px;
-    font-size: 0.91rem;
-}
-.sl-markdown-content h1,
-.sl-markdown-content h2,
-.sl-markdown-content h3,
-.sl-markdown-content h4,
-.sl-markdown-content h5,
-.sl-markdown-content h6 {
-    font-family: "Inter", sans-serif;
-    letter-spacing: -0.9px;
-    font-weight: 600;
-}
-
-.sl-markdown-content h2 {
-    margin-top: 0.8em !important;
-    font-size: 1.8rem;
-}
-
-.sl-markdown-content h3 {
-    margin-top: 0.8em !important;
-    font-size: 1.4rem;
-}
-
-.sl-markdown-content h4 {
-    margin-top: 0.8em !important;
-    font-size: 1.2rem;
-}
-
-.sl-markdown-content h5 {
-    margin-top: 0.8em !important;
-    font-size: 1.1rem;
-}
-
 .sl-markdown-content p,
 .sl-markdown-content ul,
 .sl-markdown-content ol {
     margin-top: 0.4rem !important;
 }
-
 .sl-markdown-content img {
     margin-top: 0.5rem !important;
     margin-bottom: 0.8rem !important;
+    border-radius: 14px;
+}
+.sl-markdown-content div.expressive-code {
+    margin-top: 0.9rem;
+    margin-bottom: 0.9rem;
 }
 
-.sl-markdown-content div.expressive-code {
-    margin-top: 0.8rem;
-    margin-bottom: 0.8rem;
+/* Tables — mono uppercase header, hairline rows */
+.sl-markdown-content table {
+    border-collapse: collapse;
+}
+.sl-markdown-content th {
+    font-family: var(--sl-font-mono);
+    font-weight: 500;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--aq-ink-3);
+    background: var(--aq-paper-2);
+    border: 0;
+    border-bottom: 1px solid var(--aq-hairline);
+    padding: 10px 14px;
+}
+.sl-markdown-content td {
+    font-size: 0.875rem;
+    color: var(--aq-ink);
+    border: 0;
+    border-bottom: 1px dashed var(--aq-hairline);
+    padding: 10px 14px;
+}
+.sl-markdown-content tr:nth-child(2n) {
+    background: transparent;
+}
+
+.sl-markdown-content blockquote {
+    border-inline-start: 2px solid var(--aq-lavender-700);
+    color: var(--aq-ink-2);
+}
+.sl-markdown-content hr {
+    border-color: var(--aq-hairline);
+}
+
+/* ============================================================
+   Asides → pastel callout cards
+   note=sky · tip=pistachio · caution=peach · danger=rose
+   ============================================================ */
+.sl-markdown-content .starlight-aside {
+    border: 0;
+    border-radius: 22px;
+    background: var(--aq-paper-2);
+    box-shadow: var(--aq-inset-hair);
+    padding: 16px 18px;
+    color: var(--aq-ink-2);
+    font-size: 0.875rem;
+}
+.starlight-aside__title {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--aq-ink);
+    gap: 12px;
+}
+.starlight-aside__icon {
+    width: 28px;
+    height: 28px;
+    padding: 6px;
+    box-sizing: border-box;
+    border-radius: 9px;
+    box-shadow: var(--aq-inset-hair);
+    color: var(--aq-ink);
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.starlight-aside--note .starlight-aside__icon {
+    background: var(--aq-sky);
+}
+.starlight-aside--tip .starlight-aside__icon {
+    background: var(--aq-pistachio);
+}
+.starlight-aside--caution .starlight-aside__icon {
+    background: var(--aq-peach);
+}
+.starlight-aside--danger .starlight-aside__icon {
+    background: var(--aq-rose);
+}
+.starlight-aside__content a {
+    color: var(--aq-ink);
+    text-decoration-color: var(--aq-lavender-700);
+}
+
+/* ============================================================
+   Code blocks (Expressive Code) — cream frames, pill-ish tabs.
+   EC injects its stylesheet after customCss, and the light
+   theme sets vars directly on .expressive-code, so these need
+   !important to win.
+   ============================================================ */
+.expressive-code {
+    --ec-brdRad: 22px !important;
+    --ec-brdWd: 1px !important;
+    --ec-brdCol: rgba(27, 35, 32, 0.12) !important;
+    --ec-codeBg: var(--aq-paper) !important;
+    --ec-codeFg: var(--aq-ink) !important;
+    --ec-codeSelBg: #eae4ff !important;
+    --ec-codeFontSize: 0.84375rem !important;
+    --ec-codeLineHt: 1.65 !important;
+    --ec-codePadBlk: 1.1rem !important;
+    --ec-codePadInl: 1.25rem !important;
+    --ec-gtrFg: #8b968f !important;
+    --ec-gtrBrdCol: rgba(27, 35, 32, 0.1) !important;
+    --ec-sbThumbCol: rgba(27, 35, 32, 0.15) !important;
+    --ec-sbThumbHoverCol: rgba(27, 35, 32, 0.3) !important;
+    --ec-focusBrd: var(--aq-lavender-700) !important;
+
+    /* Editor frames + tabs */
+    --ec-frm-edBg: var(--aq-paper) !important;
+    --ec-frm-edTabBarBg: var(--aq-paper-2) !important;
+    --ec-frm-edTabBarBrdCol: transparent !important;
+    --ec-frm-edTabBarBrdBtmCol: var(--aq-hairline) !important;
+    --ec-frm-edActTabBg: var(--aq-ink) !important;
+    --ec-frm-edActTabFg: var(--aq-paper) !important;
+    --ec-frm-edActTabBrdCol: transparent !important;
+    --ec-frm-edActTabIndTopCol: transparent !important;
+    --ec-frm-edActTabIndBtmCol: transparent !important;
+    --ec-frm-edTabBrdRad: 10px !important;
+    --ec-frm-edTabsMargInlStart: 10px !important;
+    --ec-frm-edTabsMargBlkStart: 6px !important;
+
+    /* Terminal frames */
+    --ec-frm-trmBg: var(--aq-paper) !important;
+    --ec-frm-trmTtbBg: var(--aq-paper-2) !important;
+    --ec-frm-trmTtbFg: var(--aq-ink-3) !important;
+    --ec-frm-trmTtbBrdBtmCol: var(--aq-hairline) !important;
+    --ec-frm-trmTtbDotsFg: var(--aq-ink) !important;
+    --ec-frm-trmTtbDotsOpa: 0.18 !important;
+
+    /* No dark drop shadows */
+    --ec-frm-shdCol: transparent !important;
+    --ec-frm-frameBoxShdCssVal: var(--aq-inset-hair) !important;
+
+    /* Copy button + tooltip */
+    --ec-frm-inlBtnFg: var(--aq-ink-2) !important;
+    --ec-frm-inlBtnBg: var(--aq-ink) !important;
+    --ec-frm-inlBtnBrd: var(--aq-ink) !important;
+    --ec-frm-tooltipSuccessBg: var(--aq-pistachio-700) !important;
+
+    /* Text markers (mark / ins / del) */
+    --ec-tm-markBg: rgba(212, 199, 255, 0.35) !important;
+    --ec-tm-markBrdCol: var(--aq-lavender-700) !important;
+    --ec-tm-insBg: rgba(200, 230, 180, 0.5) !important;
+    --ec-tm-insBrdCol: var(--aq-pistachio-700) !important;
+    --ec-tm-insDiffIndCol: var(--aq-pistachio-700) !important;
+    --ec-tm-delBg: rgba(255, 200, 216, 0.5) !important;
+    --ec-tm-delBrdCol: var(--aq-rose-700) !important;
+    --ec-tm-delDiffIndCol: var(--aq-rose-700) !important;
+}
+
+/* ---------- Syntax token remap → pastel inks ----------
+   Token colors are inline (--0 dark / --1 light), so remap the
+   handful of palette colors by matching the style attribute.
+   Keyed on --1: every token carries a light value, and the
+   forced single theme makes it canonical for both schemes. */
+/* .expressive-code .ec-line span[style*="--1:#403F53" i],
+.expressive-code .ec-line span[style*="--1:#111111" i] {
+    color: var(--aq-ink) !important;
+}
+.expressive-code .ec-line span[style*="--1:#3B61B0" i] {
+    color: var(--aq-sky-800) !important;
+}
+.expressive-code .ec-line span[style*="--1:#096E72" i] {
+    color: var(--aq-mint-800) !important;
+}
+.expressive-code .ec-line span[style*="--1:#8844AE" i],
+.expressive-code .ec-line span[style*="--1:#7C5686" i],
+.expressive-code .ec-line span[style*="--1:#753A96" i] {
+    color: var(--aq-lavender-800) !important;
+    font-weight: 500;
+}
+.expressive-code .ec-line span[style*="--1:#984E4D" i],
+.expressive-code .ec-line span[style*="--1:#D6438A" i],
+.expressive-code .ec-line span[style*="--1:#AA0982" i] {
+    color: var(--aq-rose-800) !important;
+}
+.expressive-code .ec-line span[style*="--1:#804241" i] {
+    color: var(--aq-peach-800) !important;
+}
+.expressive-code .ec-line span[style*="--1:#5F636F" i] {
+    color: #9aa59e !important;
+} */
+
+/* ============================================================
+   Tabs component → pill tabs in a cream tray
+   ============================================================ */
+starlight-tabs .tablist-wrapper ul {
+    display: inline-flex;
+    gap: 4px;
+    padding: 5px;
+    border-bottom: 0;
+    background: var(--aq-paper-2);
+    border-radius: 999px;
+    box-shadow: var(--aq-inset-hair);
+}
+starlight-tabs a[role="tab"] {
+    border: 0;
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-family: var(--sl-font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--aq-ink-3);
+    line-height: 1.4;
+}
+starlight-tabs a[role="tab"]:hover {
+    color: var(--aq-ink);
+    background: var(--aq-paper);
+}
+starlight-tabs a[role="tab"][aria-selected="true"] {
+    background: var(--aq-ink);
+    color: var(--aq-paper);
+    border: 0;
+    font-weight: 500;
+}
+
+/* ============================================================
+   Steps component
+   ============================================================ */
+.sl-markdown-content .sl-steps > li::before {
+    font-family: var(--sl-font-mono);
+    background: var(--aq-paper-2);
+    box-shadow: var(--aq-inset-hair);
+    color: var(--aq-ink);
+}
+
+/* ============================================================
+   Cards / link cards
+   ============================================================ */
+.sl-markdown-content .card,
+.sl-link-card {
+    border: 0;
+    border-radius: 22px;
+    background: var(--aq-paper);
+    box-shadow: var(--aq-inset-hair);
+}
+.sl-link-card:hover {
+    background: var(--aq-paper-2);
+}
+.sl-markdown-content .card .title {
+    color: var(--aq-ink);
+}
+
+/* ============================================================
+   Prev / next pagination → cream cards with serif titles
+   ============================================================ */
+.pagination-links a {
+    border: 0;
+    border-radius: 22px;
+    background: var(--aq-paper);
+    box-shadow: var(--aq-inset-hair), var(--sl-shadow-sm);
+    padding: 18px 20px;
+    color: var(--aq-ink);
+}
+.pagination-links a:hover {
+    background: var(--aq-paper-2);
+}
+.pagination-links a > span {
+    font-family: var(--sl-font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--aq-ink-3);
+}
+.pagination-links .link-title {
+    font-family: var(--aq-font-display);
+    font-size: 1.375rem;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: var(--aq-ink);
+    text-transform: none;
+}
+.pagination-links svg {
+    color: var(--aq-ink-3);
+}
+
+/* ============================================================
+   Search dialog
+   ============================================================ */
+site-search dialog {
+    border: 0;
+    border-radius: 22px;
+    background: var(--aq-paper);
+    box-shadow: var(--sl-shadow-lg), var(--aq-inset-hair);
 }

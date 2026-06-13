@@ -64,3 +64,6 @@ dist/
 .aider*
 CLAUDE.md
 *.log
+
+drafts/
+devManifest.json

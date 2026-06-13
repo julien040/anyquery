@@ -6,12 +6,27 @@ import Main from "../layouts/main.astro";
     title="Connect LLM to Anyquery"
     footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned. Some LLM answers may be truncated for brevity."
 >
-    <div class="max-w-2xl mx-auto text-center mb-12">
-        <p class="text-white/70 text-xs mt-8">✨ Anyquery AI ✨</p>
-        <h1 class="text-3xl tracking-[-1.2px] font-bold">
-            Connect LLM to your personal data
+    <div
+        class="absolute h-[420px] w-[420px] -right-24 top-10 rounded-full bg-lavender opacity-60 blur-[40px] z-0"
+    >
+    </div>
+    <div
+        class="absolute h-[320px] w-[320px] -left-24 top-[460px] rounded-full bg-peach opacity-50 blur-[40px] z-0"
+    >
+    </div>
+
+    <div class="relative z-2 max-w-2xl mx-auto text-center mb-12">
+        <span
+            class="inline-flex items-center gap-2 rounded-full bg-paper-2 px-3 py-1 text-xs font-medium text-ink-3 inset-shadow-hair mt-8"
+        >
+            ✨ Anyquery AI
+        </span>
+        <h1
+            class="mt-4 font-display font-normal leading-[1.02] tracking-[-0.02em] text-ink text-[clamp(40px,6vw,60px)]"
+        >
+            Connect LLM to your <em class="text-peach-700">personal data</em>
         </h1>
-        <p class="text-white/70 mt-1 text-sm">
+        <p class="text-ink-2 mt-3 text-base">
             Allow LLM access your data such as your Spotify, your reminders, or
             your email inbox
         </p>
@@ -44,17 +59,17 @@ import Main from "../layouts/main.astro";
                 </defs>
             </svg>
         </a>
-        <p class="text-white/50 text-xs mt-2">Free and open-source.</p>
+        <p class="text-ink-3 text-xs mt-2">Free and open-source.</p>
 
         <img
-            src="/images/llm-header.png"
+            src="/images/llm-header-white-background.png"
             alt="LLM"
-            class="max-w-[430px] w-full mx-auto mt-4"
+            class="max-w-[430px] w-full mx-auto mt-6"
         />
     </div>
-    <div id="demo" class="mt-12">
-        <h2 class="text-2xl">Demo</h2>
-        <p class="text-white/70 text-sm">
+    <div id="demo" class="relative z-2 mt-12">
+        <h2 class="text-4xl font-display text-ink font-normal">Demo</h2>
+        <p class="text-ink-2 text-sm mt-1">
             Hover the icons to see examples of what you can do with Anyquery and
             LLM
         </p>
@@ -64,11 +79,14 @@ import Main from "../layouts/main.astro";
                 class="grid grid-cols-3 gap-2 grid-rows-3 h-60"
             >
             </div>
-            <div id="chat-demo" class="flex flex-col">
+            <div
+                id="chat-demo"
+                class="flex flex-col bg-[#faf6ee] border border-[#eae6e0] rounded-md p-2"
+            >
                 <div id="chat-demo-text" class="p-4 flex flex-col"></div>
                 <p
                     id="chat-demo-footer"
-                    class="text-white/40 text-right text-xs mt-2"
+                    class="text-ink-3 text-right text-xs mt-2 px-2 pb-1"
                 >
                 </p>
             </div>
@@ -288,6 +306,8 @@ Would you like me to sort these quotes differently or format them in another way
                 },
             };
 
+            const tiles = {};
+
             function showChatDemo(service: string) {
                 const demo = chatDemo[service];
                 if (!demo) return;
@@ -299,7 +319,7 @@ Would you like me to sort these quotes differently or format them in another way
                 for (const message of demo.messages) {
                     const el = document.createElement("div");
                     el.classList.add(
-                        "text-white",
+                        "text-black",
                         "text-sm",
                         "py-2",
                         "flex",
@@ -325,27 +345,23 @@ Would you like me to sort these quotes differently or format them in another way
                     const text = document.createElement("p");
                     text.textContent = message.text;
                     text.classList.add(
-                        "w-full",
                         "break-words",
-                        "whitespace-pre-line"
+                        "whitespace-pre-line",
+                        "rounded-lg",
+                        "px-3",
+                        "py-2"
                     );
 
                     if (message.type === "user") {
+                        text.classList.add("bg-lavender/40", "text-ink");
                         el.appendChild(text);
                         el.appendChild(img);
-                        el.classList.add(
-                            "text-right",
-                            "text-white/90",
-                            "self-end"
-                        );
+                        el.classList.add("text-right", "self-end");
                     } else {
+                        text.classList.add("bg-paper-2", "text-ink-2");
                         el.appendChild(img);
                         el.appendChild(text);
-                        el.classList.add(
-                            "text-left",
-                            "text-white/70",
-                            "self-start"
-                        );
+                        el.classList.add("text-left", "self-start");
                     }
 
                     chatDemoElement.appendChild(el);
@@ -353,6 +369,12 @@ Would you like me to sort these quotes differently or format them in another way
 
                 document.getElementById("chat-demo-footer").textContent =
                     demo.footer;
+
+                for (const key in tiles) {
+                    const active = key === service;
+                    tiles[key].classList.toggle("border-lavender-700", active);
+                    tiles[key].classList.toggle("border-[#eae6e0]", !active);
+                }
             }
 
             // Create the element in chat-selector
@@ -364,21 +386,24 @@ Would you like me to sort these quotes differently or format them in another way
                     "flex",
                     "items-center",
                     "justify-center",
-                    "bg-black",
+                    "bg-[#faf6ee]",
                     "border",
-                    "border-[#1B1B1B]",
-                    "rounded-lg",
+                    "border-[#eae6e0]",
+                    "rounded-md",
                     "px-5",
                     "py-5",
-                    "gap-2"
+                    "gap-2",
+                    "cursor-pointer",
+                    "transition"
                 );
                 el.onmouseover = () => showChatDemo(service);
                 el.innerHTML = `
                     <img src="${demo.icons}" alt="${demo.title}" class="max-h-6" />
-                    <p class="text-white/70 text-sm">${demo.title}</p>
+                    <p class="text-ink-2 text-sm">${demo.title}</p>
                 `;
                 el.style.boxShadow =
-                    "0px 0px 101.5px 0px rgba(153, 73, 255, 0.1)";
+                    "0 6px 18px -8px rgba(27, 35, 32, 0.18), 0 2px 6px rgba(27, 35, 32, 0.06)";
+                tiles[service] = el;
                 chatSelector.appendChild(el);
             }
 
@@ -386,19 +411,19 @@ Would you like me to sort these quotes differently or format them in another way
             showChatDemo("spotify");
         </script>
     </div>
-    <div id="features" class="mt-12">
-        <h2 class="text-2xl">Features</h2>
-        <p class="text-white/70 text-sm">
+    <div id="features" class="relative z-2 mt-12">
+        <h2 class="text-4xl font-display text-ink font-normal">Features</h2>
+        <p class="text-ink-2 text-sm mt-1">
             Features of the LLM integration with Anyquery
         </p>
         <div class="grid md:grid-cols-6 grid-cols-1 md:grid-ro gap-3 mt-4">
             <div
-                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+                class="bg-white/30 border border-black/10 p-6 rounded-md hover:bg-white/70 transition md:col-span-2 col-span-1"
             >
-                <h3 class="text-white font-medium text-sm tracking-tight">
+                <h3 class="text-ink font-medium text-sm tracking-tight">
                     Model Context Protocol
                 </h3>
-                <p class="text-white/60 text-xs mt-1">
+                <p class="text-black/60 text-xs mt-1">
                     Compatible with all clients that support the <a
                         href="https://modelcontextprotocol.io/introduction"
                         class="underline">Model Context Protocol</a
@@ -406,46 +431,46 @@ Would you like me to sort these quotes differently or format them in another way
                 </p>
             </div>
             <div
-                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+                class="bg-white/30 border border-black/10 p-6 rounded-md hover:bg-white/70 transition md:col-span-2 col-span-1"
             >
-                <h3 class="text-white font-medium text-sm tracking-tight">
+                <h3 class="text-ink font-medium text-sm tracking-tight">
                     Function calling
                 </h3>
-                <p class="text-white/60 text-xs mt-1">
-                    Can expose an API (<code>anyquery gpt</code>) so that LLM
+                <p class="text-black/60 text-xs mt-1">
+                    Can expose an API (<code class="aq-code">anyquery gpt</code>) so that LLM
                     can call Anyquery tables (such as ChatGPT, TypingMind, etc.)
                 </p>
             </div>
             <div
-                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-2 col-span-1"
+                class="bg-white/30 border border-black/10 p-6 rounded-md hover:bg-white/70 transition md:col-span-2 col-span-1"
             >
-                <h3 class="text-white font-medium text-sm tracking-tight">
+                <h3 class="text-ink font-medium text-sm tracking-tight">
                     It&apos;s just Anyquery
                 </h3>
-                <p class="text-white/60 text-xs mt-1">
+                <p class="text-black/60 text-xs mt-1">
                     It's a simple interface between Anyquery and LLM, so it's
                     still SQLite under the hood with its vast ecosystem.
                 </p>
             </div>
             <div
-                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-3 col-span-1"
+                class="bg-white/30 border border-black/10 p-6 rounded-md hover:bg-white/70 transition md:col-span-3 col-span-1"
             >
-                <h3 class="text-white font-medium text-sm tracking-tight">
+                <h3 class="text-ink font-medium text-sm tracking-tight">
                     Local first
                 </h3>
-                <p class="text-white/60 text-xs mt-1">
+                <p class="text-black/60 text-xs mt-1">
                     By default, Anyquery runs entirely on your local computer.
                     Your data remains on your system and is never transmitted to
                     external services excepting the LLM.
                 </p>
             </div>
             <div
-                class="bg-black border-primary border shadow-outline-secondary p-6 rounded-xl md:col-span-3 col-span-1"
+                class="bg-white/30 border border-black/10 p-6 rounded-md hover:bg-white/70 transition md:col-span-3 col-span-1"
             >
-                <h3 class="text-white font-medium text-sm tracking-tight">
+                <h3 class="text-ink font-medium text-sm tracking-tight">
                     Wide range of LLM clients
                 </h3>
-                <p class="text-white/60 text-xs mt-1">
+                <p class="text-black/60 text-xs mt-1">
                     We support ChatGPT, Claude Desktop, Librechat, TypingMind,
                     and several more. See <a
                         href="/integrations#llm"
@@ -455,30 +480,30 @@ Would you like me to sort these quotes differently or format them in another way
             </div>
         </div>
     </div>
-    <div id="get-started" class="mt-12">
-        <h2 class="text-2xl">Get started</h2>
-        <p class="text-white/70 text-sm">
+    <div id="get-started" class="relative z-2 mt-12">
+        <h2 class="text-4xl font-display text-ink font-normal">Get started</h2>
+        <p class="text-ink-2 text-sm mt-1">
             Follow these instructions to start connecting your data to LLMs
         </p>
         <div class="grid md:grid-cols-3 grid-cols-1 gap-4 mt-4 mb-12">
             <div
-                class="p-6 bg-linear-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+                class="p-6 bg-white/40 border border-black/10 rounded-md flex flex-col"
             >
                 <a
                     href="docs/#installation"
-                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                    class="text-ink text-3xl font-display tracking-tight hover:underline underline-offset-2"
                 >
                     1. Install Anyquery
                 </a>
                 <p
-                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
+                    class="text-sm text-ink-2 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
                 >
                     Following your OS, run the following instructions to install
                     Anyquery on your machine.
                 </p>
 
                 <div
-                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-md bg-ink text-paper font-mono mt-auto items-start"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -523,16 +548,16 @@ sudo apt install anyquery`;
             </div>
 
             <div
-                class="p-6 bg-linear-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+                class="p-6 bg-white/40 border border-black/10 rounded-md flex flex-col"
             >
                 <a
                     href="/integrations"
-                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                    class="text-ink text-3xl font-display tracking-tight hover:underline underline-offset-2"
                 >
                     2. Add integrations
                 </a>
                 <p
-                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-4"
+                    class="text-sm text-ink-2 leading-5 mt-1 tracking-[-0.2px] mb-4"
                 >
                     Go to <a href="/integrations" class="underline"
                         >https://anyquery.dev/integrations</a
@@ -541,7 +566,7 @@ sudo apt install anyquery`;
                 </p>
 
                 <div
-                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-md bg-ink text-paper font-mono mt-auto items-start"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -566,16 +591,16 @@ sudo apt install anyquery`;
                 </div>
             </div>
             <div
-                class="p-6 bg-linear-to-b from-[#a863ff] to-[#9642ff] rounded-xl flex flex-col"
+                class="p-6 bg-white/40 border border-black/10 rounded-md flex flex-col"
             >
                 <a
                     href="/integrations#llm"
-                    class="text-white/50 text-xl font-semibold tracking-tight hover:underline underline-offset-2"
+                    class="text-ink text-3xl font-display tracking-tight hover:underline underline-offset-2"
                 >
                     3. Connect to the chat
                 </a>
                 <p
-                    class="text-sm text-white/80 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
+                    class="text-sm text-ink-2 leading-5 mt-1 tracking-[-0.2px] mb-2 md:mb-0"
                 >
                     Visit the <a class="underline" href="/integrations#llm"
                         >connection guides</a
@@ -584,7 +609,7 @@ sudo apt install anyquery`;
                 </p>
 
                 <div
-                    class="flex text-[0.8rem] gap-3 p-3 rounded-lg bg-[#A35BFF] mt-auto"
+                    class="flex text-[0.8rem] gap-3 p-3 rounded-md bg-ink text-paper font-mono mt-auto items-start"
                 >
                     <svg
                         xmlns="http://www.w3.org/2000/svg"

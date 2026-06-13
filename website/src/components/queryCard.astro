@@ -13,22 +13,22 @@ type Props = {
 ---
 
 <a
-    class="queries-item flex flex-col p-7 rounded-xl bg-black/80 border border-[#262626] tracking-tight shadow-outline-primary"
+    class="queries-item flex flex-col p-7 rounded-md bg-white/30 border border-black/10 hover:bg-white/70 transition"
     href={`/query/${query.id}`}
 >
     <div class="flex justify-between">
-        <h3 class="text-lg leading-6">
+        <h3 class="text-2xl leading-7 font-display">
             {query.title}
         </h3>
     </div>
-    <p class="text-xs text-white/50 mt-1">
+    <p class="text-xs text-black/60 mt-1">
         {query.description}
     </p>
     {/* Spacer */}
     <div class="grow"></div>
     {
         query.required_plugins?.length > 0 && (
-            <div class=" text-white/80 font-medium tracking-tight flex items-center overflow-x-auto text-xs mt-2">
+            <div class="text-black/80 font-medium tracking-tight flex items-center overflow-x-auto text-xs mt-2">
                 {query.required_plugins.length > 1 ? "Plugins: " : "Plugin: "}
                 {query.required_plugins.map((plugin) => {
                     // Retrieve the plugin object from the pluginsMapper
@@ -37,7 +37,7 @@ type Props = {
                         return;
                     }
                     return (
-                        <div class="flex ml-2 px-2 py-1 bg-white/10 rounded-md text-xs text-white/70">
+                        <div class="flex ml-2 px-2 py-1 bg-black/5 rounded-md text-xs text-black/70">
                             <img src={pluginObject.icon} class="h-4 w-4 mr-1" />
                             {pluginObject.display_name}
                         </div>

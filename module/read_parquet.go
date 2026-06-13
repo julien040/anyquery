@@ -14,6 +14,7 @@ import (
 )
 
 type ParquetModule struct {
+	Restrictions *Restrictions
 }
 
 type ParquetTable struct {
@@ -78,7 +79,7 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 	var mmap mmap.MMap
 	var err error
 
-	mmap, err = openMmapedFile(fileName)
+	mmap, err = openMmapedFile(fileName, m.Restrictions)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the file: %s", err)
 	}

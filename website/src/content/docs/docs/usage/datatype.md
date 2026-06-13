@@ -1,6 +1,6 @@
 ---
 title: Data type
-description: Learn about the data types supported by AnyQuery
+description: Learn about the data types supported by Anyquery
 tableOfContents:
   minHeadingLevel: 2
   maxHeadingLevel: 4

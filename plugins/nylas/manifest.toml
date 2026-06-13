@@ -1,6 +1,6 @@
 
 name = "nylas"
-version = "0.1.0"
+version = "0.1.2"
 description = "Events/emails as a SQL database using Nylas"
 author = "julien040"
 license = "MIT"

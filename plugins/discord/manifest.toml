@@ -1,6 +1,6 @@
 
 name = "discord"
-version = "0.1.2"
+version = "0.1.4"
 description = "Query and modify Discord servers"
 author = "julien040"
 license = "UNLICENSED"
