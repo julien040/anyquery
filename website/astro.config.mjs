@@ -22,7 +22,7 @@ export default defineConfig({
                 alt: "Anyquery logo",
             },
             expressiveCode: {
-                themes: ["catppuccin-mocha"],
+                themes: ["one-dark-pro"],
                 // Wrap long lines instead of horizontal scroll, matching
                 // src/markdown.css (white-space: pre-wrap; word-wrap: break-word).
                 defaultProps: {
