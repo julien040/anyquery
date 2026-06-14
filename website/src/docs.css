@@ -158,7 +158,8 @@
     --sl-line-height: 1.65;
 
     /* Slightly wider content column, like the mock */
-    --sl-content-width: 47rem;
+    --sl-content-width: 50.5rem;
+    --sl-sidebar-width: 17rem;
 }
 
 body {
