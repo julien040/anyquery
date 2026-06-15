@@ -41,7 +41,7 @@ const starsLabel =
 <nav class="relative z-[5] font-ui">
     <div
         class:list={[
-            "flex flex-col items-center justify-between gap-4 py-[18px] md:flex-row",
+            "flex flex-col items-center justify-between py-[18px] md:flex-row",
             fullBleed && "wrap",
         ]}
     >
@@ -56,17 +56,24 @@ const starsLabel =
                 <MenuIcon class="aq-menu-icon" />
             </div>
             <MenuItems
-                class="mx-auto hidden flex-col gap-3 py-3 text-sm text-ink-2 sm:flex md:flex-row md:gap-7 md:py-0"
+                class="mx-auto hidden md:gap-7 py-3 text-sm text-ink-2 md:flex md:flex-row"
             >
-                <a href="/llm" class="transition-colors hover:text-ink"
+                <a
+                    href="/llm"
+                    class="transition-colors mr-3 md:mr-0 hover:text-ink"
                     >MCP • AI</a
                 >
-                <a href="/integrations" class="transition-colors hover:text-ink"
+                <a
+                    href="/integrations"
+                    class="transition-colors mr-3 md:mr-0 hover:text-ink"
                     >Integrations</a
                 >
-                <a href="/docs" class="transition-colors hover:text-ink">Docs</a
+                <a
+                    href="/docs"
+                    class="transition-colors mr-3 md:mr-0 hover:text-ink"
+                    >Docs</a
                 >
-                <a href="/queries" class="transition-colors hover:text-ink"
+                <a href="/queries" class="transition-colors mr-3 md:mr-0 hover:text-ink"
                     >Hub</a
                 >
                 <a href="/recipes" class="transition-colors hover:text-ink"

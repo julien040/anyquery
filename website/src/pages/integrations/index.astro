@@ -1,6 +1,7 @@
 ---
 import { slugify } from "../../functions/slugify";
 import Main from "../../layouts/main.astro";
+import Flare from "../../components/flare.astro";
 import { getCollection } from "astro:content";
 import type { RegistryResponse, Plugin } from "../../types/registry";
 
@@ -54,29 +55,16 @@ const chats = await getCollection("chats");
     footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned."
 >
     <div
-        class="absolute h-[480px] w-[480px] -right-24 top-20 rounded-full bg-lavender opacity-50 blur-[40px] z-0"
+        class="pointer-events-none absolute inset-x-0 top-0 z-0 h-[3400px] overflow-hidden"
+        aria-hidden="true"
     >
+        <Flare color="lavender" right="-6rem" top="80px" width="480px" height="480px" />
+        <Flare color="peach" left="-6rem" top="800px" />
+        <Flare color="orange-300" right="-6rem" top="1800px" opacity={0.2} />
+        <Flare color="teal-200" left="-6rem" top="2400px" opacity={0.2} />
+        <Flare color="orange-300" right="-6rem" top="3000px" opacity={0.2} />
     </div>
-    <div
-        class="absolute h-[360px] w-[360px] -left-24 top-[800px] rounded-full bg-peach opacity-50 blur-[40px]"
-    >
-    </div>
-
-    <div
-        class="absolute h-[360px] w-[360px] -right-24 top-[1800px] rounded-full bg-orange-300 opacity-20 blur-[40px]"
-    >
-    </div>
-
-    <div
-        class="absolute h-[360px] w-[360px] -left-24 top-[2400px] rounded-full bg-teal-200 opacity-20 blur-[40px]"
-    >
-    </div>
-
-    <div
-        class="absolute h-[360px] w-[360px] -right-24 top-[3000px] rounded-full bg-orange-300 opacity-20 blur-[40px]"
-    >
-    </div>
-    <div class="flex flex-col z-[2] mb-8">
+    <div class="flex flex-col z-2 mb-8">
         <h1 class="font-display text-7xl text-ink font-normal tracking-tight">
             <span class="italic">Every</span> tool, as a <span class="hl-underline">table</span>
         </h1>
@@ -93,10 +81,10 @@ const chats = await getCollection("chats");
         </p>
     </div>
 
-    <h1 class="text-5xl font-display text-ink font-normal" id="plugins">
+    <h1 class="text-5xl font-display z-2 text-ink font-normal" id="plugins">
         Extend with <em class="text-peach-700">plugins</em>
     </h1>
-    <p class="break-words text-sm text-black/60 mt-1">
+    <p class="break-words text-sm z-2 text-black/60 mt-1">
         Query data from various sources, including APIs and local applications.
     </p>
     <div class="grid lg:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-4 mt-3 z-2">

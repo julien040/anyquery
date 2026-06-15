@@ -1,0 +1,65 @@
+---
+// Decorative blurred blob used as a background "flare". Meant to live inside an
+// `overflow-hidden` container so it clips at the screen edge on small viewports.
+type FlareColor =
+    | "lavender"
+    | "peach"
+    | "pistachio"
+    | "sky"
+    | "rose"
+    | "butter"
+    | "mint"
+    | "orange-300"
+    | "teal-200";
+
+type Props = {
+    /** Pastel palette token used as the blob fill. */
+    color: FlareColor;
+    /** Distance from the top of the positioning context (any CSS length, e.g. "80px", "5rem"). */
+    top: string;
+    /** Distance from the left edge (any CSS length, may be negative). Provide either `left` or `right`. */
+    left?: string;
+    /** Distance from the right edge (any CSS length, may be negative). Provide either `left` or `right`. */
+    right?: string;
+    /** Blob width. Defaults to "360px". */
+    width?: string;
+    /** Blob height. Defaults to "360px". */
+    height?: string;
+    /** Fill opacity between 0 and 1. Defaults to 0.5. */
+    opacity?: number;
+};
+
+const {
+    color,
+    top,
+    left,
+    right,
+    width = "360px",
+    height = "360px",
+    opacity = 0.5,
+} = Astro.props;
+
+// Full, literal class strings so Tailwind's scanner keeps each `bg-*` utility
+// (and the matching `--color-*` variable) even though the color is dynamic.
+const colorClass: Record<FlareColor, string> = {
+    lavender: "bg-lavender",
+    peach: "bg-peach",
+    pistachio: "bg-pistachio",
+    sky: "bg-sky",
+    rose: "bg-rose",
+    butter: "bg-butter",
+    mint: "bg-mint",
+    "orange-300": "bg-orange-300",
+    "teal-200": "bg-teal-200",
+};
+---
+
+<div
+    class:list={[
+        "pointer-events-none absolute rounded-full blur-[40px]",
+        colorClass[color],
+    ]}
+    aria-hidden="true"
+    style={{ top, left, right, width, height, opacity }}
+>
+</div>

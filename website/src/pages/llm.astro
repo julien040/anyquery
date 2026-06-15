@@ -1,5 +1,6 @@
 ---
 import Main from "../layouts/main.astro";
+import Flare from "../components/flare.astro";
 ---
 
 <Main
@@ -7,12 +8,18 @@ import Main from "../layouts/main.astro";
     footnote="Trademarks are the property of their respective owners. Anyquery is not affiliated with any of the companies or projects mentioned. Some LLM answers may be truncated for brevity."
 >
     <div
-        class="absolute h-[420px] w-[420px] -right-24 top-10 rounded-full bg-lavender opacity-60 blur-[40px] z-0"
+        class="pointer-events-none absolute inset-x-0 top-0 z-0 h-[900px] overflow-hidden"
+        aria-hidden="true"
     >
-    </div>
-    <div
-        class="absolute h-[320px] w-[320px] -left-24 top-[460px] rounded-full bg-peach opacity-50 blur-[40px] z-0"
-    >
+        <Flare
+            color="lavender"
+            right="-6rem"
+            top="40px"
+            width="420px"
+            height="420px"
+            opacity={0.6}
+        />
+        <Flare color="peach" left="-6rem" top="460px" width="320px" height="320px" />
     </div>
 
     <div class="relative z-2 max-w-2xl mx-auto text-center mb-12">
