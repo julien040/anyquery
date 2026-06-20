@@ -11,6 +11,8 @@ import (
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
+	"github.com/olekukonko/tablewriter/renderer"
+	"github.com/olekukonko/tablewriter/tw"
 	"github.com/spf13/pflag"
 	"golang.org/x/term"
 )
@@ -545,11 +547,6 @@ type prettyTableEncoder struct {
 }
 
 func (p *prettyTableEncoder) Write(row []interface{}) error {
-	// If the table hasn't been created yet, create it
-	if p.internalTable == nil {
-		p.internalTable = tablewriter.NewWriter(p.Writer)
-	}
-
 	if p.maxColumnLen == nil {
 		p.maxColumnLen = make([]int, len(p.Columns))
 	}
@@ -573,13 +570,6 @@ func (p *prettyTableEncoder) Write(row []interface{}) error {
 }
 
 func (p *prettyTableEncoder) Close() error {
-	// If the table hasn't been created yet, create it
-	if p.internalTable == nil {
-		p.internalTable = tablewriter.NewWriter(p.Writer)
-		p.internalTable.SetHeader(p.Columns)
-		p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
-	}
-
 	// To have a pretty table that doesn't break, we will check if the writer is a terminal
 	// If it is, we'll divide the width by the number of columns to get the max width of each column
 	// We default to 40 if we can't get the width
@@ -640,9 +630,13 @@ func (p *prettyTableEncoder) Close() error {
 		}
 	}
 
-	p.internalTable.SetColWidth(p.columnLength)
-	p.internalTable.SetHeader(p.Columns)
-	p.internalTable.SetAutoFormatHeaders(false) // To remove upper case
+	// Create the table now that the column width is known. In tablewriter v1,
+	// configuration is provided at construction time through options.
+	p.internalTable = tablewriter.NewTable(p.Writer,
+		tablewriter.WithColumnMax(p.columnLength),
+		tablewriter.WithHeaderAutoFormat(tw.Off), // To keep the original column casing
+	)
+	p.internalTable.Header(p.Columns)
 
 	// Write the rows
 	for _, row := range p.internalBuffer {
@@ -669,14 +663,7 @@ type markdownTableEncoder struct {
 func (m *markdownTableEncoder) Write(row []interface{}) error {
 	// If the table hasn't been created yet, create it
 	if m.internalTable == nil {
-		m.internalTable = tablewriter.NewWriter(m.Writer)
-		m.internalTable.SetHeader(m.Columns)
-		m.internalTable.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		m.internalTable.SetCenterSeparator("|")
-		m.internalTable.SetAutoFormatHeaders(false)
-		m.internalTable.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-		m.internalTable.SetAlignment(tablewriter.ALIGN_LEFT)
-		m.internalTable.SetAutoWrapText(false)
+		m.internalTable = newMarkdownTable(m.Writer, m.Columns)
 	}
 
 	// Convert the row to strings
@@ -695,18 +682,26 @@ func (m *markdownTableEncoder) Write(row []interface{}) error {
 
 func (m *markdownTableEncoder) Close() error {
 	if m.internalTable == nil {
-		m.internalTable = tablewriter.NewWriter(m.Writer)
-		m.internalTable.SetHeader(m.Columns)
-		m.internalTable.SetBorders(tablewriter.Border{Left: true, Top: false, Right: true, Bottom: false})
-		m.internalTable.SetCenterSeparator("|")
-		m.internalTable.SetAutoFormatHeaders(false)
-		m.internalTable.SetHeaderAlignment(tablewriter.ALIGN_LEFT)
-		m.internalTable.SetAlignment(tablewriter.ALIGN_LEFT)
-		m.internalTable.SetAutoWrapText(false)
+		m.internalTable = newMarkdownTable(m.Writer, m.Columns)
 	} else {
 		m.internalTable.Render()
 	}
 	return nil
+}
+
+// newMarkdownTable builds a tablewriter.Table configured to render a GitHub
+// flavored Markdown table (left aligned, no text wrapping, original casing).
+func newMarkdownTable(writer io.Writer, columns []string) *tablewriter.Table {
+	table := tablewriter.NewTable(writer,
+		tablewriter.WithRenderer(renderer.NewMarkdown()),
+		tablewriter.WithHeaderAutoFormat(tw.Off),
+		tablewriter.WithHeaderAlignment(tw.AlignLeft),
+		tablewriter.WithRowAlignment(tw.AlignLeft),
+		tablewriter.WithHeaderAutoWrap(tw.WrapNone),
+		tablewriter.WithRowAutoWrap(tw.WrapNone),
+	)
+	table.Header(columns)
+	return table
 }
 
 // Create a new line every lengthLine characters

@@ -238,7 +238,7 @@ func (h *handler) ComBinlogDump(c *mysql.Conn, logFile string, binlogPos uint32)
 	return fmt.Errorf("replication is not supported")
 }
 
-func (h *handler) ComBinlogDumpGTID(c *mysql.Conn, logFile string, logPos uint64, gtidSet replication.GTIDSet) error {
+func (h *handler) ComBinlogDumpGTID(c *mysql.Conn, logFile string, logPos uint64, gtidSet replication.GTIDSet, flags uint16) error {
 	return fmt.Errorf("replication is not supported")
 }
 
