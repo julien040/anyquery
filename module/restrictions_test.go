@@ -116,6 +116,57 @@ func TestCheckFileReadSymlinkEscape(t *testing.T) {
 	}
 }
 
+func TestCheckSourceFileURIBypass(t *testing.T) {
+	root := t.TempDir()
+	allowed := filepath.Join(root, "data")
+	if err := os.MkdirAll(allowed, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	// A secret file outside the allowed directory.
+	secret := filepath.Join(root, "secret.txt")
+	if err := os.WriteFile(secret, []byte("top secret\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	// A legitimate file inside the allowed directory.
+	inDir := filepath.Join(allowed, "x.csv")
+	if err := os.WriteFile(inDir, []byte("a,b\n1,2\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	r := &Restrictions{AllowedDirs: []string{allowed}}
+
+	// Every file: spelling that go-getter would resolve to the absolute secret
+	// path must be denied. These are validated against the same path go-getter
+	// opens (u.Path), not the raw string.
+	denied := []string{
+		"file:" + secret,              // single-slash form (was checked as relative)
+		"file://localhost" + secret,   // host form (host ignored by go-getter)
+		"file://" + secret,            // file:///abs form
+		"file::file://localhost" + secret, // forced-getter + host form
+		"FILE:" + secret,              // uppercase scheme (net/url lowercases it)
+		"File://localhost" + secret,   // mixed-case scheme + host form
+		secret,                        // plain absolute path
+	}
+	for _, src := range denied {
+		if err := r.CheckSource(src); err == nil {
+			t.Errorf("CheckSource(%q) should be denied (escapes allowed dir), but passed", src)
+		}
+	}
+
+	// Percent-encoding must not sneak past: our u.Path resolves %2e%2e to ".."
+	// and denies; go-getter would stat the literal %2e path and fail. Either
+	// way, no read outside the allowed dir.
+	encoded := "file://" + filepath.Join(allowed, "%2e%2e", "secret.txt")
+	if err := r.CheckSource(encoded); err == nil {
+		t.Errorf("CheckSource(%q) with percent-encoded traversal should be denied", encoded)
+	}
+
+	// A legitimate in-dir source must still pass (no false positive).
+	if err := r.CheckSource("file://" + inDir); err != nil {
+		t.Errorf("CheckSource(%q) for a file inside the allowed dir should pass, got %v", "file://"+inDir, err)
+	}
+}
+
 func TestAllowAttachPath(t *testing.T) {
 	root := t.TempDir()
 	allowed := filepath.Join(root, "db")

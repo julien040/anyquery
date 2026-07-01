@@ -68,13 +68,30 @@ func isRemoteSource(src string) bool {
 	return false
 }
 
-// stripFileScheme removes a "file::" forced-getter prefix or a "file://" scheme
-// so the remainder can be treated as a local path.
+// stripFileScheme resolves a reader source to the filesystem path go-getter
+// will open. It removes a "file::" forced-getter prefix, then — because
+// net/url (which go-getter uses) lowercases the scheme and reads u.Path — parses
+// any "file:" URL case-insensitively so file:/p, file://host/p, file:///p, and
+// their upper/mixed-case spellings all resolve to the real path being checked.
+//
+// A naive TrimPrefix here (the previous behavior) would validate file:/etc/passwd
+// as the relative path "file:/etc/passwd" under the working directory while
+// go-getter opened the absolute /etc/passwd, escaping the sandbox.
+//
+// The Opaque branch and the parse-failure fallthrough are deny-safe: go-getter
+// reads only u.Path, so an opaque input (empty u.Path) fails there too.
 func stripFileScheme(src string) string {
 	if m := forcedGetterRe.FindStringSubmatch(src); m != nil && strings.EqualFold(m[1], "file") {
 		src = m[2]
 	}
-	src = strings.TrimPrefix(src, "file://")
+	if len(src) >= len("file:") && strings.EqualFold(src[:len("file:")], "file:") {
+		if u, err := url.Parse(src); err == nil {
+			if u.Opaque != "" {
+				return u.Opaque
+			}
+			return u.Path
+		}
+	}
 	return src
 }
 
