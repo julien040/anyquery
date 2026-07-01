@@ -535,121 +535,117 @@ func (c *csvTableEncoder) Close() error {
  ******************/
 
 type prettyTableEncoder struct {
-	Columns        []string           // The columns of the table
-	Writer         io.Writer          // The writer where the output will be written
-	internalTable  *tablewriter.Table // The table that will be rendered
-	internalBuffer [][]string         // The buffer that will store the rows
-	rowWritten     int                // How many rows have been written
-	columnLength   int                // The default column length for tablewriter
-	maxColumnLen   []int              // The max length of each column
-	terminalWidth  int                // The width of the terminal
-	columnDropped  []int              // Index of the columns that have been dropped
+	Columns       []string           // The columns of the table (may be mutated during setup to drop columns)
+	Writer        io.Writer          // The writer where the output will be written
+	internalTable *tablewriter.Table // The table that will be rendered
+	rowWritten    int                // How many rows have been written
+	columnLength  int                // The width of a column slot (content + padding), excluding borders
+	contentLength int                // columnLength minus the 2 padding chars
+	numOrigKept   int                // How many original columns survive (before the "..." sentinel)
 }
 
-func (p *prettyTableEncoder) Write(row []interface{}) error {
-	if p.maxColumnLen == nil {
-		p.maxColumnLen = make([]int, len(p.Columns))
-	}
+// computeColumnLength derives the width of a single column slot (content + its
+// 2 chars of padding) so that numCols slots plus the numCols+1 border
+// characters between/around them add up to the terminal width.
+func computeColumnLength(terminalWidth, numCols int) int {
+	numCols = max(1, numCols)
+	return (terminalWidth - numCols - 1) / numCols
+}
 
-	// Convert the row to strings
-	rowStr := convertValueToStrSlice(row)
-
-	for i, val := range rowStr {
-		// In case the passed row is bigger than the maxColumnLen, we'll skip the calculation
-		if i < len(p.maxColumnLen) && len(val) > p.maxColumnLen[i] {
-			p.maxColumnLen[i] = len(val)
+// setup determines column widths, drops columns that would be too narrow, and
+// starts the streaming table. It is called lazily on the first Write so that
+// any terminal resize between construction and first output is captured.
+func (p *prettyTableEncoder) setup() error {
+	p.columnLength = 40
+	terminalWidth := 0
+	if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
+		var err error
+		terminalWidth, _, err = term.GetSize(int(f.Fd()))
+		if err == nil {
+			p.columnLength = computeColumnLength(terminalWidth, len(p.Columns))
 		}
 	}
 
-	// Write the row
-	p.internalBuffer = append(p.internalBuffer, rowStr)
+	// Drop trailing columns until every remaining column is at least 12 chars wide,
+	// keeping a minimum of 2 columns.
+	dropped := false
+	if terminalWidth > 0 {
+		for len(p.Columns) > 2 && p.columnLength < 12 {
+			p.Columns = p.Columns[:len(p.Columns)-1]
+			p.columnLength = computeColumnLength(terminalWidth, len(p.Columns))
+			dropped = true
+		}
+	}
 
+	p.numOrigKept = len(p.Columns)
+
+	if dropped {
+		p.Columns = append(p.Columns, "...")
+		if terminalWidth > 0 {
+			p.columnLength = computeColumnLength(terminalWidth, len(p.Columns))
+		}
+	}
+
+	if p.columnLength < 1 {
+		p.columnLength = 1
+	}
+	p.contentLength = max(1, p.columnLength-2)
+
+	widths := tw.NewMapper[int, int]()
+	for i := range p.Columns {
+		widths.Set(i, p.columnLength)
+	}
+
+	p.internalTable = tablewriter.NewTable(p.Writer,
+		tablewriter.WithColumnWidths(widths),
+		tablewriter.WithHeaderAutoFormat(tw.Off),
+		tablewriter.WithStreaming(tw.StreamConfig{Enable: true}),
+	)
+	if err := p.internalTable.Start(); err != nil {
+		return err
+	}
+	p.internalTable.Header(p.Columns)
+	return nil
+}
+
+func (p *prettyTableEncoder) Write(row []interface{}) error {
+	if p.internalTable == nil {
+		if err := p.setup(); err != nil {
+			return err
+		}
+	}
+
+	rowStr := convertValueToStrSlice(row)
+
+	// Trim or pad to the number of original columns kept, then append "..." if needed.
+	if len(rowStr) > p.numOrigKept {
+		rowStr = rowStr[:p.numOrigKept]
+	}
+	for len(rowStr) < p.numOrigKept {
+		rowStr = append(rowStr, "")
+	}
+	if p.numOrigKept < len(p.Columns) {
+		rowStr = append(rowStr, "...")
+	}
+
+	for i, val := range rowStr {
+		rowStr[i] = wordWrap(val, p.contentLength)
+	}
+
+	p.internalTable.Append(rowStr)
 	p.rowWritten++
-
 	return nil
 }
 
 func (p *prettyTableEncoder) Close() error {
-	// To have a pretty table that doesn't break, we will check if the writer is a terminal
-	// If it is, we'll divide the width by the number of columns to get the max width of each column
-	// We default to 40 if we can't get the width
-	p.columnLength = 40
-	if f, ok := p.Writer.(*os.File); ok && term.IsTerminal(int(f.Fd())) {
-		var err error
-		p.terminalWidth, _, err = term.GetSize(int(f.Fd()))
-		if err == nil {
-			p.columnLength = p.terminalWidth / max(1, len(p.Columns)) // We don't want to divide by 0
+	if p.internalTable == nil {
+		if err := p.setup(); err != nil {
+			return err
 		}
 	}
-
-	p.columnLength = p.columnLength - 3 // -3 to account for the padding
-
-	// Short columns will takes less space than the p.columnLength
-	// therefore leaving credits for the longer columns
-	// We will note the credits, and the count of columns that have credits
-	// so that we can distribute the space evenly
-
-	credits := 0
-	creditColumns := 0
-	for _, val := range p.maxColumnLen {
-		if val < p.columnLength {
-			credits += p.columnLength - val - 2 // -2 to account for the padding
-			creditColumns++
-		}
+	if err := p.internalTable.Close(); err != nil {
+		return err
 	}
-
-	// To ensure no division by 0
-	creditPerCol := 0
-	if creditColumns > 0 {
-		creditPerCol = credits / creditColumns
-	}
-	p.columnLength = p.columnLength + creditPerCol
-
-	// Drop columns if the col width is less than 10 characters
-	// We will drop the columns from index 1 up to having 10 characters per column on average
-	if p.terminalWidth > 0 && p.columnLength < 12 {
-		for i := len(p.Columns) - 1; i > 1; i-- {
-			if p.columnLength >= 12 {
-				break
-			}
-			p.columnLength = (p.terminalWidth / max(1, len(p.Columns))) - 4 + creditPerCol
-			p.columnDropped = append(p.columnDropped, i)
-			p.Columns = append(p.Columns[:i], p.Columns[i+1:]...)
-			for j := range p.internalBuffer {
-				p.internalBuffer[j] = append(p.internalBuffer[j][:i], p.internalBuffer[j][i+1:]...)
-			}
-
-		}
-	}
-
-	// Replace the column with ...
-	if len(p.columnDropped) > 0 {
-		p.Columns = append(p.Columns, "...")
-		for i := range p.internalBuffer {
-			p.internalBuffer[i] = append(p.internalBuffer[i], "...")
-		}
-	}
-
-	// Create the table now that the column width is known. In tablewriter v1,
-	// configuration is provided at construction time through options.
-	p.internalTable = tablewriter.NewTable(p.Writer,
-		tablewriter.WithColumnMax(p.columnLength),
-		tablewriter.WithHeaderAutoFormat(tw.Off), // To keep the original column casing
-	)
-	p.internalTable.Header(p.Columns)
-
-	// Write the rows
-	for _, row := range p.internalBuffer {
-		// Wrap the row if needed
-		for i, val := range row {
-			row[i] = wordWrap(val, p.columnLength)
-		}
-		p.internalTable.Append(row)
-	}
-
-	// Render the table
-	p.internalTable.Render()
-
 	fmt.Fprintf(p.Writer, "%d results\n", p.rowWritten)
 	return nil
 }
@@ -660,48 +656,45 @@ type markdownTableEncoder struct {
 	internalTable *tablewriter.Table
 }
 
-func (m *markdownTableEncoder) Write(row []interface{}) error {
-	// If the table hasn't been created yet, create it
-	if m.internalTable == nil {
-		m.internalTable = newMarkdownTable(m.Writer, m.Columns)
-	}
-
-	// Convert the row to strings
-	rowStr := convertValueToStrSlice(row)
-
-	// Replace \n with <br> in the strings
-	for i, val := range rowStr {
-		rowStr[i] = strings.ReplaceAll(val, "\n", "<br>")
-	}
-
-	// Write the row
-	m.internalTable.Append(rowStr)
-
-	return nil
-}
-
-func (m *markdownTableEncoder) Close() error {
-	if m.internalTable == nil {
-		m.internalTable = newMarkdownTable(m.Writer, m.Columns)
-	} else {
-		m.internalTable.Render()
-	}
-	return nil
-}
-
-// newMarkdownTable builds a tablewriter.Table configured to render a GitHub
-// flavored Markdown table (left aligned, no text wrapping, original casing).
-func newMarkdownTable(writer io.Writer, columns []string) *tablewriter.Table {
-	table := tablewriter.NewTable(writer,
+func (m *markdownTableEncoder) init() error {
+	m.internalTable = tablewriter.NewTable(m.Writer,
 		tablewriter.WithRenderer(renderer.NewMarkdown()),
 		tablewriter.WithHeaderAutoFormat(tw.Off),
 		tablewriter.WithHeaderAlignment(tw.AlignLeft),
 		tablewriter.WithRowAlignment(tw.AlignLeft),
 		tablewriter.WithHeaderAutoWrap(tw.WrapNone),
 		tablewriter.WithRowAutoWrap(tw.WrapNone),
+		tablewriter.WithStreaming(tw.StreamConfig{Enable: true}),
 	)
-	table.Header(columns)
-	return table
+	if err := m.internalTable.Start(); err != nil {
+		return err
+	}
+	m.internalTable.Header(m.Columns)
+	return nil
+}
+
+func (m *markdownTableEncoder) Write(row []interface{}) error {
+	if m.internalTable == nil {
+		if err := m.init(); err != nil {
+			return err
+		}
+	}
+
+	rowStr := convertValueToStrSlice(row)
+	for i, val := range rowStr {
+		rowStr[i] = strings.ReplaceAll(val, "\n", "<br>")
+	}
+	m.internalTable.Append(rowStr)
+	return nil
+}
+
+func (m *markdownTableEncoder) Close() error {
+	if m.internalTable == nil {
+		if err := m.init(); err != nil {
+			return err
+		}
+	}
+	return m.internalTable.Close()
 }
 
 // Create a new line every lengthLine characters
