@@ -90,3 +90,15 @@ choco install anyquery
 ```bash
 winget install JulienCagniart.anyquery
 ```
+
+### Any OS (Go install)
+
+If you have Go installed (1.26+), you can install Anyquery directly from source:
+
+```bash
+CGO_ENABLED=1 go install -tags "vtable fts5 sqlite_json sqlite_math_functions" github.com/julien040/anyquery@main
+```
+
+Anyquery depends on cgo (through go-sqlite3), so make sure a C compiler (gcc, clang, or a mingw toolchain on Windows) is available in your `PATH`. The `-tags` flag is required to enable virtual tables, full-text search, JSON and math functions used by Anyquery's core features.
+
+The binary will be installed in `$(go env GOPATH)/bin`, so make sure this directory is in your `PATH`.
