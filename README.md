@@ -148,6 +148,16 @@ winget install JulienCagniart.anyquery
 choco install anyquery
 ```
 
+### Go install
+
+Requires Go 1.26+ (some dependencies don't support older versions).
+
+```bash
+CGO_ENABLED=1 go install -tags "vtable fts5 sqlite_json sqlite_math_functions" github.com/julien040/anyquery@main
+```
+
+Anyquery relies on cgo (through go-sqlite3), so you need a C compiler (gcc, clang, or a mingw toolchain on Windows) available in your `PATH`.
+
 ## Plugins
 
 Anyquery is plugin-based, and you can install plugins to extend its functionality. You can install plugins from the [official registry](https://anyquery.dev/integrations) or create your own. Anyquery can also [load any SQLite extension](https://anyquery.dev/docs/usage/plugins#using-sqlite-extensions).
