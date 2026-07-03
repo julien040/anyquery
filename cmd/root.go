@@ -28,8 +28,10 @@ anyquery -d ":memory:"
 `,
 }
 
-func Execute(version string) {
-	rootCmd.Version = version
+func Execute(displayVersion, rawVersion string) {
+	rootCmd.Version = displayVersion
+	// rawVersion is the bare semver (e.g. "0.4.5") used by the update check.
+	controller.CurrentVersion = rawVersion
 	err := rootCmd.Execute()
 	if err != nil {
 		os.Exit(1)
