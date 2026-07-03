@@ -89,6 +89,16 @@ mysql -u root -h 127.0.0.1 -P 8070
 
 The [documentation](https://anyquery.dev/docs/#installation) provides detailed instructions on how to install Anyquery on your system. You can install anyquery from Homebrew, APT, YUM/DNF, Scoop, Winget and Chocolatey. You can also download the binary from the [releases page](https://github.com/julien040/anyquery/releases).
 
+### Quick install (macOS & Linux)
+
+The fastest way to get started. This downloads the right binary for your platform, verifies its checksum, and adds it to your `PATH` — no `sudo` required:
+
+```bash
+curl -fsSL https://anyquery.dev/install.sh | sh
+```
+
+To pin a version or install elsewhere, set `ANYQUERY_VERSION` (e.g. `0.4.5`) or `ANYQUERY_INSTALL_DIR`. To update later, re-run the same command. On Windows, use Scoop, Winget, or Chocolatey (below).
+
 ### Homebrew
 
 ```zsh

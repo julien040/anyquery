@@ -32,6 +32,10 @@ func getVersionString() string {
 
 func main() {
 
-	cmd.Execute(getVersionString())
+	// getVersionString resolves the package `version` variable as a side effect,
+	// so call it first, then pass the raw version separately (Go does not order
+	// the read of `version` against the call, so we must not rely on arg order).
+	display := getVersionString()
+	cmd.Execute(display, version)
 
 }

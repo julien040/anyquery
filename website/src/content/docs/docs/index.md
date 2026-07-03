@@ -24,6 +24,21 @@ INSERT INTO google_sheets_table (name, line_added) SELECT author_name, addition 
 
 Thank you for trying out Anyquery! You can install it by following the instructions below:
 
+### Quick install (macOS & Linux)
+
+The fastest way to install Anyquery. This script detects your platform, downloads the matching binary, verifies its checksum, and places it on your `PATH` — no `sudo` required:
+
+```bash
+curl -fsSL https://anyquery.dev/install.sh | sh
+```
+
+You can customise the installation with environment variables:
+
+- `ANYQUERY_VERSION` — install a specific version (e.g. `0.4.5`) instead of the latest.
+- `ANYQUERY_INSTALL_DIR` — install into a custom directory.
+
+To update later, re-run the same command. On Windows, use Scoop, Winget, or Chocolatey (see below).
+
 ### Ubuntu, Debian, and derivatives (apt package manager)
 
 ```bash

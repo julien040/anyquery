@@ -315,6 +315,16 @@ func Query(cmd *cobra.Command, args []string) error {
 	fmt.Println("Run `anyquery --help` to see the available commands")
 	fmt.Println("Visit https://anyquery.dev/integrations to see the available plugins")
 	fmt.Println()
+
+	// Let the user know when a newer release is available (interactive shell only,
+	// best-effort, never blocks — see controller/update_check.go).
+	if isSTDoutAtty() {
+		if msg := updateNotice(); msg != "" {
+			fmt.Println(msg)
+			fmt.Println()
+		}
+	}
+
 	mustContinue := true
 	for mustContinue {
 		query := shell.InputQuery()
