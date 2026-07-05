@@ -47,16 +47,34 @@ import Footer from "../components/footer.astro";
         }
     </head>
     <body
+        
+    >
+            <div
+            class="w-full bg-amber-100 text-amber-900 text-center p-4  mb-1 font-ui rounded-b-2xl"
+            >
+            <div class="max-w-3xl mx-auto flex flex-col">
+                <h1 class="text-md font-semibold tracking-tight">Available for an internship</h1>
+                <p class="text-xs">
+                    I’m seeking a 6-month software engineering internship starting in January 2027. Based in France, I’m open to both remote roles and relocation. For any opportunities, please contact me at <a href="mailto:contact@julienc.me" class="underline">
+                        contact@julienc.me
+                    </a> <br />
+                    You can find my resume <a href="https://julienc.me/resume.pdf" class="underline">here</a>.
+                </p>
+            </div>
+            </div>
+        <main
         class:list={[
             "aq-grain",
-            !fullBleed && "max-w-5xl mx-auto min-h-screen flex flex-col p-6",
+            !fullBleed && "max-w-5xl mx-auto min-h-screen flex flex-col px-6",
         ]}
-    >
+        >
+            
         <NavBar fullBleed={fullBleed} />
         {!fullBleed && <div class="py-2"><!-- Hey, hello you ! --></div>}
         <slot />
         {!fullBleed && <div class="py-2 mt-auto"><!-- goodbye --></div>}
         <Footer footnote={footnote} fullBleed={fullBleed} />
+        </main>
         <script
             data-collect-dnt="true"
             async

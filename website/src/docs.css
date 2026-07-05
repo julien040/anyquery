@@ -388,6 +388,18 @@ mobile-starlight-toc nav {
     color: var(--aq-ink);
 }
 
+.sl-banner {
+    font-size: 0.875rem;
+    color: var(--aq-ink-2);
+    background: var(--aq-lavender);
+    margin: 12px;
+    border-radius: 12px;
+}
+.sl-banner a {
+    color: var(--aq-ink);
+    text-decoration-color: var(--aq-lavender-700);
+}
+
 .sl-markdown-content {
     font-size: 0.95rem;
     color: var(--aq-ink-2);

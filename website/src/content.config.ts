@@ -12,7 +12,17 @@ const databaseSchema = z.object({
 });
 
 export const collections = {
-    docs: defineCollection({ loader: docsLoader(), schema: docsSchema() }),
+    docs: defineCollection({
+        loader: docsLoader(),
+        schema: docsSchema({
+            extend: z.object({
+                banner: z.object({ content: z.string() }).default({
+                    content:
+                        'Available for a 6-month internship starting in January 2027. <a href="https://cdn.julienc.me/resume.pdf">Read my resume</a> or contact me at <a href="mailto:contact@julienc.me" class="underline">contact@julienc.me</a>.',
+                }),
+            }),
+        }),
+    }),
     integrations: defineCollection({
         loader: glob({
             pattern: "**/*.md",
