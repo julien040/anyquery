@@ -4,10 +4,12 @@ import (
 	"database/sql"
 	_ "embed"
 	"fmt"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"strings"
 	"time"
 
@@ -24,6 +26,64 @@ var dbSchema string
 
 //go:embed redirect_oauth.html
 var oauthHTML string
+
+// gptTunnelIDPath matches the gpt-facing routes that carry the tunnel ID
+// (the bearer-equivalent capability token for the gpt HTTP API) as their
+// first path segment: /{id}/list-tables, /{id}/describe-table and
+// /{id}/execute-query. Matching is done by path shape rather than by Host
+// header so the redaction still applies if the router is ever mounted
+// under another hostname.
+//
+// accessLogger runs before middleware.StripSlashes (see start()), so it
+// sees the raw, un-normalized path - a trailing slash
+// (e.g. "/xyz/execute-query/") must still match, otherwise the ID would be
+// logged verbatim for exactly the requests StripSlashes exists to
+// normalize. The action name is matched case-insensitively for the same
+// reason: chi's routing is case-sensitive and would 404 "/xyz/Execute-Query",
+// but the ID must not leak into the log on the way to that 404.
+var gptTunnelIDPath = regexp.MustCompile(`(?i)^/[^/]+/(?:list-tables|describe-table|execute-query)/?$`)
+
+// redactAccessLogPath returns path with its leading /{id} segment replaced
+// by a placeholder if path matches one of the gpt-facing tunnel routes,
+// and returns path unchanged otherwise.
+func redactAccessLogPath(path string) string {
+	if !gptTunnelIDPath.MatchString(path) {
+		return path
+	}
+	_, rest, _ := strings.Cut(strings.TrimPrefix(path, "/"), "/")
+	return "/[REDACTED]/" + rest
+}
+
+// accessLogger is a stand-in for chi's middleware.Logger. It logs in the
+// same shape (method, scheme, host, path, proto, remote addr, status,
+// bytes written, duration) to stdout, but with redactAccessLogPath applied
+// to the request path so the tunnel ID never lands in the access log -
+// server.log otherwise captures a live capability token in plaintext on
+// every request/response pair forwarded to a victim's machine. It logs
+// r.URL.Path rather than chi's default r.RequestURI, which as a side
+// effect also keeps the tunnel_id query parameter of the websocket-upgrade
+// request (/websocket-anyquery?tunnel_id=...) out of the log - the same
+// capability token, leaked through the same mechanism, just not the path
+// this fix was asked to cover.
+func accessLogger(next http.Handler) http.Handler {
+	out := log.New(os.Stdout, "", log.LstdFlags)
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+		start := time.Now()
+
+		defer func() {
+			scheme := "http"
+			if r.TLS != nil {
+				scheme = "https"
+			}
+			out.Printf("%q from %s - %d %dB in %s",
+				fmt.Sprintf("%s %s://%s%s %s", r.Method, scheme, r.Host, redactAccessLogPath(r.URL.Path), r.Proto),
+				r.RemoteAddr, ww.Status(), ww.BytesWritten(), time.Since(start))
+		}()
+
+		next.ServeHTTP(ww, r)
+	})
+}
 
 type server struct {
 	dbWriteable bool
@@ -80,7 +140,13 @@ func (s *server) start() error {
 	r := chi.NewRouter()
 	//r.Use(cors.AllowAll().Handler)
 	r.Use(middleware.Recoverer)
-	r.Use(middleware.Logger)
+	// accessLogger replaces middleware.Logger: the gpt-facing routes carry
+	// the tunnel ID (a bearer-equivalent capability token) as a URL path
+	// segment, and the default request logger would otherwise write it in
+	// plaintext to stdout/server.log on every single request/response pair
+	// forwarded to a victim's machine - the most realistic leak vector for
+	// this token. All other routes are logged exactly as before.
+	r.Use(accessLogger)
 	r.Use(middleware.Heartbeat("/ping"))
 	r.Use(middleware.GetHead)
 	r.Use(middleware.StripSlashes)

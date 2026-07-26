@@ -96,13 +96,33 @@ func (s *server) upgradeWS(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *server) handleConnectWS(se *melody.Session) {
-	s.logger.Info("New connection", "remoteAddr", se.Request.RemoteAddr)
+	// logID is a random, non-secret label used ONLY for correlating log
+	// lines belonging to the same live connection. Unlike the tunnel ID, it
+	// carries no capability - it is generated fresh per connection and
+	// bears no relationship to the tunnel ID (it isn't even derived from
+	// it), so logging it cannot leak or help reconstruct the real secret.
+	// See sessionLogID and the comment on the three s.logger.Error calls in
+	// handleMessage below for why this replaced logging the tunnel ID
+	// directly.
+	se.Keys["log_id"] = generateRandomIDWithNumbers(8)
+	s.logger.Info("New connection", "remoteAddr", se.Request.RemoteAddr, "session", sessionLogID(se))
 	s.sessions.Store(se.Keys["tunnel_id"].(string), se)
 }
 
 func (s *server) handleDisconnectWS(se *melody.Session) {
-	s.logger.Info("Connection closed", "remoteAddr", se.Request.RemoteAddr)
+	s.logger.Info("Connection closed", "remoteAddr", se.Request.RemoteAddr, "session", sessionLogID(se))
 	s.sessions.Delete(se.Keys["tunnel_id"].(string))
+}
+
+// sessionLogID returns the non-secret per-connection correlation label set
+// in handleConnectWS, falling back to a fixed placeholder if it is somehow
+// missing (e.g. a message handled before handleConnectWS has run) rather
+// than panicking or falling back to the tunnel ID.
+func sessionLogID(se *melody.Session) string {
+	if id, ok := se.Keys["log_id"].(string); ok {
+		return id
+	}
+	return "unknown"
 }
 
 // Response from the client
@@ -111,20 +131,24 @@ func (s *server) handleMessage(se *melody.Session, msg []byte) {
 	var response Response
 	err := json.Unmarshal(msg, &response)
 	if err != nil {
-		s.logger.Error("Error deserializing message", "error", err, "id", se.Keys["tunnel_id"])
+		// Logged by session correlation label, not by tunnel ID: the
+		// tunnel ID is a bearer-equivalent capability token, and these
+		// error paths fire on attacker/malformed input, which is exactly
+		// when an operator is most likely to be looking at the logs.
+		s.logger.Error("Error deserializing message", "error", err, "session", sessionLogID(se))
 		return
 	}
 
 	// Make sure the request ID is provided
 	if response.RequestID == "" {
-		s.logger.Error("Request ID not provided", "id", se.Keys["tunnel_id"])
+		s.logger.Error("Request ID not provided", "session", sessionLogID(se))
 		return
 	}
 
 	// Get the response channel
 	responseChan, ok := se.Keys["requests"].(*xsync.MapOf[string, chan Response]).Load(response.RequestID)
 	if !ok {
-		s.logger.Error("Response channel not found", "id", se.Keys["tunnel_id"], "requestID", response.RequestID)
+		s.logger.Error("Response channel not found", "session", sessionLogID(se), "requestID", response.RequestID)
 		return
 	}
 

@@ -105,6 +105,26 @@ func (r *Restrictions) CheckSource(src string) error {
 	if strings.TrimSpace(src) == "" {
 		return fmt.Errorf("sandbox: empty source is not allowed")
 	}
+	// A forced "file::" getter whose inner target is itself a URL (any scheme)
+	// or another forced getter is never a plain filesystem path: once "file"
+	// wins as the getter, go-getter's FileGetter opens the inner target's
+	// u.Path and silently discards its scheme and host — regardless of
+	// AllowRemote, because a forced getter always overrides scheme-based
+	// dispatch (go-getter client.go: force, src := getForcedGetter(src); if
+	// force == "" { force = u.Scheme }, so an already-forced "file" never
+	// yields to the inner scheme). This check must run before, and
+	// independently of, the isRemoteSource/AllowRemote branch below: if this
+	// shape were instead classified as "remote", AllowRemote:true would return
+	// nil here unconditionally while the transport that actually runs is still
+	// the local FileGetter — turning --allow-remote into unrestricted local
+	// disk read. Rather than re-deriving the exact path go-getter resolves to
+	// (a validator-vs-consumer divergence that has already produced two prior
+	// bugs in this file), refuse the ambiguous shape outright.
+	if m := forcedGetterRe.FindStringSubmatch(src); m != nil && strings.EqualFold(m[1], "file") {
+		if looksLikeURLOrForcedGetter(m[2]) {
+			return fmt.Errorf("sandbox: %q is not a supported source; a file:: forced getter may not wrap another URL or forced getter", src)
+		}
+	}
 	if isRemoteSource(src) {
 		if r.AllowRemote {
 			return nil
@@ -112,6 +132,18 @@ func (r *Restrictions) CheckSource(src string) error {
 		return fmt.Errorf("sandbox: remote fetching is disabled; %q is not a local file (enable with --allow-remote)", src)
 	}
 	return r.checkLocalPath(stripFileScheme(src))
+}
+
+// looksLikeURLOrForcedGetter reports whether s is itself a "scheme://…" URL or
+// another "type::…" forced-getter prefix, i.e. not a plain filesystem path.
+// Used to detect the file::<url> shape above; deliberately scheme-agnostic —
+// the escape is not specific to http, it is any inner scheme, since FileGetter
+// discards whatever scheme and host the inner URL carries.
+func looksLikeURLOrForcedGetter(s string) bool {
+	if forcedGetterRe.MatchString(s) {
+		return true
+	}
+	return strings.Index(s, "://") > 0
 }
 
 // CheckFileRead validates a plain local file path (no scheme) against the
@@ -152,13 +184,22 @@ func (r *Restrictions) AllowAttachPath(filename string) bool {
 // isInMemoryDB reports whether an ATTACH target refers to an in-memory database.
 // The mode is read from the parsed file: URI query, not matched as a substring,
 // so a path like file:/etc/cron.d/pwn?x=mode=memory is not mistaken for memory.
+//
+// A repeated mode key is treated as a deny-safe anomaly rather than resolved:
+// net/url's Query().Get returns the FIRST value of a repeated key, while
+// SQLite's own URI parser resolves the LAST one (verified empirically —
+// file:x?mode=memory&mode=rwc opens rwc on disk even though Get("mode") reports
+// "memory"). Re-implementing SQLite's resolution order here would be a second
+// place that has to track it and could silently drift; instead, any duplicate
+// mode key is denied outright — no legitimate caller constructs one.
 func isInMemoryDB(name string) bool {
 	if name == ":memory:" {
 		return true
 	}
 	if strings.HasPrefix(name, "file:") {
 		if u, err := url.Parse(name); err == nil {
-			if strings.EqualFold(u.Query().Get("mode"), "memory") {
+			modes := u.Query()["mode"]
+			if len(modes) == 1 && strings.EqualFold(modes[0], "memory") {
 				return true
 			}
 		}

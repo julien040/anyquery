@@ -139,13 +139,13 @@ func TestCheckSourceFileURIBypass(t *testing.T) {
 	// path must be denied. These are validated against the same path go-getter
 	// opens (u.Path), not the raw string.
 	denied := []string{
-		"file:" + secret,              // single-slash form (was checked as relative)
-		"file://localhost" + secret,   // host form (host ignored by go-getter)
-		"file://" + secret,            // file:///abs form
+		"file:" + secret,                  // single-slash form (was checked as relative)
+		"file://localhost" + secret,       // host form (host ignored by go-getter)
+		"file://" + secret,                // file:///abs form
 		"file::file://localhost" + secret, // forced-getter + host form
-		"FILE:" + secret,              // uppercase scheme (net/url lowercases it)
-		"File://localhost" + secret,   // mixed-case scheme + host form
-		secret,                        // plain absolute path
+		"FILE:" + secret,                  // uppercase scheme (net/url lowercases it)
+		"File://localhost" + secret,       // mixed-case scheme + host form
+		secret,                            // plain absolute path
 	}
 	for _, src := range denied {
 		if err := r.CheckSource(src); err == nil {
@@ -164,6 +164,135 @@ func TestCheckSourceFileURIBypass(t *testing.T) {
 	// A legitimate in-dir source must still pass (no false positive).
 	if err := r.CheckSource("file://" + inDir); err != nil {
 		t.Errorf("CheckSource(%q) for a file inside the allowed dir should pass, got %v", "file://"+inDir, err)
+	}
+}
+
+// TestIsInMemoryDB pins the mode= duplicate-key behavior directly. Go's
+// url.Values.Get returns the FIRST value of a repeated key while SQLite's own
+// URI parser resolves the LAST, so file:/tmp/x?mode=memory&mode=rwc used to be
+// classified in-memory (and so exempted from the disk-write gate in
+// AllowAttachPath) while SQLite actually opened it read-write-create on disk.
+// Any duplicate mode key is now denied outright rather than resolved, so this
+// divergence can no longer be exploited regardless of which value SQLite
+// happens to prefer.
+func TestIsInMemoryDB(t *testing.T) {
+	cases := []struct {
+		name  string
+		input string
+		want  bool
+	}{
+		{"bare memory literal", ":memory:", true},
+		{"file uri, non-empty path, shared cache (existing fixture)", "file:memdb1?mode=memory&cache=shared", true},
+		{"file uri, empty path", "file:?mode=memory", true},
+		{"duplicate mode key, memory then rwc", "file:/tmp/x?mode=memory&mode=rwc", false},
+		{"duplicate mode key, percent-encoded memory then rwc", "file:/tmp/x?mode=%6demory&mode=rwc", false},
+		{"duplicate mode key, both memory", "file:/tmp/x?mode=memory&mode=memory", false},
+		{"mode spoofed as a query VALUE, not a key", "file:/etc/cron.d/pwn?x=mode=memory", false},
+		{"case-sensitive MODE key alongside real mode=rwc", "file:/tmp/x?MODE=memory&mode=rwc", false},
+	}
+	for _, c := range cases {
+		if got := isInMemoryDB(c.input); got != c.want {
+			t.Errorf("%s: isInMemoryDB(%q) = %v, want %v", c.name, c.input, got, c.want)
+		}
+	}
+}
+
+// TestCheckSourceForcedFileGetterEscape covers the file::<scheme>://... shape:
+// isRemoteSource sees the forced getter "file" and calls it local; stripFileScheme
+// strips the "file::" prefix and returns the remainder (a URL) unchanged; the
+// containment check then resolves the synthetic, non-existent path
+// <cwd>/http:/host/... down to its nearest existing ancestor (cwd) and passes.
+// Meanwhile go-getter keeps force="file" (a forced getter always wins over
+// scheme-based dispatch) and its FileGetter opens the inner URL's u.Path — the
+// real absolute path — discarding scheme and host entirely. The fix denies the
+// ambiguous shape outright, in CheckSource, before the isRemoteSource/AllowRemote
+// branch is ever reached.
+func TestCheckSourceForcedFileGetterEscape(t *testing.T) {
+	root := t.TempDir()
+	allowed := filepath.Join(root, "data")
+	if err := os.MkdirAll(allowed, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	// The bug required cwd to resolve inside an allowed dir (otherwise the
+	// pre-fix containment check already denied it for an unrelated reason);
+	// reproduce that precondition here so a regression would actually fail.
+	t.Chdir(allowed)
+
+	r := &Restrictions{AllowedDirs: []string{allowed}}
+
+	// Proves the precondition above is real and the fix below is what's doing
+	// the denying, not an accident of this test's setup: the OLD code path
+	// (strip the file:: prefix, resolve, check containment) on its own still
+	// evaluates this as "allowed", because the synthetic, non-existent path
+	// <cwd>/http:/attacker.example/etc/passwd has no existing ancestor other
+	// than cwd, which resolvePath falls back to — and cwd is inside
+	// AllowedDirs. If this assertion ever starts failing, the precondition has
+	// rotted and TestCheckSourceForcedFileGetterEscape below would pass even
+	// against unpatched code.
+	if err := r.checkLocalPath(stripFileScheme("file::http://attacker.example/etc/passwd")); err != nil {
+		t.Fatalf("precondition lost: the pre-fix code path no longer resolves inside the allowed dir (%v); "+
+			"this test would no longer catch a regression of the file:: forced-getter fix", err)
+	}
+
+	// The vulnerable family: file:: wrapping any scheme://, not just http.
+	denied := []string{
+		"file::http://attacker.example/etc/passwd",
+		"file::https://attacker.example/etc/passwd",
+		"file::s3::http://attacker.example/etc/passwd", // nested forced getter
+	}
+	for _, src := range denied {
+		if err := r.CheckSource(src); err == nil {
+			t.Errorf("CheckSource(%q) should be denied (file:: forced-getter escape), but passed", src)
+		}
+	}
+
+	// The trap: this must stay denied even when AllowRemote is true. Making
+	// isRemoteSource classify this shape as "remote" would let AllowRemote
+	// short-circuit CheckSource to nil while go-getter's FileGetter still runs
+	// locally — turning --allow-remote into unrestricted local disk read.
+	remoteAllowed := &Restrictions{AllowedDirs: []string{allowed}, AllowRemote: true}
+	if err := remoteAllowed.CheckSource("file::http://attacker.example/etc/passwd"); err == nil {
+		t.Error("file::http://... must be denied even when AllowRemote is true")
+	}
+
+	// Negative controls: shapes that must NOT be affected by the new check.
+	secret := filepath.Join(root, "secret.txt")
+	if err := os.WriteFile(secret, []byte("top secret\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	mustDeny := map[string]string{
+		"/etc/passwd":             "plain absolute path outside allowed dir",
+		"file:" + secret:          "file: scheme outside allowed dir (fixed pre-existing)",
+		"file://" + secret:        "file:// scheme outside allowed dir (fixed pre-existing)",
+		"file::file://" + secret:  "nested file:: + file:// (already denied, stays denied)",
+		"../secret.txt":           "relative traversal outside allowed dir",
+		"git::file:///etc/passwd": "non-file forced getter, caught by the AllowRemote gate",
+	}
+	for src, why := range mustDeny {
+		if err := r.CheckSource(src); err == nil {
+			t.Errorf("CheckSource(%q) should still be denied (%s), but passed", src, why)
+		}
+	}
+
+	// Must-not-break: file::/etc/passwd is a plain forced-file path (no inner
+	// scheme), not the wrapped-URL shape, and must still be treated as local
+	// (see TestIsRemoteSource) and denied only by ordinary containment.
+	if isRemoteSource("file::/etc/passwd") {
+		t.Error("file::/etc/passwd must still be classified as local, not remote")
+	}
+	if err := r.CheckSource("file::/etc/passwd"); err == nil {
+		t.Error("file::/etc/passwd should be denied by containment (outside allowed dir), but passed")
+	}
+
+	// A legitimate in-dir source must still pass (no false positive from the
+	// new check).
+	inDir := filepath.Join(allowed, "x.csv")
+	if err := os.WriteFile(inDir, []byte("a,b\n1,2\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := r.CheckSource(inDir); err != nil {
+		t.Errorf("CheckSource(%q) for a plain file inside the allowed dir should pass, got %v", inDir, err)
 	}
 }
 
@@ -188,6 +317,15 @@ func TestAllowAttachPath(t *testing.T) {
 		{"file uri memory", "file:m.db?mode=memory&cache=shared", true},
 		{"spoofed memory in wrong param", "file:/etc/cron.d/pwn?x=mode=memory", false},
 		{"on-disk denied when AllowAttach off", inDir, false},
+		// Regression: file:<path>?mode=memory&mode=rwc used to be classified
+		// in-memory by isInMemoryDB (Go's Query().Get takes the first value)
+		// and so was returned as "allowed" here before AllowAttach was ever
+		// consulted, while SQLite itself honors the LAST mode= value and opens
+		// the file read-write-create on disk — an arbitrary-file-create
+		// bypass of the sandbox with AllowAttach left at its default false.
+		{"duplicate mode key bypass denied", "file:" + filepath.Join(root, "pwned.db") + "?mode=memory&mode=rwc", false},
+		{"duplicate mode key bypass, percent-encoded, denied", "file:" + filepath.Join(root, "pwned2.db") + "?mode=%6demory&mode=rwc", false},
+		{"duplicate mode key, both memory, denied", "file:" + filepath.Join(root, "pwned3.db") + "?mode=memory&mode=memory", false},
 	} {
 		if got := noAttach.AllowAttachPath(c.path); got != c.want {
 			t.Errorf("AllowAttach=false AllowAttachPath(%q) = %v, want %v", c.path, got, c.want)

@@ -35,7 +35,7 @@ func init() {
 	serverCmd.Flags().String("log-format", "text", "Log format (text, json)")
 	serverCmd.Flags().String("log-file", "/dev/stdout", "Log file")
 	serverCmd.Flags().String("auth-file", "", "Path to the authentication file")
-	serverCmd.Flags().Bool("dev", false, "Run the program in developer mode")
+	serverCmd.Flags().Bool("dev", false, "Run the program in developer mode (implies --no-sandbox: UNSAFE, exposes local file read, SSRF, and arbitrary file write; do not use on a network-exposed server)")
 	serverCmd.Flags().StringSlice("extension", []string{}, "Load one or more extensions by specifying their path. Separate multiple extensions with a comma.")
 
 	// Sandboxing: enabled by default in server mode (the attack surface), with

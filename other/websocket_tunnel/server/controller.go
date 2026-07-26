@@ -1,9 +1,11 @@
 package main
 
 import (
+	crand "crypto/rand"
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/big"
 	"math/rand/v2"
 	"net/http"
 	"net/url"
@@ -21,12 +23,22 @@ func resJSON(w http.ResponseWriter, code int, data interface{}) {
 const alphabet = "abcdefghijklmnopqrstuvwxyz"
 const alphabetNumbersUpper = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
-func generateRandomID(n int) string {
+// generateRandomID generates a cryptographically random ID of length n over
+// the full alphabet (26^n possibilities). This is used for the tunnel ID,
+// which acts as a bearer-equivalent capability token, so it must be both
+// unbiased/unpredictable (crypto/rand, not math/rand) and drawn from the
+// entire alphabet (no character silently excluded).
+func generateRandomID(n int) (string, error) {
+	alphabetSize := big.NewInt(int64(len(alphabet)))
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = alphabet[rand.IntN(len(alphabet)-1)] // I don't like Z
+		idx, err := crand.Int(crand.Reader, alphabetSize)
+		if err != nil {
+			return "", fmt.Errorf("error generating random id: %w", err)
+		}
+		b[i] = alphabet[idx.Int64()]
 	}
-	return string(b)
+	return string(b), nil
 }
 
 // Generate a random ID with 62^n possibilities
@@ -58,7 +70,15 @@ func (r *server) newTunnel(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	id := generateRandomID(8)
+	// 16 chars mirrors the request-ID length used for the WS request/response
+	// correlation (websocket.go). The tunnel ID is the capability token for
+	// the gpt-facing HTTP API, so it needs real keyspace.
+	id, err := generateRandomID(16)
+	if err != nil {
+		r.logger.Error("Error generating tunnel id", "error", err)
+		resJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
+		return
+	}
 
 	t := &tunnel{
 		ID:        id,

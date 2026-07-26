@@ -17,7 +17,7 @@ The default depends on the command, because the exposure differs:
 
 | Command | Sandbox by default | How to change it |
 | --- | --- | --- |
-| `anyquery server` | **On** | `--no-sandbox` to disable |
+| `anyquery server` | **On** | `--no-sandbox` to disable, or `--dev` (see below) |
 | `anyquery gpt` | **On** (exposes an internet tunnel by default) | `--no-sandbox` to disable |
 | `anyquery mcp` | **Auto** — on when network-exposed (`--tunnel`, or a non-loopback `--host`); off for plain `localhost`/`--stdio` | `--sandbox` to force on, `--sandbox=false` to force off |
 | `anyquery query` / interactive shell | **Off** (local use is trusted) | `--sandbox` to opt in |
@@ -113,6 +113,26 @@ anyquery server --no-sandbox
 ```bash title="MCP exposed via a tunnel, but sandbox explicitly forced off"
 anyquery mcp --tunnel --sandbox=false
 ```
+
+### `--dev` always disables the sandbox
+
+`--dev` registers the developer UDFs (`load_dev_plugin`, `reload_dev_plugin`, `unload_dev_plugin`, see [Creating a plugin](/docs/developers/plugins/create-plugin)) that read a manifest file from an arbitrary path, run its `build_command`, and write to its `log_file` — none of which go through the sandbox's file-access policy. Rather than requiring two flags to get a safe developer server, **`--dev` implies `--no-sandbox`**: on `anyquery server`, passing `--dev` disables the sandbox entirely, regardless of `--allow-dirs`, `--allow-remote`, `--allow-attach`, `--allow-db-connections`, or even an explicit `--no-sandbox=false`.
+
+```bash title="server --dev: sandbox is OFF, logged loudly"
+anyquery server --dev
+# WARN Server sandboxing is DISABLED (--dev): developer mode always disables the
+#      sandbox, because load_dev_plugin/reload_dev_plugin/unload_dev_plugin read
+#      arbitrary files, exec build_command, and write log_file with no policy
+#      check. Clients can also read local files, reach internal endpoints, and
+#      write arbitrary files. Do not expose this server to a network; keep
+#      --host on loopback (the default) and do not run --dev in production.
+```
+
+:::caution
+Never bind a `--dev` server to a non-loopback `--host`. The MySQL server has no authentication by default (see [Adding authentication](/docs/usage/mysql-server#adding-authentication)), so a `--dev` server reachable from the network combines an unauthenticated client with a disabled sandbox and the dev UDFs' unrestricted file read, exec, and file write. Keep `--host` at its default (`127.0.0.1`) for any `--dev` server.
+:::
+
+`anyquery query` / the interactive shell are unsandboxed by default already, so `--dev` doesn't change their sandbox posture. If you do pass `--dev --sandbox` together there, the sandbox stays on but the dev UDFs are withheld (they are gated on the sandbox being off, not just on `--dev`) — pass `--dev` without `--sandbox` to use them.
 
 ## Enabling the sandbox in CLI mode
 

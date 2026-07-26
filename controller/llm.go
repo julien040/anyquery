@@ -19,6 +19,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/julien040/anyquery/controller/config/model"
+	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/namespace"
 	ws_tunnel "github.com/julien040/anyquery/other/websocket_tunnel/client"
 	"github.com/julien040/anyquery/rpc"
@@ -181,6 +182,7 @@ func executeQueryLLM(
 	db *sql.DB,
 	query string,
 	w io.Writer,
+	restrictions *module.Restrictions,
 ) error {
 	sh := shell{
 		DB:             db,
@@ -193,7 +195,15 @@ func executeQueryLLM(
 		Config: middlewareConfiguration{
 			"mysql":             true,
 			"doNotModifyOutput": true, // Do not modify the output, just keep w
+			// Deliberately no "dot-command"/"slash-command" here: this
+			// shell serves the LLM/GPT tunnel and MCP paths, which must
+			// never expose dot commands. Leaving the key unset defaults
+			// GetBool("dot-command", false) to false, which also closes
+			// off `.read` (see handleReadCommand in shell.go). Restrictions
+			// is still threaded through below so CheckFileRead applies if
+			// this ever changes.
 		},
+		Restrictions: restrictions,
 	}
 
 	// Run the query
@@ -232,6 +242,11 @@ func Gpt(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("could not open the database: %w", err)
 	}
 	defer cdb.Close()
+
+	// The GPT tunnel path (`POST /{id}/execute-query`) is unauthenticated,
+	// so `.read` and other file-touching operations must honour the
+	// sandbox policy wherever it is configured.
+	restrictions := RestrictionsFromFlags(cmd)
 
 	host, _ := cmd.Flags().GetString("host")
 	portUser, _ := cmd.Flags().GetInt("port")
@@ -319,7 +334,7 @@ func Gpt(cmd *cobra.Command, args []string) error {
 					continue
 				}
 
-				err := executeQueryLLM(db, req.Args[0].(string), &textRes)
+				err := executeQueryLLM(db, req.Args[0].(string), &textRes, restrictions)
 				if err != nil {
 					res.Error = err.Error()
 				}
@@ -423,7 +438,7 @@ func Gpt(cmd *cobra.Command, args []string) error {
 			return
 		}
 
-		err := executeQueryLLM(db, body.Query, w)
+		err := executeQueryLLM(db, body.Query, w, restrictions)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -650,6 +665,12 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Computed after the auto-enable logic above so it reflects the
+	// possibly-forced "sandbox" flag. Applies to every query executed
+	// through this MCP server, including `.read` (see handleReadCommand in
+	// shell.go).
+	restrictions := RestrictionsFromFlags(cmd)
+
 	// Open the database
 	namespaceInstance, db, err := openUserDatabase(cmd, args)
 	if err != nil {
@@ -838,7 +859,7 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 
 		w := strings.Builder{}
 
-		err := executeQueryLLM(db, query, &w)
+		err := executeQueryLLM(db, query, &w, restrictions)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Failed to execute the query: %v", err)), nil
 		}
@@ -903,7 +924,7 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 				} else if query, ok := req.Args[0].(string); !ok {
 					response.WriteString("Invalid query")
 				} else {
-					err := executeQueryLLM(db, query, &response)
+					err := executeQueryLLM(db, query, &response, restrictions)
 					if err != nil {
 						return fmt.Errorf("failed to execute query: %w", err)
 					}

@@ -30,6 +30,33 @@ import (
 
 var regexpManifest = regexp.MustCompile(`/\*([^*]|\*+[^*/])*\*+/`)
 
+// runShellConfig returns the middleware configuration used for the shell
+// that runs content fetched via `anyquery run` (a remote URL, an S3 bucket,
+// or a Query Hub ID). Extracted to a package-level function so it can be
+// exercised directly by tests without going through the full Run command,
+// which requires network access, plugin installation, and a live database.
+func runShellConfig() middlewareConfiguration {
+	return middlewareConfiguration{
+		// Content executed via `anyquery run` is fetched from a remote URL,
+		// S3 bucket, or resolved from a Query Hub ID — not necessarily
+		// authored by the user running the command. Dot and slash commands
+		// let query content escape SQL and execute local OS commands
+		// (.shell/.system), change the process's working directory (.cd),
+		// or append attacker-chosen content to an arbitrary local file
+		// (.output). A grep across all 104 shipped `.sql` files in queries/
+		// found zero uses of any dot or slash command, so disabling them
+		// here is not a compatibility break.
+		//
+		// NOTE: this flag does NOT govern `.read`, which is handled in
+		// shell.Run before the middlewares even run — see the
+		// handleReadCommand gating in shell.go. Don't assume disabling
+		// dot-command here is sufficient on its own.
+		"dot-command":   false,
+		"mysql":         true,
+		"slash-command": false,
+	}
+}
+
 type manifestQuery struct {
 	Title       string `toml:"title"`
 	Description string `toml:"description"`
@@ -515,11 +542,15 @@ func Run(cmd *cobra.Command, args []string) error {
 			middlewareMySQL, middlewareFileQuery,
 			middlewareQuery,
 		},
-		Config: middlewareConfiguration{
-			"dot-command":   true,
-			"mysql":         true,
-			"slash-command": true,
-		},
+		Config: runShellConfig(),
+		// Restrictions is nil here in practice: cmd/run.go registers no
+		// sandbox flags, so RestrictionsFromFlags(cmd) always returns nil
+		// (unrestricted). The "dot-command": false setting in
+		// runShellConfig is therefore the actual control for this path;
+		// Restrictions is threaded through anyway so `.read` is covered
+		// consistently with the other shell construction sites, and so
+		// this stays correct if `run` ever gains sandbox flags.
+		Restrictions:   RestrictionsFromFlags(cmd),
 		OutputFile:     "stdout",
 		OutputFileDesc: os.Stdout,
 	}
