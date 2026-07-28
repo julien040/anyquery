@@ -1,5 +1,7 @@
 # Anyquery
 
+[![MCP Toplist](https://mcptoplist.com/badge/mcp.so%2Fanyquery%2Fjulien040.svg)](https://mcptoplist.com/server/mcp.so%2Fanyquery%2Fjulien040)
+
 <img src="https://anyquery.dev/images/logo-shadow.png" alt="Anyquery logo" width="96"></img>
 
 ![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/julien040/anyquery/total)
