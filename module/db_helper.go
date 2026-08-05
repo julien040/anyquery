@@ -8,7 +8,7 @@ import (
 )
 
 type databaseColumn struct {
-	// The name of the column in the database
+	// The raw name of the column in the database, without identifier quoting
 	Realname string
 	// The name of the column locally
 	SQLiteName string
@@ -82,20 +82,21 @@ func constructSQLQuery(
 		if !colInfo.Supported {
 			continue
 		}
+		quotedColumn := flavor.Quote(colInfo.Realname)
 
 		switch c.Op {
 		case sqlite3.OpEQ:
-			andConditions = append(andConditions, query.Equal(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.Equal(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGT:
-			andConditions = append(andConditions, query.GreaterThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.GreaterThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGE:
-			andConditions = append(andConditions, query.GreaterEqualThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.GreaterEqualThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLT:
-			andConditions = append(andConditions, query.LessThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.LessThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLE:
-			andConditions = append(andConditions, query.LessEqualThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.LessEqualThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLIKE:
-			andConditions = append(andConditions, query.Like(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.Like(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGLOB:
 			// Not supported
 			continue
@@ -197,20 +198,21 @@ func efficientConstructSQLQuery(
 		if !colInfo.Supported {
 			continue
 		}
+		quotedColumn := flavor.Quote(colInfo.Realname)
 
 		switch c.Op {
 		case sqlite3.OpEQ:
-			andConditions = append(andConditions, query.Equal(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.Equal(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGT:
-			andConditions = append(andConditions, query.GreaterThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.GreaterThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGE:
-			andConditions = append(andConditions, query.GreaterEqualThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.GreaterEqualThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLT:
-			andConditions = append(andConditions, query.LessThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.LessThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLE:
-			andConditions = append(andConditions, query.LessEqualThan(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.LessEqualThan(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpLIKE:
-			andConditions = append(andConditions, query.Like(colInfo.Realname, colInfo.DefaultValue))
+			andConditions = append(andConditions, query.Like(quotedColumn, colInfo.DefaultValue))
 		case sqlite3.OpGLOB:
 			// Not supported
 			continue

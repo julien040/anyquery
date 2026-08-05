@@ -252,7 +252,7 @@ func (m *PostgresModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.
 
 		schema.WriteString(fmt.Sprintf("  %s %s", localColumnName, columnType))
 		internalSchema = append(internalSchema, databaseColumn{
-			Realname:     fmt.Sprintf(`"%s"`, columnName),
+			Realname:     columnName,
 			SQLiteName:   localColumnName,
 			Type:         columnType,
 			Supported:    typeSupported,
@@ -532,7 +532,7 @@ func (t *PostgresTable) Insert(id any, vals []any) (int64, error) {
 		if v == nil {
 			continue
 		}
-		cols = append(cols, t.schema[i].Realname)
+		cols = append(cols, sqlbuilder.PostgreSQL.Quote(t.schema[i].Realname))
 		values = append(values, v)
 	}
 	builder.Cols(cols...)
@@ -562,7 +562,7 @@ func (t *PostgresTable) Update(id any, vals []any) error {
 		if v == nil {
 			continue
 		}
-		sets = append(sets, builder.Assign(t.schema[i].Realname, v))
+		sets = append(sets, builder.Assign(sqlbuilder.PostgreSQL.Quote(t.schema[i].Realname), v))
 	}
 
 	builder.Set(sets...)
