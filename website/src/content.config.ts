@@ -18,7 +18,7 @@ export const collections = {
             extend: z.object({
                 banner: z.object({ content: z.string() }).default({
                     content:
-                        'Available for a 6-month internship starting in January 2027. <a href="https://cdn.julienc.me/resume.pdf">Read my resume</a> or contact me at <a href="mailto:contact@julienc.me" class="underline">contact@julienc.me</a>.',
+                        '🔍 Seeking a 6-month software engineering internship starting January 2027. Based in France, open to remote or relocation.<br /><a href="mailto:contact@julienc.me" class="underline">contact@julienc.me</a> • <a href="https://cdn.julienc.me/resume.pdf" class="underline">Resume</a>',
                 }),
             }),
         }),

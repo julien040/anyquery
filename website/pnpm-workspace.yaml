@@ -1,0 +1,6 @@
+allowBuilds:
+  '@tailwindcss/oxide': false
+  esbuild: false
+  sharp: false
+minimumReleaseAgeExclude:
+  - '@astrojs/starlight@0.41.7'

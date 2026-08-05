@@ -179,10 +179,17 @@ Anyquery is plugin-based, and you can install plugins to extend its functionalit
 Anyquery is an independent open-source project. These companies support its development:
 
 <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=anyquery">
-  <img src="website/public/images/sponsors/atlas-cloud-logo-white.svg" alt="Atlas Cloud" height="120">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/atlas-cloud-logo-white.svg">
+    <img src="https://cdn.julienc.me/share/atlas-cloud-logo-black.svg" alt="Atlas Cloud" width="220">
+  </picture>
 </a>
 
-[Become a sponsor](https://github.com/sponsors/julien040)
+### Want your logo here?
+
+Anyquery is built and maintained by one person. Sponsoring keeps it free and open-source, and puts your logo in this README and on [anyquery.dev](https://anyquery.dev/#sponsors).
+
+[Become a sponsor](https://github.com/sponsors/julien040/)
 
 ## License
 
