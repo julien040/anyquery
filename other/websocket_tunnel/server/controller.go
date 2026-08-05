@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"math/big"
-	"math/rand/v2"
 	"net/http"
 	"net/url"
 	"time"
@@ -41,13 +40,22 @@ func generateRandomID(n int) (string, error) {
 	return string(b), nil
 }
 
-// Generate a random ID with 62^n possibilities
-func generateRandomIDWithNumbers(n int) string {
+// Generate a random ID with 62^n possibilities. Correlation-only (WS
+// request/response matching, connection log IDs), not a capability, but
+// still uses crypto/rand and the full alphabet to match generateRandomID.
+// Beware off-by-ones here: rand over len-1 would silently never emit the
+// alphabet's last character.
+func generateRandomIDWithNumbers(n int) (string, error) {
+	alphabetSize := big.NewInt(int64(len(alphabetNumbersUpper)))
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = alphabetNumbersUpper[rand.IntN(len(alphabetNumbersUpper)-1)]
+		idx, err := crand.Int(crand.Reader, alphabetSize)
+		if err != nil {
+			return "", fmt.Errorf("error generating random id: %w", err)
+		}
+		b[i] = alphabetNumbersUpper[idx.Int64()]
 	}
-	return string(b)
+	return string(b), nil
 }
 
 // Matches /tunnel/new

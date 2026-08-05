@@ -200,8 +200,8 @@ func executeQueryLLM(
 			// never expose dot commands. Leaving the key unset defaults
 			// GetBool("dot-command", false) to false, which also closes
 			// off `.read` (see handleReadCommand in shell.go). Restrictions
-			// is still threaded through below so CheckFileRead applies if
-			// this ever changes.
+			// is still threaded through below so the allowed-directory policy
+			// applies to any file it reads if this ever changes.
 		},
 		Restrictions: restrictions,
 	}

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/goccy/go-json"
@@ -67,6 +69,10 @@ func (m *JSONlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 	}
 
 	fileName := strings.Trim(args[3], "' \"")
+	// Freshness of the remote download cache, in seconds. Ignored for a local
+	// file, which is never cached.
+	cacheTTL := "86400"
+	cacheTTLParsed := int64(86400)
 
 	// Parse the args
 	argsAvailable := []argParam{
@@ -78,6 +84,10 @@ func (m *JSONlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		{"file_path", &fileName},
 		{"filepath", &fileName},
 		{"url", &fileName},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 	parseArgs(argsAvailable, args)
 
@@ -86,17 +96,28 @@ func (m *JSONlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTa
 		return nil, fmt.Errorf("missing file argument. Check the validity of the arguments")
 	}
 
+	if cacheTTL != "" {
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
+	}
+
 	fileContent := []byte{}
 	mmap := mmap.MMap{}
 	var err error
 
 	if fileName == "/dev/stdin" || fileName == "-" || fileName == "stdin" {
+		if !m.Restrictions.AllowStdin() {
+			return nil, fmt.Errorf("sandbox: reading from stdin is not allowed")
+		}
 		fileContent, err = io.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read from stdin: %s", err)
 		}
 	} else {
-		file, err := openMmapedFile(fileName, m.Restrictions)
+		file, err := openMmapedFile(fileName, m.Restrictions, time.Duration(cacheTTLParsed)*time.Second)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s", err)
 		}

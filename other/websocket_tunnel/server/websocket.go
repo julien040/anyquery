@@ -104,7 +104,11 @@ func (s *server) handleConnectWS(se *melody.Session) {
 	// See sessionLogID and the comment on the three s.logger.Error calls in
 	// handleMessage below for why this replaced logging the tunnel ID
 	// directly.
-	se.Keys["log_id"] = generateRandomIDWithNumbers(8)
+	logID, err := generateRandomIDWithNumbers(8)
+	if err != nil {
+		logID = "unknown"
+	}
+	se.Keys["log_id"] = logID
 	s.logger.Info("New connection", "remoteAddr", se.Request.RemoteAddr, "session", sessionLogID(se))
 	s.sessions.Store(se.Keys["tunnel_id"].(string), se)
 }
@@ -146,19 +150,31 @@ func (s *server) handleMessage(se *melody.Session, msg []byte) {
 	}
 
 	// Get the response channel
-	responseChan, ok := se.Keys["requests"].(*xsync.MapOf[string, chan Response]).Load(response.RequestID)
+	requests := se.Keys["requests"].(*xsync.MapOf[string, chan Response])
+	responseChan, ok := requests.Load(response.RequestID)
 	if !ok {
 		s.logger.Error("Response channel not found", "session", sessionLogID(se), "requestID", response.RequestID)
 		return
 	}
 
-	// Send the response
-	/* responseChan.(chan Response) <- response */
-	responseChan <- response
+	// Delete it before sending: this is what stops a second response sharing
+	// the same (attacker-controlled) request_id from finding this channel
+	// again once we've claimed it.
+	requests.Delete(response.RequestID)
 
-	// Delete the response channel
-	se.Keys["requests"].(*xsync.MapOf[string, chan Response]).Delete(response.RequestID)
-
+	// Non-blocking: sendRequest's own timeout may have already fired and
+	// deleted this same entry (a benign race with the Load above), in which
+	// case sendRequest has stopped receiving from responseChan. The channel
+	// is buffered (size 1, see sendRequest), so the first send here never
+	// blocks even with no reader — but without this select/default, a
+	// concurrent duplicate response (this code path racing with itself
+	// before the Delete above lands) would try to send a second time to an
+	// already-full buffer and block forever, leaking this goroutine.
+	select {
+	case responseChan <- response:
+	default:
+		s.logger.Debug("no receiver for response, dropping", "session", sessionLogID(se), "requestID", response.RequestID)
+	}
 }
 
 const requestTimeout = 70 * time.Second
@@ -172,37 +188,38 @@ func (s *server) retrieveSession(id string) (*melody.Session, error) {
 	return session, nil
 }
 
-func (s *server) listTables(id string) ([]byte, error) {
-	// Retrieve the websocket session
-	session, err := s.retrieveSession(id)
+// sendRequest builds a Request for method/args, sends it over session, and
+// waits up to requestTimeout for the matching response.
+//
+// The response channel is registered in session.Keys["requests"] *before*
+// Write is called, and is buffered (size 1): registering after Write left a
+// window where a client fast enough to answer before Store completed found
+// no channel in handleMessage and silently lost its response, forcing a full
+// 70s timeout. The deferred Delete here is the requesting side's half of the
+// timeout-cleanup contract: on a timeout, this removes the entry so a very
+// late response arriving afterwards finds nothing to send to (see
+// handleMessage's own Delete-then-non-blocking-send for its half).
+func (s *server) sendRequest(session *melody.Session, method string, args []interface{}) ([]byte, error) {
+	requestID, err := generateRandomIDWithNumbers(16) // 62^16 possibilities = 4.767x10^28 (I think we don't need to check for collisions)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error generating request id: %w", err)
 	}
+	request := Request{Method: method, Args: args, RequestID: requestID}
 
-	// Send the request
-	request := Request{
-		Method:    "list-tables",
-		Args:      []interface{}{},
-		RequestID: generateRandomIDWithNumbers(16), // 62^16 possibilities = 4.767x10^28 (I think we don't need to check for collisions)
-	}
-
-	// Serialize the request
 	serialized, err := json.Marshal(request)
 	if err != nil {
 		return nil, fmt.Errorf("error serializing request: %w", err)
 	}
 
-	// Send the request
-	err = session.Write(serialized)
-	if err != nil {
+	responseChan := make(chan Response, 1)
+	requests := session.Keys["requests"].(*xsync.MapOf[string, chan Response])
+	requests.Store(request.RequestID, responseChan)
+	defer requests.Delete(request.RequestID)
+
+	if err := session.Write(serialized); err != nil {
 		return nil, fmt.Errorf("error sending request to client: %w", err)
 	}
 
-	// Create a channel to wait for the response
-	responseChan := make(chan Response)
-	session.Keys["requests"].(*xsync.MapOf[string, chan Response]).Store(request.RequestID, responseChan)
-
-	// Wait for the response
 	select {
 	case response := <-responseChan:
 		if response.Error != "" {
@@ -213,103 +230,31 @@ func (s *server) listTables(id string) ([]byte, error) {
 			return nil, fmt.Errorf("error converting response to string")
 		}
 		return []byte(byteVal), nil
-
 	case <-time.After(requestTimeout):
 		return nil, fmt.Errorf("timeout waiting for response")
 	}
+}
 
+func (s *server) listTables(id string) ([]byte, error) {
+	session, err := s.retrieveSession(id)
+	if err != nil {
+		return nil, err
+	}
+	return s.sendRequest(session, "list-tables", []interface{}{})
 }
 
 func (s *server) describeTable(id, tableName string) ([]byte, error) {
-	// Retrieve the websocket session
 	session, err := s.retrieveSession(id)
 	if err != nil {
 		return nil, err
 	}
-
-	// Send the request
-	request := Request{
-		Method:    "describe-table",
-		Args:      []interface{}{tableName},
-		RequestID: generateRandomIDWithNumbers(16),
-	}
-
-	// Serialize the request
-	serialized, err := json.Marshal(request)
-	if err != nil {
-		return nil, fmt.Errorf("error serializing request: %w", err)
-	}
-
-	// Send the request
-	err = session.Write(serialized)
-	if err != nil {
-		return nil, fmt.Errorf("error sending request to client: %w", err)
-	}
-
-	// Create a channel to wait for the response
-	responseChan := make(chan Response)
-	session.Keys["requests"].(*xsync.MapOf[string, chan Response]).Store(request.RequestID, responseChan)
-
-	// Wait for the response
-	select {
-	case response := <-responseChan:
-		if response.Error != "" {
-			return nil, fmt.Errorf("error from client: %s", response.Error)
-		}
-		byteVal, ok := response.Result.(string)
-		if !ok {
-			return nil, fmt.Errorf("error converting response to string")
-		}
-		return []byte(byteVal), nil
-	case <-time.After(requestTimeout):
-		return nil, fmt.Errorf("timeout waiting for response")
-	}
-
+	return s.sendRequest(session, "describe-table", []interface{}{tableName})
 }
 
 func (s *server) executeQuery(id, query string) ([]byte, error) {
-	// Retrieve the websocket session
 	session, err := s.retrieveSession(id)
 	if err != nil {
 		return nil, err
 	}
-
-	// Send the request
-	request := Request{
-		Method:    "execute-query",
-		Args:      []interface{}{query},
-		RequestID: generateRandomIDWithNumbers(16),
-	}
-
-	// Serialize the request
-	serialized, err := json.Marshal(request)
-	if err != nil {
-		return nil, fmt.Errorf("error serializing request: %w", err)
-	}
-
-	// Send the request
-	err = session.Write(serialized)
-	if err != nil {
-		return nil, fmt.Errorf("error sending request to client: %w", err)
-	}
-
-	// Create a channel to wait for the response
-	responseChan := make(chan Response)
-	session.Keys["requests"].(*xsync.MapOf[string, chan Response]).Store(request.RequestID, responseChan)
-
-	// Wait for the response
-	select {
-	case response := <-responseChan:
-		if response.Error != "" {
-			return nil, fmt.Errorf("error from client: %s", response.Error)
-		}
-		byteVal, ok := response.Result.(string)
-		if !ok {
-			return nil, fmt.Errorf("error converting response to string")
-		}
-		return []byte(byteVal), nil
-	case <-time.After(requestTimeout):
-		return nil, fmt.Errorf("timeout waiting for response")
-	}
-
+	return s.sendRequest(session, "execute-query", []interface{}{query})
 }

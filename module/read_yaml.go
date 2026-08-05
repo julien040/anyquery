@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/edsrzf/mmap-go"
 	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
@@ -76,6 +78,10 @@ func (v *YamlModule) DestroyModule() {}
 func (m *YamlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
 	// Parse the file content
 	fileName := ""
+	// Freshness of the remote download cache, in seconds. Ignored for a local
+	// file, which is never cached.
+	cacheTTL := "86400"
+	cacheTTLParsed := int64(86400)
 
 	if len(args) > 3 {
 		fileName = strings.Trim(args[3], "'\" ")
@@ -90,6 +96,10 @@ func (m *YamlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		{"file_path", &fileName},
 		{"filepath", &fileName},
 		{"url", &fileName},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 
 	parseArgs(params, args)
@@ -99,17 +109,28 @@ func (m *YamlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		return nil, fmt.Errorf("missing file argument. Specify it as: SELECT * FROM read_yaml('file=https://example.com');")
 	}
 
+	if cacheTTL != "" {
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
+	}
+
 	content := []byte{}
 	mmap := mmap.MMap{}
 	var err error
 
 	if fileName == "stdin" || fileName == "/dev/stdin" || fileName == "-" {
+		if !m.Restrictions.AllowStdin() {
+			return nil, fmt.Errorf("sandbox: reading from stdin is not allowed")
+		}
 		content, err = io.ReadAll(os.Stdin)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read from stdin: %s", err)
 		}
 	} else {
-		content, err = openMmapedFile(fileName, m.Restrictions)
+		content, err = openMmapedFile(fileName, m.Restrictions, time.Duration(cacheTTLParsed)*time.Second)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open file: %s", err)
 		}

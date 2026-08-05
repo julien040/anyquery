@@ -366,21 +366,25 @@ func (p *shell) handleReadCommand(query string, queryData QueryData) (QueryData,
 		}, true, false
 	}
 
-	if err := p.Restrictions.CheckFileRead(pathToRead); err != nil {
-		return QueryData{
-			Message:    err.Error(),
-			StatusCode: 2,
-		}, true, false
-	}
-
-	file, err := os.ReadFile(pathToRead)
+	// One call does the policy check and the read, so the path cannot be
+	// swapped for a symlink escaping --allow-dirs in between (see
+	// module.Restrictions.ReadLocalFile).
+	file, err := p.Restrictions.ReadLocalFile(pathToRead)
 	if err != nil {
+		// A refusal by the policy is safe to echo: it only repeats the path and
+		// the configured directories. Any other error is the raw OS error,
+		// which must not be echoed — on a network-facing surface the difference
+		// between ENOENT and EACCES is a filesystem existence/readability
+		// oracle. Only a refusal carries the "sandbox: " prefix, and it is a
+		// prefix rather than a substring so that a path containing "sandbox:"
+		// cannot smuggle an OS error through. The path itself is kept in both
+		// messages for interactive usability.
+		message := fmt.Sprintf("Error reading file %s", pathToRead)
+		if strings.HasPrefix(err.Error(), "sandbox: ") {
+			message = err.Error()
+		}
 		return QueryData{
-			// Do not echo the OS error: on a network-facing surface, the
-			// difference between ENOENT and EACCES is a filesystem
-			// existence/readability oracle. The path is kept for
-			// interactive usability.
-			Message:    fmt.Sprintf("Error reading file %s", pathToRead),
+			Message:    message,
 			StatusCode: 2,
 		}, true, false
 	}

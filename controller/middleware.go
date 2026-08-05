@@ -461,6 +461,7 @@ var supportedTableFunctions = map[string]string{
 	"read_jsonl":   "jsonl_reader",
 	"read_ndjson":  "jsonl_reader",
 	"read_log":     "log_reader",
+	"read_file":    "file_reader",
 }
 
 // Prefix the query like SELECT * FROM read_json with a CREATE VIRTUAL TABLE statement
@@ -605,6 +606,8 @@ func middlewareFileQuery(queryData *QueryData) bool {
 				preExecBuilder.WriteString("jsonl_reader")
 			case "read_log":
 				preExecBuilder.WriteString("log_reader")
+			case "read_file":
+				preExecBuilder.WriteString("file_reader")
 			default:
 				// If the user writes read_foo, and we don't have a reader for foo
 				// we skip the table function

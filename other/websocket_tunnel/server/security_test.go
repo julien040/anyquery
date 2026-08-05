@@ -9,7 +9,9 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/olahol/melody"
 	"github.com/puzpuzpuz/xsync/v3"
 )
@@ -99,6 +101,37 @@ func TestGenerateRandomIDNotAllSame(t *testing.T) {
 	}
 	if same {
 		t.Fatalf("generateRandomID produced the same value %q across 21 calls", first)
+	}
+}
+
+// TestGenerateRandomIDWithNumbersUsesFullAlphabet is the sibling regression
+// test to TestGenerateRandomIDUsesFullAlphabet: generateRandomIDWithNumbers
+// had the identical off-by-one (rand.IntN(len(alphabetNumbersUpper)-1)),
+// which meant '9' — the last character of alphabetNumbersUpper — could never
+// be produced. Draws a large sample and asserts every character of the
+// alphabet appears at least once.
+func TestGenerateRandomIDWithNumbersUsesFullAlphabet(t *testing.T) {
+	seen := make(map[rune]bool)
+
+	const totalChars = 20_000
+	const idLen = 32
+
+	drawn := 0
+	for drawn < totalChars {
+		id, err := generateRandomIDWithNumbers(idLen)
+		if err != nil {
+			t.Fatalf("generateRandomIDWithNumbers returned error: %v", err)
+		}
+		for _, c := range id {
+			seen[c] = true
+		}
+		drawn += idLen
+	}
+
+	for _, c := range alphabetNumbersUpper {
+		if !seen[c] {
+			t.Errorf("character %q never appeared across %d draws; full alphabet is not being used (off-by-one regression?)", c, drawn)
+		}
 	}
 }
 
@@ -366,6 +399,78 @@ func TestHandleMessageErrorPathsDoNotLogTunnelID(t *testing.T) {
 			t.Fatalf("expected session correlation id in log, got: %q", out)
 		}
 	})
+}
+
+// TestHandleMessageSendIsNonBlockingWhenBufferFull is a regression test for
+// the goroutine/map-entry leak: before the fix, handleMessage sent to an
+// unbuffered channel with no select/default, so a response racing a
+// sendRequest timeout (which had already stopped receiving) blocked forever.
+// This simulates that race directly by pre-filling the buffered channel — a
+// stand-in for "the requester already got a value and moved on" — and
+// asserts handleMessage still returns promptly instead of hanging.
+func TestHandleMessageSendIsNonBlockingWhenBufferFull(t *testing.T) {
+	const tunnelID = "sometunnelid"
+	var buf bytes.Buffer
+	s := newTestServer(&buf)
+	se := newTestSession(tunnelID)
+	se.Keys["log_id"] = "corr-nonblocking"
+
+	requests := se.Keys["requests"].(*xsync.MapOf[string, chan Response])
+	ch := make(chan Response, 1)
+	ch <- Response{RequestID: "req-1", Result: "already delivered"} // fill the buffer
+	requests.Store("req-1", ch)
+
+	done := make(chan struct{})
+	go func() {
+		s.handleMessage(se, []byte(`{"request_id":"req-1","result":"second"}`))
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatal("handleMessage blocked sending to a full buffer — the non-blocking send regressed, this leaks a goroutine per occurrence")
+	}
+
+	if _, ok := requests.Load("req-1"); ok {
+		t.Fatal("expected the request entry to be deleted so a further duplicate response finds nothing to send to")
+	}
+}
+
+// TestNewTunnelRateLimiter is a regression test for the previously
+// unauthenticated, unbounded /tunnel/new endpoint: any non-empty
+// Authorization header used to mint an unlimited number of 120-day-lived
+// tunnel rows. Exercises the exact middleware chain wired into
+// tunnelRouter (ClientIPFromRemoteAddr + newTunnelRateLimiter), not just
+// the underlying library, so a regression in how they're composed would
+// be caught here too.
+func TestNewTunnelRateLimiter(t *testing.T) {
+	handler := middleware.ClientIPFromRemoteAddr(newTunnelRateLimiter()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})))
+
+	doRequest := func(remoteAddr string) int {
+		req := httptest.NewRequest(http.MethodPost, "/tunnel/new", nil)
+		req.RemoteAddr = remoteAddr
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+		return rec.Code
+	}
+
+	const clientA = "203.0.113.5:1234"
+	for i := 0; i < newTunnelRateLimitCount; i++ {
+		if code := doRequest(clientA); code != http.StatusOK {
+			t.Fatalf("request %d from %s: got status %d, want 200", i, clientA, code)
+		}
+	}
+	if code := doRequest(clientA); code != http.StatusTooManyRequests {
+		t.Fatalf("got status %d, want 429 after exceeding the rate limit", code)
+	}
+
+	const clientB = "198.51.100.9:4321"
+	if code := doRequest(clientB); code != http.StatusOK {
+		t.Fatalf("a different client IP was rate-limited by another IP's usage: got status %d", code)
+	}
 }
 
 // TestSessionLogIDFallsBackWhenUnset ensures sessionLogID degrades safely

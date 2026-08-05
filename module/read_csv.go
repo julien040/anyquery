@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/edsrzf/mmap-go"
 	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
@@ -78,12 +79,18 @@ func (v *CsvModule) DestroyModule() {}
 var alphaNumRegexp *regexp.Regexp = regexp.MustCompile(`[^\p{L}\p{N} ]+`)
 
 func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab, error) {
-	// Get the arguments
+	// Get the arguments. The separator and the header are left unset on purpose:
+	// an empty value means the caller said nothing about them, and what they
+	// stand for is then inferred from the file itself (see sniffCSV).
 	useHeader := false
 	useHeaderStr := ""
-	fieldSeparator := ","
+	fieldSeparator := ""
 	fileName := ""
 	schema := ""
+	// Freshness of the remote download cache, in seconds. Ignored for a local
+	// file, which is never cached.
+	cacheTTL := "86400"
+	cacheTTLParsed := int64(86400)
 
 	if len(args) >= 4 {
 		fileName = strings.Trim(args[3], "' \"")
@@ -108,16 +115,29 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		{"delimiter", &fieldSeparator},
 		{"schema", &schema},
 		{"table", &schema},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 	parseArgs(params, args)
 
-	useHeader, _ = strconv.ParseBool(useHeaderStr)
-
-	// Parse the separator
-	if fieldSeparator == "" {
-		fieldSeparator = ","
+	// An explicit header= wins over detection, whichever way it points.
+	headerSet := useHeaderStr != ""
+	if headerSet {
+		useHeader, _ = strconv.ParseBool(useHeaderStr)
 	}
 
+	if cacheTTL != "" {
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
+	}
+
+	// Parse the separator
+	separatorSet := fieldSeparator != ""
 	if fieldSeparator == "tab" || fieldSeparator == "\\t" {
 		fieldSeparator = "\t"
 	}
@@ -131,6 +151,9 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 	mmap := mmap.MMap{}
 	var err error
 	if fileName == "/dev/stdin" || fileName == "-" || fileName == "stdin" {
+		if !m.Restrictions.AllowStdin() {
+			return nil, fmt.Errorf("sandbox: reading from stdin is not allowed")
+		}
 		// Read from stdin
 		file, err = io.ReadAll(os.Stdin)
 		if err != nil {
@@ -138,7 +161,7 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		}
 	} else {
 		// Open the file and mmap it
-		mmap, err = openMmapedFile(fileName, m.Restrictions)
+		mmap, err = openMmapedFile(fileName, m.Restrictions, time.Duration(cacheTTLParsed)*time.Second)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open the file: %s", err)
 		}
@@ -186,24 +209,34 @@ func (m *CsvModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 			})
 		}
 	} else {
-		// We read the first row to get the columns and the amount of columns
-		reader := csv.NewReader(bytes.NewReader(file))
-		reader.Comma = rune(fieldSeparator[0])
-		row, err := reader.Read()
-		if err != nil {
-			return nil, fmt.Errorf("failed to read the first row: %s", err)
+		// Without a schema, the head of the file tells the columns, their types,
+		// and whatever the caller left unspecified: the delimiter and whether the
+		// first row is a header.
+		separator := ','
+		if separatorSet {
+			separator = rune(fieldSeparator[0])
 		}
 
-		for i, col := range row {
-			colName := fmt.Sprintf("col%d", i)
-			if useHeader {
-				colName = col
-			}
-			columns = append(columns, columnCsv{
-				name:    colName,
-				colType: "string",
-			})
+		detectedSeparator, detectedHeader, detectedColumns :=
+			sniffCSV(file, separator, separatorSet, headerSet, useHeader)
+		if len(detectedColumns) == 0 {
+			return nil, fmt.Errorf("failed to read the first row: the file holds no CSV record")
 		}
+
+		columns = detectedColumns
+		// The cursor skips the first row of the file on this value, so a detected
+		// header must not be read back as data.
+		useHeader = detectedHeader
+		if !separatorSet {
+			fieldSeparator = string(detectedSeparator)
+		}
+	}
+
+	// The separator is unset when nothing was passed and the schema branch left
+	// detection out. The reader splits on a single byte of it, so it can never
+	// be empty by the time the table is built.
+	if fieldSeparator == "" {
+		fieldSeparator = ","
 	}
 
 	// Create the table

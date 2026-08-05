@@ -432,6 +432,10 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("toml_reader", &module.TomlModule{Restrictions: n.restrictions})
 			conn.CreateModule("jsonl_reader", &module.JSONlModule{Restrictions: n.restrictions})
 			conn.CreateModule("log_reader", &module.LogModule{Restrictions: n.restrictions})
+			// file_reader only picks one of the readers above from the file
+			// extension (or the format= argument) and forwards the arguments to
+			// it, so it exposes nothing they don't and gets the same policy.
+			conn.CreateModule("file_reader", &module.FileModule{Restrictions: n.restrictions})
 
 			// Register the string functions
 			// like position, repeat, replace, etc.

@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/edsrzf/mmap-go"
 	"github.com/gammazero/deque"
@@ -56,6 +58,10 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 	if len(args) > 3 {
 		fileName = strings.Trim(args[3], "' \"")
 	}
+	// Freshness of the remote download cache, in seconds. Ignored for a local
+	// file, which is never cached.
+	cacheTTL := "86400"
+	cacheTTLParsed := int64(86400)
 
 	params := []argParam{
 		{"file", &fileName},
@@ -66,6 +72,10 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 		{"file_path", &fileName},
 		{"filepath", &fileName},
 		{"url", &fileName},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 
 	parseArgs(params, args)
@@ -75,11 +85,19 @@ func (m *ParquetModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.V
 		return nil, fmt.Errorf("missing file to open. Specify it with SELECT * FROM read_parquet('file.parquet')")
 	}
 
+	if cacheTTL != "" {
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
+	}
+
 	// Open the file
 	var mmap mmap.MMap
 	var err error
 
-	mmap, err = openMmapedFile(fileName, m.Restrictions)
+	mmap, err = openMmapedFile(fileName, m.Restrictions, time.Duration(cacheTTLParsed)*time.Second)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open the file: %s", err)
 	}

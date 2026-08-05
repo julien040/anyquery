@@ -3,9 +3,10 @@ package module
 import (
 	"encoding/json"
 	"fmt"
-	"os"
+	"io"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/andybalholm/cascadia"
@@ -19,7 +20,7 @@ type HtmlModule struct {
 
 type HtmlTable struct {
 	table   *html.Node
-	file    *os.File
+	file    io.ReadCloser
 	rows    *goquery.Selection
 	isTable bool // Whether the rows node is a table or not
 }
@@ -84,31 +85,27 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		}
 	}
 
-	var file *os.File
-
-	if fileName == "/dev/stdin" || fileName == "-" || fileName == "stdin" {
-		// Read from stdin
-		file = os.Stdin
-	} else {
-
-		// Get the cached path
-		filePath, err := findCachedDestination(fileName)
-		if err != nil {
-			return nil, err
-		}
-
-		// Download the file and cache it for 60 seconds
-		err = downloadFile(fileName, filePath, cacheTTLParsed, m.Restrictions)
-		if err != nil {
-			return nil, fmt.Errorf("failed to download file: %s", err)
-		}
-
-		// Open the file
-		file, err = os.OpenFile(filePath, os.O_RDONLY, 0)
-		if err != nil {
-			return nil, fmt.Errorf("failed to open file: %s", err)
-		}
+	// cache=<ttl> is a no-op for a local source: local sources always bypass
+	// the cache (see module/fetch.go). It is honoured for a remote source and
+	// denied for stdin under a sandbox, both via Fetcher.Open.
+	source, err := ParseSource(fileName)
+	if err != nil {
+		return nil, err
 	}
+	file, err := NewFetcher(m.Restrictions).Open(source, time.Duration(cacheTTLParsed)*time.Second)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open file: %s", err)
+	}
+	// Closed on every error return below; ownership passes to the returned
+	// HtmlTable (whose Disconnect closes it) only on success. A local source
+	// opens the real file directly (not a cache copy), so leaking it here
+	// leaks a handle onto a file the caller doesn't otherwise track.
+	closeFile := true
+	defer func() {
+		if closeFile {
+			file.Close()
+		}
+	}()
 
 	document, err := html.Parse(file)
 	if err != nil {
@@ -190,6 +187,7 @@ func (m *HtmlModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab
 		c.DeclareVTab(schema.String())
 	}
 
+	closeFile = false
 	return &HtmlTable{
 		table:   document,
 		rows:    rows,

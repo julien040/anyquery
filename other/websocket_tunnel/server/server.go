@@ -16,6 +16,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/hostrouter"
+	"github.com/go-chi/httprate"
 	"github.com/olahol/melody"
 	"github.com/puzpuzpuz/xsync/v3"
 	_ "modernc.org/sqlite"
@@ -160,6 +161,12 @@ func (s *server) start() error {
 
 	// Setup the websocket handler
 	s.melody = melody.New()
+	// ConcurrentMessageHandling = true runs each incoming message in its own
+	// goroutine (melody@v1.2.1 session.go), which is what keeps
+	// handleMessage's response-channel send from ever wedging this session's
+	// read loop if that send were ever to block — see the non-blocking
+	// select/default in handleMessage. Do not flip this to false: the same
+	// code would then stall the whole session on a single blocked send.
 	s.melody.Config.ConcurrentMessageHandling = true
 	s.melody.Config.MessageBufferSize = 1024
 	s.melody.Config.MaxMessageSize = 1024 * 1024 // 1MB
@@ -197,9 +204,32 @@ func (s *server) start() error {
 	return http.ListenAndServe(s.addr, r)
 }
 
+// newTunnelRateLimit caps unauthenticated tunnel creation per client IP:
+// newTunnel accepts any non-empty Authorization value and, with no limit,
+// mints an unbounded number of 120-day-lived tunnels for anyone who asks.
+//
+// The trust model is stated explicitly per httprate's guidance: this server
+// is assumed to be directly exposed to clients, not sitting behind a
+// reverse proxy/load balancer/CDN that terminates the client connection, so
+// the key is the TCP peer address (middleware.ClientIPFromRemoteAddr) rather
+// than a spoofable X-Forwarded-For/X-Real-IP header. If that ever changes,
+// swap in the matching middleware.ClientIPFromXFF/ClientIPFromHeader instead
+// — silently keying off a client-controlled header here would make the
+// limit trivially bypassable.
+const (
+	newTunnelRateLimitCount  = 5
+	newTunnelRateLimitWindow = time.Hour
+)
+
+func newTunnelRateLimiter() func(http.Handler) http.Handler {
+	return httprate.LimitBy(newTunnelRateLimitCount, newTunnelRateLimitWindow, func(r *http.Request) (string, error) {
+		return httprate.CanonicalizeIP(middleware.GetClientIP(r.Context())), nil
+	})
+}
+
 func (s *server) tunnelRouter() chi.Router {
 	r := chi.NewRouter()
-	r.Post("/tunnel/new", s.newTunnel)
+	r.With(middleware.ClientIPFromRemoteAddr, newTunnelRateLimiter()).Post("/tunnel/new", s.newTunnel)
 	r.Post("/tunnel/oauth2/token", s.tunnelOauth2Token)
 	r.Get("/tunnel/oauth2/redirect", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html")

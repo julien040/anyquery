@@ -19,13 +19,19 @@ import (
 func registerStringFunctions(conn *sqlite3.SQLiteConn, restrictions *module.Restrictions) error {
 	// load_file / load_file_bytes read arbitrary files from disk, so under a
 	// sandbox they must obey the same allowed-directory policy as the read_*
-	// modules — otherwise they are a local-file-read bypass. CheckFileRead is a
-	// no-op on a nil policy (unrestricted CLI use), so behavior is unchanged
-	// there. A genuine read failure still yields SQL NULL (as before); only a
-	// policy violation surfaces an error.
+	// modules — otherwise they are a local-file-read bypass. Under a policy the
+	// read goes through ReadLocalFile, which enforces containment on the same
+	// open it reads from, and any failure (a refusal or a plain unreadable
+	// file) surfaces as an error. A nil policy is unrestricted CLI use: the
+	// read is a plain one and a failure yields SQL NULL rather than aborting
+	// the query.
 	loadFileBytes := func(filename string) ([]byte, error) {
-		if err := restrictions.CheckFileRead(filename); err != nil {
-			return nil, err
+		if restrictions != nil {
+			content, err := restrictions.ReadLocalFile(filename)
+			if err != nil {
+				return nil, err
+			}
+			return content, nil
 		}
 		content, err := os.ReadFile(filename)
 		if err != nil {

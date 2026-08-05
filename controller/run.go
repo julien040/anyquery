@@ -2,12 +2,11 @@ package controller
 
 import (
 	"context"
-	"crypto/sha256"
 	"database/sql"
 	"fmt"
+	"io"
 	"net/url"
 	"os"
-	path_helper "path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,10 +17,10 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/huh"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/hashicorp/go-getter"
 	"github.com/hashicorp/go-hclog"
 	"github.com/julien040/anyquery/controller/config/model"
 	"github.com/julien040/anyquery/controller/config/registry"
+	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/namespace"
 	"github.com/julien040/anyquery/other/sqlparser"
 	"github.com/spf13/cobra"
@@ -43,9 +42,8 @@ func runShellConfig() middlewareConfiguration {
 		// let query content escape SQL and execute local OS commands
 		// (.shell/.system), change the process's working directory (.cd),
 		// or append attacker-chosen content to an arbitrary local file
-		// (.output). A grep across all 104 shipped `.sql` files in queries/
-		// found zero uses of any dot or slash command, so disabling them
-		// here is not a compatibility break.
+		// (.output). No shipped query in queries/ uses a dot or slash
+		// command, so disabling them here is not a compatibility break.
 		//
 		// NOTE: this flag does NOT govern `.read`, which is handled in
 		// shell.Run before the middlewares even run — see the
@@ -140,43 +138,22 @@ func Run(cmd *cobra.Command, args []string) error {
 		urlToFetch = queryID
 	}
 
-	// Download the query
-	hashedURL := fmt.Sprintf("%x", sha256.Sum256([]byte(urlToFetch)))
-	dest := path_helper.Join(xdg.CacheHome, "anyquery", "queries", hashedURL)
-	err = os.MkdirAll(path_helper.Dir(dest), 0755)
+	// Fetch the query. RestrictionsFromFlags(cmd) is not consulted here: `run`
+	// registers no sandbox flags, so this is always unrestricted (nil). A
+	// remote source is cached for 24h under the same directory
+	// clear_file_cache() clears; a local source (queryID resolved as an
+	// existing path above) bypasses the cache and is opened relative to the
+	// process's working directory.
+	source, err := module.ParseSource(urlToFetch)
 	if err != nil {
-		return fmt.Errorf("failed to create the directory for the query: %s", err)
+		return fmt.Errorf("invalid query source: %s", err)
 	}
-	wd, err := os.Getwd()
+	rc, err := module.NewFetcher(nil).Open(source, 24*time.Hour)
 	if err != nil {
-		return fmt.Errorf("failed to get the current working directory: %s", err)
+		return fmt.Errorf("failed to download the query: %s", err)
 	}
-
-	// Download the file if needed (or older than 1 day)
-	secondsInDay := int64(60 * 60 * 24)
-	fileInfo, err := os.Stat(dest)
-	if err != nil || fileInfo.Size() == 0 || time.Now().Unix()-fileInfo.ModTime().Unix() > secondsInDay {
-		// We first remove the file because it's outdated
-		// and then we download it
-		//
-		// We have to do this because go-getter seems to not be able to overwrite the file
-		// if it's already present
-		os.Remove(dest) // Call it without checking the error
-		client := &getter.Client{
-			Src:  urlToFetch,
-			Dst:  dest,
-			Mode: getter.ClientModeFile,
-			Pwd:  wd,
-		}
-
-		err = client.Get()
-		if err != nil {
-			return fmt.Errorf("failed to download the query: %s", err)
-		}
-	}
-
-	// Open the file
-	content, err := os.ReadFile(dest)
+	defer rc.Close()
+	content, err := io.ReadAll(rc)
 	if err != nil {
 		return fmt.Errorf("failed to read the query: %s", err)
 	}

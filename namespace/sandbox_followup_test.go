@@ -70,7 +70,8 @@ func TestSandboxPragmaAllowlist(t *testing.T) {
 }
 
 // TestNoSandboxLoadFileWorks confirms a nil policy leaves load_file unchanged:
-// it reads files as before. (CheckFileRead is a no-op on a nil receiver.)
+// it reads files as before (loadFileBytes goes straight to os.ReadFile when
+// there is no policy).
 func TestNoSandboxLoadFileWorks(t *testing.T) {
 	ctx := context.Background()
 	conn := sandboxConn(t, nil) // unrestricted

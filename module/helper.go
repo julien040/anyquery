@@ -1,126 +1,23 @@
 package module
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-	"os"
-	"path"
 	"regexp"
 	"strings"
 	"time"
 
-	"github.com/adrg/xdg"
 	"github.com/edsrzf/mmap-go"
-	"github.com/hashicorp/go-getter"
 )
 
-// downloadFile downloads a file from a source URL to a destination path
-// If the destination file already exists, its size is superior to 0,
-// and the file is not older than maxAge seconds, then
-// the file is not downloaded again
-//
-// The destination path is created if it doesn't exist
-//
-// When r is non-nil, the source is validated against the sandbox policy before
-// anything happens (the check is on src, not the cache destination), and remote
-// transports are dropped from go-getter unless the policy allows them.
-func downloadFile(src string, dst string, maxAge int64, r *Restrictions) error {
-	// Enforce the sandbox policy on the original source before any side effect
-	// (directory creation, cache freshness short-circuit, fetch).
-	if err := r.CheckSource(src); err != nil {
-		return err
-	}
-
-	// Create the directory if it doesn't exist
-	err := os.MkdirAll(path.Dir(dst), 0755)
-	if err != nil {
-		return err
-	}
-
-	wd, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	needToDownload := true
-
-	// Check if the file is already downloaded and its size superior to 0
-	// If so, we don't need to download it again
-	info, err := os.Stat(dst)
-	currentUnixTime := time.Now().Unix()
-	if err == nil && info.Size() > 0 && info.ModTime().Unix() > currentUnixTime-maxAge {
-		needToDownload = false
-	}
-
-	// Download the file
-	client := &getter.Client{
-		Src:  src,
-		Dst:  dst,
-		Mode: getter.ClientModeFile,
-		Pwd:  wd,
-	}
-
-	// When remote fetching is disabled, restrict go-getter to the local file
-	// getter only. This is the authoritative SSRF gate: Client.Get selects the
-	// getter by scheme and fails with "download not supported for scheme" when
-	// it is absent, so http/https/s3/gcs/git become unreachable. Default
-	// detectors can stay — a scheme-less input they rewrite (e.g. a git source)
-	// fails at the same lookup.
-	if r != nil && !r.AllowRemote {
-		client.Getters = map[string]getter.Getter{
-			"file": getter.Getters["file"],
-		}
-	}
-
-	if needToDownload {
-		// We first remove the file because it's outdated
-		// and then we download it
-		//
-		// We have to do this because go-getter seems to not be able to overwrite the file
-		// if it's already present
-		os.Remove(dst)
-		err = client.Get()
-		if err != nil {
-			return fmt.Errorf("failed to download file: %s", err)
-		}
-	}
-
-	return nil
-}
-
-// findCachedDestination returns the path where the cached file needs to be stored
-// It's based on the sha256 of the source URL
-func findCachedDestination(src string) (string, error) {
-	// Hash the file path
-	// This is to avoid conflicts with other files and reuse the same file
-	// if it's already downloaded
-	hash := sha256.Sum256([]byte(src))
-	filePath := path.Join(xdg.CacheHome, "anyquery", "downloads", hex.EncodeToString(hash[:]))
-
-	return filePath, nil
-}
-
-// openMmapedFile downloads a file from a source URL and returns a mmap of the file
-func openMmapedFile(src string, r *Restrictions) (mmap.MMap, error) {
-	// Find the cached destination
-	filePath, err := findCachedDestination(src)
-
-	// Download the file and cache it for 24 hours
-	// (downloadFile enforces the sandbox policy on src)
-	err = downloadFile(src, filePath, 60*60*24, r)
+// openMmapedFile parses src (see ParseSource) and returns a mmap of it,
+// fetching and caching it first when it is remote. ttl bounds the freshness of
+// that cache entry, and therefore only affects a remote source: local sources
+// bypass the cache entirely (see module/fetch.go).
+func openMmapedFile(src string, r *Restrictions, ttl time.Duration) (mmap.MMap, error) {
+	s, err := ParseSource(src)
 	if err != nil {
 		return nil, err
 	}
-
-	// Open the file
-	file, err := os.Open(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Map the file
-	return mmap.Map(file, mmap.RDONLY, 0)
+	return NewFetcher(r).OpenMmap(s, ttl)
 }
 
 // To make the argument parsing more readable,

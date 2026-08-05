@@ -44,7 +44,7 @@ SELECT full_name FROM read_json('https://formulae.brew.sh/api/formula.json');
 
 ## Remote files
 
-While you can query local files, you can also query remote files. You can query files from HTTP, HTTPS, S3, and GCS. The syntax is the same as querying local files.
+While you can query local files, you can also query remote files over HTTP and HTTPS. You can even paste a share link from GitHub, GitHub Gist, GitLab, Codeberg, Hugging Face, Google Sheets, or Dropbox, and Anyquery turns it into the raw file URL for you. The syntax is the same as querying local files.
 
 **HTTPS**
 
@@ -52,27 +52,95 @@ While you can query local files, you can also query remote files. You can query 
 SELECT * FROM read_json('https://example.com/file.json');
 ```
 
-**S3**
+**Object storage (S3/GCS)**
 
-The `aws_access_key_id`, `aws_access_key_secret`, `region` (optional), and `version` (optional) can be passed as query parameters. Anyquery will also attempt to read them from the environment variables and `~/.aws/config`.
+`s3://` and `gcs://` URLs are no longer supported. To query an object in a private bucket, generate a presigned (S3) or signed (GCS) URL and query it like any other HTTPS file. Public objects work with their plain HTTPS URL.
 
-```sql
-SELECT * FROM read_json('s3::https://s3.amazonaws.com/bucket-name/file.json?aws_access_key_id=your-access-key&aws_access_key_secret=your-secret-key&region=us-west-1');
+```bash title="Presign an S3 object for 15 minutes"
+aws s3 presign s3://bucket-name/file.json --expires-in 900
 ```
 
-**GCS**
-
-To query a file from GCS, you need to set `GOOGLE_APPLICATION_CREDENTIALS` to the path of your service account key or `GOOGLE_CREDENTIALS` to the content of your service account key.
-
 ```sql
-SELECT * FROM read_json('gcs::https://www.googleapis.com/storage/v1/bucket/file.json');
+SELECT * FROM read_json('https://bucket-name.s3.amazonaws.com/file.json?X-Amz-Algorithm=…&X-Amz-Credential=…&X-Amz-Signature=…');
 ```
 
-All files will be cached in the local filesystem (for 24 hours) to avoid downloading them multiple times. To clear the cache, you can use the `clear_file_cache` function.
+**GitHub files and gists**
+
+A `github.com` file URL (`/blob/` or `/raw/`) is rewritten to its raw-content host; a `gist.github.com` URL is rewritten to the gist's raw form. A `/tree/` (directory) URL or a bare repo URL is rejected: name the file explicitly.
+
+```sql
+SELECT * FROM read_csv('https://github.com/owner/repo/blob/main/data.csv');
+SELECT * FROM read_csv('https://gist.github.com/owner/6cad326836d38bd3a7ae');
+```
+
+**GitLab and Codeberg**
+
+Both forges work like GitHub: paste the file's web URL and Anyquery fetches the raw one. On GitLab, a `/-/blob/` URL (subgroups included) is rewritten to its `/-/raw/` form; on Codeberg, a `/src/branch/` URL (as well as `/src/tag/` and `/src/commit/`) is rewritten to its `/raw/…` form. A URL that already points at the raw endpoint is left as is, and a directory URL (GitLab's `/-/tree/`, or a Codeberg branch URL with no file after the ref) is rejected: name the file explicitly.
+
+```sql
+SELECT * FROM read_csv('https://gitlab.com/group/subgroup/project/-/blob/main/data.csv');
+SELECT * FROM read_csv('https://codeberg.org/owner/repo/src/branch/main/data.csv');
+```
+
+**Hugging Face**
+
+Both the `hf://datasets/…` shorthand and a `huggingface.co/…/blob/…` URL are supported for dataset files; `hf://spaces/…` and `hf://models/…` are not. Globs (`*`, `?`) are not supported: name a single file.
+
+```sql
+SELECT * FROM read_csv('hf://datasets/datasets-examples/doc-formats-csv-1/data.csv');
+SELECT * FROM read_csv('hf://datasets/datasets-examples/doc-formats-csv-1@main/data.csv'); -- pin a revision
+```
+
+**Google Sheets**
+
+A share/edit link is rewritten to the sheet's CSV export, so pair it with `read_csv`:
+
+```sql
+SELECT * FROM read_csv('https://docs.google.com/spreadsheets/d/your-sheet-id/edit');
+```
+
+**Dropbox**
+
+A share link (`?dl=0`/`?dl=1`, or no `dl` parameter at all) is rewritten to fetch the raw file:
+
+```sql
+SELECT * FROM read_csv('https://www.dropbox.com/s/abc123/data.csv?dl=0');
+```
+
+**Compression**
+
+A file ending in `.gz` or `.zst` is decompressed automatically, whether it's local or remote. Archives (`.zip`, `.tar`, …) are not extracted.
+
+All **remote** files are cached in the local filesystem to avoid downloading them multiple times. Every file reader accepts a `cache` argument (aliases: `cache_ttl`, `ttl`) that sets, in seconds, how long a downloaded file stays valid in that cache. It defaults to 86400 (24 hours), except for `read_html`, which defaults to 60 seconds. A non-numeric value is rejected when the table is created.
+
+```sql
+-- Re-download the file if the cached copy is older than 5 minutes
+SELECT * FROM read_csv('https://example.com/data.csv', cache=300);
+```
+
+The argument only affects remote sources: a local file path always reads the file directly and never touches the cache. To clear the cache, you can use the `clear_file_cache` function.
 
 ```sql
 SELECT clear_file_cache();
 ```
+
+**Size limit**
+
+A 32 GiB cap applies to three things: a remote download, the content decompressed out of a `.gz` or `.zst` (local or remote), and data piped in on stdin. A plain local file is read where it sits, so its size is never capped.
+
+The cap exists to stop a server that never closes the connection, or a tiny compressed file engineered to expand without end, from filling your disk. Past it, the query fails rather than truncating: you never get a partial file that looks complete.
+
+If you legitimately need more (or want to stay well under a small disk), set `ANYQUERY_MAX_DOWNLOAD_SIZE`:
+
+```bash title="Raise the limit for one query"
+ANYQUERY_MAX_DOWNLOAD_SIZE=64GiB anyquery -q "SELECT count(*) FROM read_parquet('https://example.com/huge.parquet');"
+```
+
+The value is a whole number of bytes, optionally suffixed with a unit: `KB`, `MB`, `GB`, and `TB` are powers of 1000, while `KiB`, `MiB`, `GiB`, `TiB` (and the bare `K`, `M`, `G`, `T`) are powers of 1024. Fractions such as `1.5GB` are not accepted, so write `1500MB` instead. If the value can't be read, Anyquery logs a warning and keeps the 32 GiB default rather than running with no limit at all.
+
+:::note
+Under the [sandbox](/docs/usage/sandbox), remote fetching (including all of the hosts above) requires `--allow-remote`, and stdin (`'stdin'`, `'-'`, `/dev/stdin`) is always denied regardless of `--allow-remote`.
+:::
 
 ## Stdin
 
@@ -88,6 +156,21 @@ Anyquery will read the whole file in memory before parsing it. Reading from stdi
 :::
 
 ## File formats
+
+### Any file
+
+If you don't want to name the reader, use `read_file`. It picks the reader from the file extension and forwards every other argument to it, so `read_file('data.csv', header=true)` behaves exactly like `read_csv('data.csv', header=true)`. Supported extensions are `csv`, `tsv`, `json`, `jsonl`, `ndjson`, `parquet`, `pq`, `toml`, `yaml`, `yml`, `html` and `htm`. A trailing `.gz`, `.zst` or `.zstd` is ignored when looking at the extension, so `data.csv.gz` is read as a CSV file.
+
+```sql
+-- The extension picks the reader (.csv -> CSV, .yaml -> YAML, ...)
+SELECT * FROM read_file('path/to/file.csv', header=true);
+```
+
+When the file has no extension, has a misleading one, or comes from stdin, pass `format` (`type` is an alias) to choose the reader yourself:
+
+```sql
+SELECT * FROM read_file('path/to/export', format='json');
+```
 
 ### JSON
 
@@ -141,18 +224,24 @@ In this case, there is only one row, and each key is a column.
 
 ### CSV
 
-To query a CSV file, you need to use the `read_csv` function. The function takes one, two, or three arguments. The first argument is the path to the CSV file. The second argument is optional and is if the first row is a header. The third argument is optional and is the delimiter.
+To query a CSV file, use the `read_csv` function. Most of the time, the path is the only argument you need: the delimiter, the header row, and the column types are detected automatically (see [auto-detection](#auto-detection) below).
 
 ```sql
--- Query the whole CSV file
+-- Local file
 SELECT * FROM read_csv('path/to/file.csv');
--- Query a CSV file with a header
-SELECT * FROM read_csv('https://csvbase.com/meripaterson/stock-exchanges.csv', header=true);
--- Query a CSV file with a header and a custom delimiter
+-- Remote file (cached, see the Remote files section)
+SELECT * FROM read_csv('https://csvbase.com/meripaterson/stock-exchanges.csv');
+-- Compressed file: .gz and .zst are decompressed on the fly
+SELECT * FROM read_csv('path/to/file.csv.gz');
+```
+
+When you'd rather be explicit, pass `header` and `delimiter` (`separator` is an alias) yourself:
+
+```sql
 SELECT * FROM read_csv('path/to/file.csv', header=true, delimiter=';');
 ```
 
-You also specify a schema for the CSV file, and any query will make the best effort to parse the file according to the schema.
+You can also specify a schema for the CSV file, and any query will make the best effort to parse the file according to the schema.
 
 ```sql title="Querying a CSV file with a schema" "schema='CREATE TABLE csv (id int, date varchar, cases int)'"
 SELECT * FROM read_csv('https://csvbase.com/rmirror/us-covid-cases', schema='CREATE TABLE csv (id int, date varchar, cases int)', header=true) LIMIT 30;
@@ -162,12 +251,45 @@ SELECT * FROM read_csv('https://csvbase.com/rmirror/us-covid-cases', schema='CRE
 Types must be specified in their MySQL format. For example, `int`, `varchar`, `float`, etc.
 :::
 
-### TSV
+#### Auto-detection
 
-To query a TSV file, use the `read_csv` function with the delimiter set to `\t`.
+When you don't say otherwise, `read_csv` looks at the beginning of the file and figures out:
+
+- **The delimiter**: `,`, tab, `;` or `|`, whichever splits the file into consistent columns.
+- **The header**: the first row becomes the column names when it looks like labels sitting on top of data (text above numbers). Otherwise columns are named `col0`, `col1`, ...
+- **The column types**: a column of integers is `INTEGER`, of decimals `REAL`, of booleans `INTEGER`, and anything else is `TEXT`. Empty cells don't change a column's type.
 
 ```sql
-SELECT * FROM read_csv('path/to/file.tsv', delimiter='\t');
+-- Semicolon separated, with a header: nothing to pass.
+SELECT name, age FROM read_csv('people.csv') WHERE age > 30;
+```
+
+Good to know:
+
+- A file whose columns are **all text** keeps `col0`, `col1`, ...: nothing distinguishes its first row from the others. Pass `header=true` for those.
+- A header row made of **numeric-looking labels** (`country,2020,2021`) is read as data for the same reason. Pass `header=true`.
+- Types are detected from the beginning of the file. A value further down that doesn't match the detected type is returned as `NULL`. Pass `schema=` to set the types yourself when a column is not uniform.
+
+Each argument turns off the part of the detection it covers, and is never second-guessed:
+
+| Argument | Effect |
+| --- | --- |
+| `separator=';'` (or `separator=tab`) | the delimiter is used as given, no delimiter detection |
+| `header=true` / `header=false` | the header is taken as told, in either direction |
+| `schema='CREATE TABLE t(...)'` | names and types come from the schema, nothing is detected |
+
+```sql
+-- Turn all detection off
+SELECT * FROM read_csv('people.csv', header=false, separator=',');
+```
+
+### TSV
+
+A TSV file is a CSV file with tabs, and the tab delimiter is one of the ones `read_csv` detects by itself. `read_file` also picks the right reader from the `.tsv` extension.
+
+```sql
+SELECT * FROM read_csv('path/to/file.tsv');
+SELECT * FROM read_file('path/to/file.tsv');
 ```
 
 ### HTML
@@ -224,6 +346,8 @@ By default, the cache is set to 60 seconds for the `read_html` table. This means
 ```sql title="Querying the GDP of countries and caching the result for 1 hour"
 SELECT * FROM read_html('https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)', '.wikitable', cache='3600');
 ```
+
+`cache`/`cache_ttl`/`ttl` only affects a **remote** URL; a local file path always bypasses the cache and is a no-op for these parameters.
 
 ### Parquet
 
