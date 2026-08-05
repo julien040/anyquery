@@ -45,9 +45,17 @@ func addFlag_commandCanBeInteractive(cmd *cobra.Command) {
 // For the server, sandboxing is on by default and --no-sandbox disables it; for
 // CLI commands, --sandbox opts in (off by default, since local use is trusted).
 // The relaxation flags are identical in both cases.
+//
+// Note: on `server`, --dev (registered separately, cmd/server.go) implies
+// --no-sandbox and takes precedence over every flag registered here,
+// including an explicit --no-sandbox=false — see
+// controller/server.go:serverRestrictions. On `query`/`root`, --dev has no
+// such effect on these flags (the sandbox there is off by default anyway),
+// but it does withhold the dev-mode plugin functions if --sandbox is passed
+// alongside it (namespace/namespace.go).
 func addSandboxFlags(cmd *cobra.Command, isServer bool) {
 	cmd.Flags().StringSlice("allow-dirs", []string{}, "When sandboxed, directories that read_* tables (and on-disk ATTACH) may access (repeatable, comma-separated)")
-	cmd.Flags().Bool("allow-remote", false, "When sandboxed, allow read_* tables to fetch remote URLs (http/https/s3/...)")
+	cmd.Flags().Bool("allow-remote", false, "When sandboxed, allow read_* tables to fetch remote URLs (http/https)")
 	cmd.Flags().Bool("allow-attach", false, "When sandboxed, allow ATTACH/VACUUM INTO to on-disk paths within --allow-dirs")
 	cmd.Flags().Bool("allow-db-connections", false, "When sandboxed, allow the database reader modules (duckdb/postgres/mysql/clickhouse/cassandra)")
 	if isServer {

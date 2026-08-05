@@ -11,9 +11,31 @@ import (
 	"github.com/adrg/xdg"
 	"github.com/charmbracelet/log"
 	"github.com/hashicorp/go-hclog"
+	"github.com/julien040/anyquery/module"
 	"github.com/julien040/anyquery/namespace"
 	"github.com/spf13/cobra"
 )
+
+// serverRestrictions is the sandboxing policy for `anyquery server`.
+//
+// --dev implies --no-sandbox and wins over every explicit sandbox flag
+// (--no-sandbox, --allow-dirs, --allow-remote, --allow-attach,
+// --allow-db-connections): the dev-mode UDFs (load_dev_plugin and friends,
+// namespace/developer.go) read an arbitrary manifest path, exec its
+// build_command, and create/append its log_file with no Restrictions check.
+// Requiring operators to also pass --no-sandbox alongside --dev was rejected
+// as bad CLI ergonomics ("that's dumb to write two flags"), so the
+// disablement is unconditional and total rather than scoped to just the dev
+// UDFs — under --dev this server also re-enables load_file, the read_*
+// modules' local/remote access, on-disk ATTACH, and the database reader
+// modules. See the sandbox docs and create-plugin.md for the operator-facing
+// warning.
+func serverRestrictions(cmd *cobra.Command) *module.Restrictions {
+	if dev, _ := cmd.Flags().GetBool("dev"); dev {
+		return nil
+	}
+	return RestrictionsFromFlags(cmd)
+}
 
 func Server(cmd *cobra.Command, args []string) error {
 
@@ -98,14 +120,23 @@ func Server(cmd *cobra.Command, args []string) error {
 	dev, _ := cmd.Flags().GetBool("dev")
 
 	// Create the namespace
-	restrictions := RestrictionsFromFlags(cmd)
-	if restrictions != nil {
+	restrictions := serverRestrictions(cmd)
+	switch {
+	case restrictions != nil:
 		lo.Info("Server sandboxing enabled",
 			"allowedDirs", restrictions.AllowedDirs,
 			"allowRemote", restrictions.AllowRemote,
 			"allowAttach", restrictions.AllowAttach,
 			"allowDBConnections", restrictions.AllowDBConnections)
-	} else {
+	case dev:
+		// --dev implies --no-sandbox (serverRestrictions above), so this branch
+		// is reached whenever --dev is passed, regardless of any --no-sandbox /
+		// --allow-* flags also on the command line.
+		lo.Warn("Server sandboxing is DISABLED (--dev): developer mode always disables the sandbox, because load_dev_plugin/reload_dev_plugin/unload_dev_plugin read arbitrary files, exec build_command, and write log_file with no policy check. Clients can also read local files, reach internal endpoints, and write arbitrary files. Do not expose this server to a network; keep --host on loopback (the default) and do not run --dev in production.")
+		if isNetworkExposedHost(host) {
+			lo.Warn("--dev server is bound to a non-loopback host: this is UNSAFE and unauthenticated by default", "host", host)
+		}
+	default:
 		lo.Warn("Server sandboxing is DISABLED (--no-sandbox): clients can read local files, reach internal endpoints, and write arbitrary files")
 	}
 

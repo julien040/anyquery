@@ -3,7 +3,7 @@ title: Sandboxing
 description: Restrict what SQL clients can read, fetch and write when anyquery is exposed as a server.
 ---
 
-When anyquery is exposed to clients — as a [MySQL server](/docs/usage/mysql-server), or as an [LLM endpoint](/docs/usage/connecting-llms) (`gpt`/`mcp`) — those clients can run arbitrary SQL. Anyquery's built-in features make arbitrary SQL powerful: the `read_*` table functions read files, several of them fetch remote URLs, `ATTACH DATABASE` writes files, and a few scalar functions read files or delete cache directories. On a server, that turns into local file read, server-side request forgery (SSRF), and arbitrary file write for anyone who can reach the port.
+When anyquery is exposed to clients, as a [MySQL server](/docs/usage/mysql-server) or as an [LLM endpoint](/docs/usage/connecting-llms) (`gpt`/`mcp`), those clients can run arbitrary SQL. Anyquery's built-in features make arbitrary SQL powerful: the `read_*` table functions read files, several of them fetch remote URLs, `ATTACH DATABASE` writes files, and a few scalar functions read files or delete cache directories. On a server, that turns into local file read, server-side request forgery (SSRF), and arbitrary file write for anyone who can reach the port.
 
 The sandbox closes those doors. It is a policy attached to the database namespace that confines file access to an explicit set of directories, blocks remote fetches, and denies the dangerous SQL statements and functions.
 
@@ -17,9 +17,9 @@ The default depends on the command, because the exposure differs:
 
 | Command | Sandbox by default | How to change it |
 | --- | --- | --- |
-| `anyquery server` | **On** | `--no-sandbox` to disable |
+| `anyquery server` | **On** | `--no-sandbox` to disable, or `--dev` (see below) |
 | `anyquery gpt` | **On** (exposes an internet tunnel by default) | `--no-sandbox` to disable |
-| `anyquery mcp` | **Auto** — on when network-exposed (`--tunnel`, or a non-loopback `--host`); off for plain `localhost`/`--stdio` | `--sandbox` to force on, `--sandbox=false` to force off |
+| `anyquery mcp` | **Auto**: on when network-exposed (`--tunnel`, or a non-loopback `--host`); off for plain `localhost`/`--stdio` | `--sandbox` to force on, `--sandbox=false` to force off |
 | `anyquery query` / interactive shell | **Off** (local use is trusted) | `--sandbox` to opt in |
 
 CLI mode is meant for local data analysis and is not an attack surface, so it is unrestricted by default. You can still opt in with `--sandbox` to mirror the server's behaviour.
@@ -28,12 +28,13 @@ CLI mode is meant for local data analysis and is not an attack surface, so it is
 
 When active, the sandbox enforces the following. The default is **deny everything**, then you relax it with the flags below.
 
-- **File reads** — the `read_*` table functions (`read_csv`, `read_json`, `read_parquet`, `read_yaml`, `read_toml`, `read_jsonl`, `read_html`, `read_log`) may only read files inside the directories you list with `--allow-dirs`. Symlinks are resolved before the check, so a link inside an allowed directory cannot point out of it.
-- **Remote fetches** — fetching `http`, `https`, `s3`, `gcs`, `git`, … URLs is disabled. Only local files are reachable unless you pass `--allow-remote`.
-- **Database readers** — the `duckdb_reader`, `postgres_reader`, `mysql_reader`, `clickhouse_reader` and `cassandra_reader` modules are not registered at all (they take arbitrary connection strings, and DuckDB can itself read local files and load extensions). `CREATE VIRTUAL TABLE … USING duckdb_reader(...)` fails with `no such module` unless you pass `--allow-db-connections`.
-- **`ATTACH DATABASE` / `VACUUM … INTO`** — both are arbitrary-file-write primitives. In-memory databases (`:memory:`, `mode=memory`) are always allowed; writing to disk is denied unless you pass `--allow-attach`, and even then it is confined to `--allow-dirs`.
-- **Blocked SQL functions** — see [below](#blocked-sql-functions).
-- **Restricted PRAGMAs** — see [below](#restricted-pragmas).
+- **File reads**: the `read_*` table functions (`read_csv`, `read_json`, `read_parquet`, `read_yaml`, `read_toml`, `read_jsonl`, `read_html`, `read_log`) may only read files inside the directories you list with `--allow-dirs`. The confinement is enforced by the operating system, and a symlink inside an allowed directory cannot be used to escape it.
+- **Remote fetches**: fetching `http` and `https` URLs is disabled unless you pass `--allow-remote`. S3 and GCS URLs are not supported; query a presigned HTTPS URL instead (see [Querying files](/docs/usage/querying-files#remote-files)).
+- **stdin**: denied under the sandbox, in every command (`read_csv('stdin')`, `-`, `/dev/stdin`), regardless of `--allow-dirs` or `--allow-remote`.
+- **Database readers**: the `duckdb_reader`, `postgres_reader`, `mysql_reader`, `clickhouse_reader` and `cassandra_reader` modules are not registered at all (they take arbitrary connection strings, and DuckDB can itself read local files and load extensions). `CREATE VIRTUAL TABLE … USING duckdb_reader(...)` fails with `no such module` unless you pass `--allow-db-connections`.
+- **`ATTACH DATABASE` / `VACUUM … INTO`**: both are arbitrary-file-write primitives. In-memory databases (`:memory:`, `mode=memory`) are always allowed; writing to disk is denied unless you pass `--allow-attach`, and even then it is confined to `--allow-dirs`. The ATTACH confinement is slightly weaker than the `read_*` one (SQLite opens the target itself): someone who can already write inside an allowed directory could race the check with a symlink.
+- **Blocked SQL functions**: see [below](#blocked-sql-functions).
+- **Restricted PRAGMAs**: see [below](#restricted-pragmas).
 
 ## Relaxing the restrictions
 
@@ -43,7 +44,7 @@ The default configuration is intentionally strict: no readable directories, no r
 anyquery server --allow-dirs /var/data,/srv/exports
 ```
 
-```bash title="Allow remote fetches (http/https/s3/…)"
+```bash title="Allow remote fetches (http/https)"
 anyquery server --allow-dirs /var/data --allow-remote
 ```
 
@@ -63,12 +64,19 @@ anyquery server --allow-db-connections
 | `--allow-db-connections` | Register the `duckdb_reader`/`postgres_reader`/… modules. |
 
 :::note
-`--allow-remote` is all-or-nothing. When enabled, the server can again reach internal addresses and cloud metadata endpoints (e.g. `169.254.169.254`). Only enable it on trusted deployments.
+`--allow-remote` is all-or-nothing: there is no IP or SSRF filtering underneath it (no loopback/RFC1918 blocking), only a scheme check. When enabled, the server can again reach internal addresses and cloud metadata endpoints (e.g. `169.254.169.254`). Only enable it on trusted deployments.
 :::
+
+With `--allow-remote`, share links (GitHub, GitLab, Codeberg, Hugging Face, Google Sheets, Dropbox; see [Querying files](/docs/usage/querying-files#remote-files)) are rewritten to their raw-file form before fetching. Operators who want to know the egress surface up front should therefore expect outbound requests to any host a query names directly, plus:
+
+```text
+raw.githubusercontent.com, gist.githubusercontent.com, huggingface.co,
+docs.google.com, www.dropbox.com, gitlab.com, www.gitlab.com, codeberg.org
+```
 
 ## Blocked SQL functions
 
-A handful of scalar functions read files or delete directories on disk. When the sandbox is active they are **denied outright** by the SQLite authorizer — they cannot be relaxed with `--allow-dirs`:
+A handful of scalar functions read files or delete directories on disk. When the sandbox is active they are **denied outright** by the SQLite authorizer, and they cannot be relaxed with `--allow-dirs`:
 
 | Function | Why it is blocked |
 | --- | --- |
@@ -80,7 +88,7 @@ A handful of scalar functions read files or delete directories on disk. When the
 SELECT load_file('/etc/passwd');   -- error: not authorized
 ```
 
-To read a file inside an allowed directory, use a `read_*` table function instead of `load_file` — those are permitted within `--allow-dirs`:
+To read a file inside an allowed directory, use a `read_*` table function instead of `load_file`: those are permitted within `--allow-dirs`:
 
 ```sql title="Allowed when /var/data is in --allow-dirs"
 SELECT * FROM read_csv('/var/data/report.csv');
@@ -104,7 +112,7 @@ PRAGMA writable_schema=ON;   -- error: not authorized
 
 ## Disabling the sandbox
 
-The function deny-list and the PRAGMA allowlist are part of the sandbox and cannot be relaxed individually. If you genuinely need `load_file`, an arbitrary `PRAGMA`, or the database readers without restriction, you must turn the sandbox off entirely — only do this on a trusted, non-exposed deployment:
+The function deny-list and the PRAGMA allowlist are part of the sandbox and cannot be relaxed individually. If you genuinely need `load_file`, an arbitrary `PRAGMA`, or the database readers without restriction, you must turn the sandbox off entirely. Only do this on a trusted, non-exposed deployment:
 
 ```bash title="Disable the sandbox (UNSAFE on an exposed port)"
 anyquery server --no-sandbox
@@ -114,9 +122,29 @@ anyquery server --no-sandbox
 anyquery mcp --tunnel --sandbox=false
 ```
 
+### `--dev` always disables the sandbox
+
+`--dev` registers the developer UDFs (`load_dev_plugin`, `reload_dev_plugin`, `unload_dev_plugin`, see [Creating a plugin](/docs/developers/plugins/create-plugin)) that read a manifest file from an arbitrary path, run its `build_command`, and write to its `log_file`, none of which go through the sandbox's file-access policy. Rather than requiring two flags to get a safe developer server, **`--dev` implies `--no-sandbox`**: on `anyquery server`, passing `--dev` disables the sandbox entirely, regardless of `--allow-dirs`, `--allow-remote`, `--allow-attach`, `--allow-db-connections`, or even an explicit `--no-sandbox=false`.
+
+```bash title="server --dev: sandbox is OFF, logged loudly"
+anyquery server --dev
+# WARN Server sandboxing is DISABLED (--dev): developer mode always disables the
+#      sandbox, because load_dev_plugin/reload_dev_plugin/unload_dev_plugin read
+#      arbitrary files, exec build_command, and write log_file with no policy
+#      check. Clients can also read local files, reach internal endpoints, and
+#      write arbitrary files. Do not expose this server to a network; keep
+#      --host on loopback (the default) and do not run --dev in production.
+```
+
+:::caution
+Never bind a `--dev` server to a non-loopback `--host`. The MySQL server has no authentication by default (see [Adding authentication](/docs/usage/mysql-server#adding-authentication)), so a `--dev` server reachable from the network combines an unauthenticated client with a disabled sandbox and the dev UDFs' unrestricted file read, exec, and file write. Keep `--host` at its default (`127.0.0.1`) for any `--dev` server.
+:::
+
+`anyquery query` / the interactive shell are unsandboxed by default already, so `--dev` doesn't change their sandbox posture. If you do pass `--dev --sandbox` together there, the sandbox stays on but the dev UDFs are withheld (they are gated on the sandbox being off, not just on `--dev`). Pass `--dev` without `--sandbox` to use them.
+
 ## Enabling the sandbox in CLI mode
 
-CLI mode is unrestricted by default. Pass `--sandbox` to apply the same policy — useful when running untrusted SQL locally, or to reproduce the server's behaviour:
+CLI mode is unrestricted by default. Pass `--sandbox` to apply the same policy, which is useful when running untrusted SQL locally, or to reproduce the server's behaviour:
 
 ```bash title="Run a query under the sandbox"
 anyquery query --sandbox --allow-dirs /var/data -q "SELECT * FROM read_csv('/var/data/report.csv')"

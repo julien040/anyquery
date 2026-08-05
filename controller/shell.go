@@ -18,6 +18,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/elk-language/go-prompt"
+	"github.com/julien040/anyquery/module"
 	"golang.org/x/term"
 )
 
@@ -124,6 +125,13 @@ type shell struct {
 	// The configuration that will be passed to the middlewares
 	Config middlewareConfiguration
 
+	// The sandbox policy to apply to file-touching operations that bypass
+	// the middleware pipeline (currently only `.read`, see the handling in
+	// Run). A nil value means unrestricted, matching every other consumer
+	// of *module.Restrictions (see module/restrictions.go), so callers that
+	// never set this field (e.g. the interactive REPL) are unaffected.
+	Restrictions *module.Restrictions
+
 	// Where to output the result
 	OutputFile     string
 	OutputFileDesc io.Writer
@@ -164,22 +172,11 @@ func (p *shell) Run(rawQuery string, args ...interface{}) bool {
 
 		// If the query is .read, we read the file
 		// and run it recursively
-		if strings.HasPrefix(query, ".read") {
-			pathToRead := strings.TrimSpace(strings.TrimPrefix(query, ".read"))
-			file, err := os.ReadFile(pathToRead)
-			if err != nil {
-				queryData = QueryData{
-					Message:    fmt.Sprintf("Error reading file %s: %s", pathToRead, err.Error()),
-					StatusCode: 2,
-				}
-			} else {
-				fileContent := string(file)
-				// We run the file content recursively
-				mustStop := p.Run(fileContent)
-				if mustStop {
-					return true
-				}
+		if newQueryData, isReadCommand, mustStop := p.handleReadCommand(query, queryData); isReadCommand {
+			if mustStop {
+				return true
 			}
+			queryData = newQueryData
 		}
 		// If the query is .exit, .quit or \q, we stop the pipeline
 		if query == ".exit" || query == ".quit" || query == "\\q" {
@@ -331,6 +328,70 @@ func (p *shell) Run(rawQuery string, args ...interface{}) bool {
 	}
 
 	return false
+}
+
+// handleReadCommand processes a `.read <path>` command.
+//
+// `.read` predates the middleware pipeline: it is intercepted here, in
+// Run, before the middleware loop even starts, which means the
+// "dot-command" config gate at middleware.go and the SQLite authorizer
+// never see it. Without an explicit check here, it would be a raw
+// os.ReadFile on an attacker-influenced path, reachable from contexts that
+// deliberately keep dot commands disabled (anyquery run on remote content,
+// the LLM/GPT tunnel and MCP paths via executeQueryLLM). So it is gated on
+// the same "dot-command" capability flag as every other dot command, and
+// on the sandbox policy (Restrictions), so that --allow-dirs constrains it
+// wherever it is legitimately enabled. A nil Restrictions means
+// unrestricted (see module/restrictions.go), so the interactive REPL is
+// unaffected.
+//
+// It returns:
+//   - the QueryData the caller should use in place of the one it passed in
+//   - whether the query was recognized as `.read` at all; if false, the
+//     caller must ignore the other two return values and keep its own
+//     QueryData unchanged
+//   - mustStop, mirroring the return value of p.Run: the caller must honour
+//     it exactly like the mustStop returned by a direct call to p.Run
+func (p *shell) handleReadCommand(query string, queryData QueryData) (QueryData, bool, bool) {
+	if !strings.HasPrefix(query, ".read") {
+		return queryData, false, false
+	}
+
+	pathToRead := strings.TrimSpace(strings.TrimPrefix(query, ".read"))
+
+	if !p.Config.GetBool("dot-command", false) {
+		return QueryData{
+			Message:    ".read is not available in this context",
+			StatusCode: 2,
+		}, true, false
+	}
+
+	// One call does the policy check and the read, so the path cannot be
+	// swapped for a symlink escaping --allow-dirs in between (see
+	// module.Restrictions.ReadLocalFile).
+	file, err := p.Restrictions.ReadLocalFile(pathToRead)
+	if err != nil {
+		// A refusal by the policy is safe to echo: it only repeats the path and
+		// the configured directories. Any other error is the raw OS error,
+		// which must not be echoed — on a network-facing surface the difference
+		// between ENOENT and EACCES is a filesystem existence/readability
+		// oracle. Only a refusal carries the "sandbox: " prefix, and it is a
+		// prefix rather than a substring so that a path containing "sandbox:"
+		// cannot smuggle an OS error through. The path itself is kept in both
+		// messages for interactive usability.
+		message := fmt.Sprintf("Error reading file %s", pathToRead)
+		if strings.HasPrefix(err.Error(), "sandbox: ") {
+			message = err.Error()
+		}
+		return QueryData{
+			Message:    message,
+			StatusCode: 2,
+		}, true, false
+	}
+
+	// We run the file content recursively
+	mustStop := p.Run(string(file))
+	return queryData, true, mustStop
 }
 
 func writeSuccessMessage(message string, output io.Writer) {

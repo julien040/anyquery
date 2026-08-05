@@ -1,11 +1,12 @@
 package client
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"math/rand/v2"
+	"math/big"
 	"net/http"
 )
 
@@ -26,12 +27,23 @@ type TunnelRequest struct {
 	ServerURL string `json:"server_url"`
 }
 
-func randString(n int) string {
+// randString returns a cryptographically random string of length n drawn from
+// the full alphabet. It generates the tunnel's auth token (see RequestTunnel),
+// which is the bearer secret authenticating the WebSocket upgrade, so it must
+// use crypto/rand and must not silently exclude a character: the previous
+// implementation indexed with rand.IntN(len(alphabet)-1), which never emitted
+// the last letter of the alphabet ('9') and used math/rand.
+func randString(n int) (string, error) {
+	alphabetSize := big.NewInt(int64(len(alphabet)))
 	b := make([]byte, n)
 	for i := range b {
-		b[i] = alphabet[rand.IntN(len(alphabet)-1)]
+		idx, err := rand.Int(rand.Reader, alphabetSize)
+		if err != nil {
+			return "", fmt.Errorf("error generating random string: %w", err)
+		}
+		b[i] = alphabet[idx.Int64()]
 	}
-	return string(b)
+	return string(b), nil
 }
 
 func hashToken(token string) string {
@@ -42,7 +54,10 @@ func hashToken(token string) string {
 // Request a new tunnel to the API
 func RequestTunnel() (TunnelRequest, error) {
 	// Generate a random password
-	password := randString(128)
+	password, err := randString(128)
+	if err != nil {
+		return TunnelRequest{}, err
+	}
 
 	t := TunnelRequest{
 		AuthToken: password,

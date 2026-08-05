@@ -35,6 +35,19 @@ var deniedSandboxFunctions = map[string]bool{
 	"clear_plugin_cache": true,
 	"clear_file_cache":   true,
 	"load_extension":     true,
+	// The dev UDFs (registered when DevMode is set, see the ConnectHook below)
+	// read an arbitrary manifest path, exec its build_command, and
+	// create/append its log_file, none of which consult Restrictions
+	// (namespace/developer.go). The registration gate below already keeps them
+	// out of a sandboxed connection, and the CLI can no longer construct
+	// DevMode+Restrictions at the same time (--dev implies --no-sandbox), so
+	// these three entries are unreachable from the CLI today. They stay as
+	// defense in depth for programmatic callers that build a Namespace
+	// directly with DevMode: true and a non-nil Restrictions — do not delete
+	// them as dead code.
+	"load_dev_plugin":   true,
+	"reload_dev_plugin": true,
+	"unload_dev_plugin": true,
 }
 
 // allowedSandboxPragmas is the read-only PRAGMA allowlist enforced by the
@@ -363,7 +376,17 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 					return err
 				}
 			}
-			if n.devMode {
+			// The dev UDFs are a trusted-local developer convenience: they read
+			// arbitrary paths (LoadDevPlugin's manifest path), exec build_command,
+			// and create/append log_file, none of which consult Restrictions. They
+			// are gated on n.restrictions == nil in addition to n.devMode so that a
+			// caller who builds a Namespace directly with DevMode: true and a
+			// non-nil Restrictions (the CLI can no longer do this: --dev implies
+			// --no-sandbox, see cmd/server.go / controller/server.go) does not
+			// silently get an unsandboxed filesystem/exec surface. The three
+			// function names are also kept in deniedSandboxFunctions above as
+			// defense in depth, not because this gate is expected to fail.
+			if n.devMode && n.restrictions == nil {
 				devFunction := &devFunction{
 					conn:      conn,
 					manifests: make(map[string]manifest),
@@ -376,6 +399,17 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				conn.RegisterFunc("unload_dev_plugin", devFunction.UnloadDevPlugin, false)
 				conn.RegisterFunc("load_dev_plugin", devFunction.LoadDevPlugin, false)
 				conn.RegisterFunc("reload_dev_plugin", devFunction.ReloadDevPlugin, false)
+			} else if n.devMode {
+				// Logged once per connection (this is inside the ConnectHook), so it
+				// can repeat on a pooled connection. Framed in terms of the
+				// NamespaceConfig fields, not CLI flags: this branch is also reached
+				// by a programmatic caller that sets DevMode: true with a non-nil
+				// Restrictions directly, not only by a CLI invocation.
+				n.logger.Warn("DevMode is set but the dev-mode plugin functions " +
+					"(load_dev_plugin/reload_dev_plugin/unload_dev_plugin) were withheld " +
+					"because Restrictions is non-nil; set Restrictions to nil to use them " +
+					"(on the CLI: `--dev` without `--sandbox` for query/root, or plain " +
+					"`--dev` for server, which forces Restrictions to nil)")
 			}
 
 			// Load the clear buffers function
@@ -398,6 +432,10 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 			conn.CreateModule("toml_reader", &module.TomlModule{Restrictions: n.restrictions})
 			conn.CreateModule("jsonl_reader", &module.JSONlModule{Restrictions: n.restrictions})
 			conn.CreateModule("log_reader", &module.LogModule{Restrictions: n.restrictions})
+			// file_reader only picks one of the readers above from the file
+			// extension (or the format= argument) and forwards the arguments to
+			// it, so it exposes nothing they don't and gets the same policy.
+			conn.CreateModule("file_reader", &module.FileModule{Restrictions: n.restrictions})
 
 			// Register the string functions
 			// like position, repeat, replace, etc.

@@ -76,13 +76,13 @@ func TestRestrictionsFromFlags(t *testing.T) {
 
 func TestIsNetworkExposedHost(t *testing.T) {
 	cases := map[string]bool{
-		"127.0.0.1": false,
-		"localhost": false,
-		"::1":       false,
-		"[::1]":     false,
-		"LocalHost": false,
-		"":          true,
-		"0.0.0.0":   true,
+		"127.0.0.1":   false,
+		"localhost":   false,
+		"::1":         false,
+		"[::1]":       false,
+		"LocalHost":   false,
+		"":            true,
+		"0.0.0.0":     true,
 		"192.168.1.5": true,
 		"example.com": true,
 	}

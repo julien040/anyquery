@@ -236,6 +236,12 @@ Anyquery will rebuild the plugin and reload it. If the build fails, `anyquery` w
 Note that you can do the exact same thing with the MySQL server. To do so, run `anyquery server --dev` and connect to the server with your favorite MySQL client.
 
 :::caution
+`--dev` implies `--no-sandbox`: `load_dev_plugin`/`reload_dev_plugin` read the manifest path you give them, run its `build_command`, and write its `log_file`, none of which go through the [sandbox](/docs/usage/sandbox)'s file-access policy. So passing `--dev` to `anyquery server` disables the sandbox entirely, not just for the dev functions.
+
+Never expose a `--dev` server to a network. The MySQL server has no authentication unless you set one up (see [Adding authentication](/docs/usage/mysql-server#adding-authentication)), so keep `--host` on its default (`127.0.0.1`) for any `anyquery server --dev` — treat it strictly as a local debugging tool.
+:::
+
+:::caution
 You CANNOT log to `stdout`. All logs and print messages should be to `stderr`. Replace `fmt` with `log`.
 :::
 

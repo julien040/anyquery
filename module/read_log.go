@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/edsrzf/mmap-go"
 	sqlite3 "github.com/julien040/go-sqlite3-anyquery"
@@ -55,20 +57,18 @@ func extractPatternsFromStr(grokTemplate string) map[string]string {
 	return patterns
 }
 
-func createGrokParser(filePattern string) (*grok.Grok, error) {
+// createGrokParser builds a parser from the built-in patterns, overridden by
+// the user's custom patterns. It takes the already-read content of the custom
+// pattern file (empty = none) rather than its path: the caller must read that
+// file through the sandbox policy, and handing this function a path would make
+// it open the path a second time, after the policy already resolved it.
+func createGrokParser(customPatternFile []byte) (*grok.Grok, error) {
 	// Read the template file
 	patterns := extractPatternsFromStr(grokTemplate)
 
-	// Read the custom patterns
-	if filePattern != "" {
-		file, err := os.ReadFile(filePattern)
-		if err != nil {
-			return nil, fmt.Errorf("failed to read the custom grok patterns file: %s", err)
-		}
-
-		customPatterns := extractPatternsFromStr(string(file))
-		// Overwrite the default patterns
-		for key, value := range customPatterns {
+	// Overwrite the default patterns with the custom ones
+	if len(customPatternFile) > 0 {
+		for key, value := range extractPatternsFromStr(string(customPatternFile)) {
 			patterns[key] = value
 		}
 	}
@@ -94,6 +94,10 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 	pattern := "%{GREEDYDATA:log}"
 	fileName := ""
 	patternFile := ""
+	// Freshness of the remote download cache, in seconds. Ignored for a local
+	// file, which is never cached.
+	cacheTTL := "86400"
+	cacheTTLParsed := int64(86400)
 
 	// Parse arguments
 	if len(args) >= 4 {
@@ -132,6 +136,10 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		{"grok_file", &patternFile},
 		{"custom_pattern", &patternFile},
 		{"custom_grok", &patternFile},
+		{"cache_ttl", &cacheTTL},
+		{"cacheTTL", &cacheTTL},
+		{"ttl", &cacheTTL},
+		{"cache", &cacheTTL},
 	}
 
 	parseArgs(params, args)
@@ -140,11 +148,22 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		return nil, fmt.Errorf("missing file argument. Pass the file path as the first argument")
 	}
 
+	if cacheTTL != "" {
+		var err error
+		cacheTTLParsed, err = strconv.ParseInt(cacheTTL, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse the cache TTL: %s", err)
+		}
+	}
+
 	file := []byte{}
 	mmap := mmap.MMap{}
 	var err error
 
 	if fileName == "/dev/stdin" || fileName == "-" || fileName == "stdin" {
+		if !m.Restrictions.AllowStdin() {
+			return nil, fmt.Errorf("sandbox: reading from stdin is not allowed")
+		}
 		// Read from stdin
 		file, err = io.ReadAll(os.Stdin)
 		if err != nil {
@@ -152,22 +171,33 @@ func (m *LogModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VTab,
 		}
 	} else {
 		// Open the file and mmap it
-		mmap, err = openMmapedFile(fileName, m.Restrictions)
+		mmap, err = openMmapedFile(fileName, m.Restrictions, time.Duration(cacheTTLParsed)*time.Second)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open the file: %s", err)
 		}
 		file = mmap
 	}
 
-	// The custom grok pattern file is read directly (it bypasses the go-getter
-	// chokepoint), so it must be validated against the sandbox policy here.
+	// The custom grok pattern file is read directly (it does not go through
+	// ParseSource/Fetcher), so it is read through the sandbox policy, which
+	// enforces the allowed directories on the same open it reads from.
+	// ReadLocalFile also covers the unrestricted (nil policy) case.
+	customPatterns := []byte{}
 	if patternFile != "" {
-		if err := m.Restrictions.CheckFileRead(patternFile); err != nil {
-			return nil, err
+		customPatterns, err = m.Restrictions.ReadLocalFile(patternFile)
+		if err != nil {
+			// A refusal by the policy is returned as-is: wrapping it as a
+			// failure to read the file would misattribute a configuration
+			// refusal to the filesystem. Anything else really is a read
+			// failure, and reads better with that context.
+			if strings.HasPrefix(err.Error(), "sandbox: ") {
+				return nil, err
+			}
+			return nil, fmt.Errorf("failed to read the custom grok patterns file: %s", err)
 		}
 	}
 
-	parser, err := createGrokParser(patternFile)
+	parser, err := createGrokParser(customPatterns)
 	if err != nil {
 		return nil, err
 	}
