@@ -2,6 +2,7 @@
     "name": "anyquery-website",
     "type": "module",
     "version": "0.0.1",
+    "packageManager": "pnpm@11.0.0",
     "scripts": {
         "dev": "astro dev",
         "start": "astro dev",
