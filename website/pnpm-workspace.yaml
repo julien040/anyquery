@@ -1,3 +1,8 @@
+# pnpm 9 refuses to parse a workspace file without this key, and Vercel's build
+# image runs pnpm 9 before delegating to the version pinned in package.json.
+# This directory is its own single-package root.
+packages:
+  - '.'
 allowBuilds:
   '@tailwindcss/oxide': false
   esbuild: false
