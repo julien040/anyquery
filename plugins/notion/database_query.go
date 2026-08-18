@@ -183,6 +183,12 @@ func databaseTable(args rpc.TableCreatorArgs) (rpc.Table, *rpc.DatabaseSchema, e
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to open badger database: %w", err)
 	}
+	// A cache can outlive an Anyquery session, while the database may have
+	// changed directly in Notion. Start each session with a fresh snapshot.
+	if err := clearCache(db); err != nil {
+		db.Close()
+		return nil, nil, fmt.Errorf("failed to clear stale cache: %w", err)
+	}
 
 	return &table{client, databaseSchema, client.Database, notionTableCols, db}, &schema, nil
 }
