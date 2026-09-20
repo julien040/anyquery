@@ -15,27 +15,25 @@
 
 <p align="center">
   <sub><i>Sponsored by</i></sub><br><br>
-  <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=anyquery">
+  <a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/atlas-cloud-logo-white.svg">
-      <img src="https://cdn.julienc.me/share/atlas-cloud-logo-black.svg" alt="Atlas Cloud" width="220">
+      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg">
+      <img src="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg" alt="Fluxion AI" width="400">
     </picture>
   </a>
 </p>
 
 <h3 align="center">
-  <a href="https://www.atlascloud.ai/?utm_source=github&utm_medium=link&utm_campaign=anyquery">One AI API for LLMs, image &amp; video generation — 300+ models</a>
+  <a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">Fluxion AI - Reliable, cost-efficient access to GPT, Claude, and other leading AI models</a>
 </h3>
-
 <p align="center">
   <sub>
-    Atlas Cloud is a full-modal AI inference platform: a single API and one account for chat completions,<br>
-    image generation, and video generation across 300+ curated models (DeepSeek, FLUX, Kling, Qwen…).<br>
-    With the <a href="https://anyquery.dev/integrations/atlascloud">Anyquery plugin</a>, you can call all of them directly from SQL.
+    Fluxion AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $1 in API credits when you sign up through this link.
   </sub>
 </p>
 
 ---
+
 
 Anyquery is a SQL query engine that allows you to run SQL queries on pretty much anything. It supports querying [files](https://anyquery.dev/docs/usage/querying-files/), [databases](https://anyquery.dev/docs/database), and [apps](https://anyquery.dev/integrations) (e.g. Apple Notes, Notion, Chrome, Todoist, etc.). It's built on top of [SQLite](https://www.sqlite.org) and uses [plugins](https://anyquery.dev/integrations) to extend its functionality.
 

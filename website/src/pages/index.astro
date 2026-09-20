@@ -12,11 +12,11 @@ type Sponsor = {
 const SPONSORS: Record<"gold" | "silver" | "bronze", Sponsor[]> = {
     gold: [
         {
-            name: "Atlas Cloud",
-            url: "https://www.atlascloud.ai/?utm_source=website&utm_medium=link&utm_campaign=anyquery",
-            logo: "/images/brand/atlas-cloud/atlas-cloud-logo-black.svg",
+            name: "Fluxion AI",
+            url: "https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY",
+            logo: "https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg",
             description:
-                "Atlas Cloud provides serverless inference and GPU clusters for open-source AI models.",
+                "Fluxion AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $1 in API credits when you sign up through this link.",
         },
     ],
     silver: [],
@@ -587,7 +587,7 @@ const SPONSORS: Record<"gold" | "silver" | "bronze", Sponsor[]> = {
                                         src={s.logo}
                                         alt={s.name}
                                         loading="lazy"
-                                        class="mx-auto h-8 w-auto"
+                                        class="mx-auto h-16 w-auto"
                                     />
                                 </a>
                                 {s.description && (
