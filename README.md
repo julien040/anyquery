@@ -17,8 +17,8 @@
   <sub><i>Sponsored by</i></sub><br><br>
   <a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">
     <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg">
-      <img src="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg" alt="Fluxion AI" width="400">
+      <!-- <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg"> -->
+      <img src="https://cdn.julienc.me/share/Fluxion_AI_English_Partner_Banner_v3.png" width="100%">
     </picture>
   </a>
 </p>
@@ -28,7 +28,7 @@
 </h3>
 <p align="center">
   <sub>
-    Fluxion AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $1 in API credits when you sign up through this link.
+    Fluxion AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $3 in API credits when you sign up through this link.
   </sub>
 </p>
 
