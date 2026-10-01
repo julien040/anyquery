@@ -336,7 +336,7 @@ func registerExternalDuckDB(params LoadDatabaseConnectionParams, logger hclog.Lo
 	args = [][]driver.Value{}
 
 	// Request all the tables
-	rows, errChan := duckdb.RunDuckDBQuery(params.ConnectionString, "SELECT table_schema, table_name, table_type, FROM information_schema.tables;")
+	rows, errChan := duckdb.RunDuckDBQuery(params.ConnectionString, "SELECT table_schema, table_name, table_type, FROM information_schema.tables;", false)
 	if len(errChan) > 0 {
 		rowErr := <-errChan
 		if rowErr != nil {

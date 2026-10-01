@@ -194,8 +194,18 @@ func isInMemoryDB(name string) bool {
 		return true
 	}
 	if strings.HasPrefix(name, "file:") {
+		// SQLite splits options on '&' only and cuts keys and values at a
+		// decoded NUL, while net/url silently drops any pair containing ';'.
+		// Either lets a second mode reach SQLite unseen here, so both are denied.
+		if strings.Contains(name, "%00") || strings.ContainsRune(name, 0) {
+			return false
+		}
 		if u, err := url.Parse(name); err == nil {
-			modes := u.Query()["mode"]
+			q, err := url.ParseQuery(u.RawQuery)
+			if err != nil {
+				return false
+			}
+			modes := q["mode"]
 			if len(modes) == 1 && strings.EqualFold(modes[0], "memory") {
 				return true
 			}

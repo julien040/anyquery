@@ -37,3 +37,27 @@ func TestDotParser(t *testing.T) {
 	}
 
 }
+
+func TestSandboxDeniedDotCommands(t *testing.T) {
+	// Listed explicitly so removing one from sandboxDeniedDotCommands fails
+	// here. The argument is a path that cannot exist, so a broken guard never
+	// runs or writes to something real.
+	for _, command := range []string{"shell", "system", "output", "log", "cd", "SHELL"} {
+		q := &QueryData{
+			SQLQuery: "." + command + " /nonexistent-anyquery-sandbox-test/x",
+			Config:   middlewareConfiguration{"dot-command": true, "sandbox": true},
+		}
+		require.False(t, middlewareDotCommand(q), command)
+		require.Equal(t, 2, q.StatusCode, command)
+		require.Empty(t, q.Config.GetString("outputFile", ""), command)
+	}
+
+	// Harmless dot commands keep working under the sandbox.
+	q := &QueryData{
+		SQLQuery: ".tables",
+		Config:   middlewareConfiguration{"dot-command": true, "sandbox": true},
+	}
+	middlewareDotCommand(q)
+	require.NotEqual(t, 2, q.StatusCode)
+	require.NotEmpty(t, q.SQLQuery)
+}

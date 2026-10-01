@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand/v2"
+	"os"
 	stdpath "path"
 	"slices"
 	"strconv"
@@ -471,7 +472,7 @@ func (n *Namespace) Register(registerName string) (*sql.DB, error) {
 				conn.CreateModule("postgres_reader", &module.PostgresModule{})
 				conn.CreateModule("mysql_reader", &module.MySQLModule{})
 				conn.CreateModule("clickhouse_reader", &module.ClickHouseModule{})
-				conn.CreateModule("duckdb_reader", &module.DuckDBModule{})
+				conn.CreateModule("duckdb_reader", &module.DuckDBModule{Restrictions: n.restrictions})
 				conn.CreateModule("cassandra_reader", &module.CassandraModule{})
 			}
 
@@ -630,6 +631,22 @@ func (n *Namespace) LoadAsAnyqueryCLI(path string) error {
 	}
 
 	logger.Debug("retrieved the plugins from the database", "count", len(plugins))
+
+	// The sandbox only confines anyquery's built-in tables and functions.
+	// Plugins run as their own processes (or SQLite extensions) and can read
+	// files, reach the network and use their stored credentials regardless of
+	// it, so any client of a sandboxed instance can use them.
+	if n.restrictions != nil && len(plugins) > 0 {
+		names := make([]string, 0, len(plugins))
+		for _, plugin := range plugins {
+			names = append(names, plugin.Name)
+		}
+		// Written to stderr rather than the logger: the CLI commands discard
+		// their logs by default, and this must reach the operator.
+		fmt.Fprintf(os.Stderr, "Warning: the sandbox does not apply to installed plugins (%s). "+
+			"Anyone who can send queries can use them with their full access to files, network and stored credentials. "+
+			"Uninstall the plugins you do not want to expose. See https://anyquery.dev/docs/usage/sandbox\n", strings.Join(names, ", "))
+	}
 
 	for _, plugin := range plugins {
 		logger.Debug("loading the plugin", "plugin", plugin.Name, "registry", plugin.Registry)

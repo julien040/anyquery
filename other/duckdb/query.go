@@ -13,11 +13,22 @@ import (
 //
 // It returns a channel of map[string]interface{} for the results, string keys are the column names, and interface{} values are the column values.
 // It also returns a channel of errors for any errors that occur during the execution of the query.
-func RunDuckDBQuery(path string, query string) (<-chan map[string]interface{}, <-chan error) {
+// RunDuckDBQuery runs query against the database at path with the DuckDB CLI.
+//
+// When sandboxed, DuckDB's own file and network access (read_csv, read_text,
+// httpfs, extension installs, ...) is turned off and the configuration locked,
+// so neither the query nor a view stored in the database can reach files or
+// URLs beyond the database itself.
+func RunDuckDBQuery(path string, query string, sandboxed bool) (<-chan map[string]interface{}, <-chan error) {
 	res := make(chan map[string]interface{}, 8)
 	chanErr := make(chan error, 1)
 
-	cmd := exec.Command("duckdb", path, "-readonly", "-cmd", ".mode jsonlines")
+	args := []string{path, "-readonly"}
+	if sandboxed {
+		args = append(args, "-cmd", "SET enable_external_access = false", "-cmd", "SET lock_configuration = true")
+	}
+	args = append(args, "-cmd", ".mode jsonlines")
+	cmd := exec.Command("duckdb", args...)
 	cmd.Stdin = strings.NewReader(query + "\n")
 
 	stdout, err := cmd.StdoutPipe()

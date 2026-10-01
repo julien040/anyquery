@@ -17,6 +17,18 @@ import (
 	pql "github.com/julien040/pql-anyquery"
 )
 
+// sandboxDeniedDotCommands reach the OS outside the SQLite authorizer, so the
+// sandbox cannot confine them: .shell/.system run programs, .output/.log write
+// to any path, and .cd moves the working directory that relative paths resolve
+// against. They are refused when the "sandbox" config is set.
+var sandboxDeniedDotCommands = map[string]bool{
+	"shell":  true,
+	"system": true,
+	"output": true,
+	"log":    true,
+	"cd":     true,
+}
+
 func middlewareDotCommand(queryData *QueryData) bool {
 	// Check if dot command are enabled
 	if !queryData.Config.GetBool("dot-command", false) {
@@ -33,6 +45,12 @@ func middlewareDotCommand(queryData *QueryData) bool {
 	}
 
 	command, args := parseDotFunc(query)
+
+	if queryData.Config.GetBool("sandbox", false) && sandboxDeniedDotCommands[strings.ToLower(command)] {
+		queryData.Message = "sandbox: ." + command + " is disabled under --sandbox"
+		queryData.StatusCode = 2
+		return false
+	}
 
 	switch strings.ToLower(command) {
 	case "cd":

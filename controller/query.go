@@ -140,6 +140,8 @@ func Query(cmd *cobra.Command, args []string) error {
 		os.Exit(0)
 	}()
 
+	restrictions := RestrictionsFromFlags(cmd)
+
 	// Create the shell
 	shell := shell{
 		DB: db,
@@ -153,16 +155,13 @@ func Query(cmd *cobra.Command, args []string) error {
 			"dot-command":   true,
 			"mysql":         true,
 			"slash-command": true,
+			// Refuses the dot commands in sandboxDeniedDotCommands.
+			"sandbox": restrictions != nil,
 		},
-		// Dot commands stay enabled here because the caller is typing them
-		// (the interactive REPL). But `.read` is handled in shell.Run, before
-		// the middlewares, so the "dot-command" flag alone does not confine it
-		// to --allow-dirs: without this the shell's Restrictions would be nil
-		// (unrestricted) even under --sandbox, while the namespace above was
-		// correctly restricted. Note this is the same value passed to the
-		// namespace, so `query --sandbox --allow-dirs X` now constrains
-		// `.read` the same way it constrains the read_* modules.
-		Restrictions:   RestrictionsFromFlags(cmd),
+		// `.read` is handled in shell.Run, before the middlewares, and also
+		// checks these Restrictions, so it stays confined to --allow-dirs the
+		// same way the read_* modules in the namespace above are.
+		Restrictions:   restrictions,
 		OutputFile:     "stdout",
 		OutputFileDesc: os.Stdout,
 	}

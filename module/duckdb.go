@@ -25,12 +25,17 @@ ORDER BY
 `
 
 type DuckDBModule struct {
+	// The sandbox policy (nil = unrestricted). When set, the connection
+	// string must be a local file inside the allowed directories and DuckDB
+	// runs with external access disabled (see duckdb.RunDuckDBQuery).
+	Restrictions *Restrictions
 }
 
 type DuckDBTable struct {
 	tableName        string
 	schema           []databaseColumn
 	connectionString string
+	sandboxed        bool
 }
 
 type DuckDBCursor struct {
@@ -41,6 +46,7 @@ type DuckDBCursor struct {
 	rowsReturned     int64
 	limit            int64
 	connectionString string
+	sandboxed        bool
 
 	rows   <-chan map[string]interface{}
 	rowErr <-chan error
@@ -91,6 +97,15 @@ func (m *DuckDBModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 		return nil, fmt.Errorf("missing table argument. Check the validity of the arguments")
 	}
 
+	// DuckDB opens remote paths (http, s3, ...) as databases, so under a
+	// sandbox only a local file inside the allowed directories is accepted. The
+	// CLI reopens the path by name after this check; swapping it for a symlink
+	// in between requires write access to an allowed directory already.
+	if err := m.Restrictions.CheckFileRead(connectionString); err != nil {
+		return nil, err
+	}
+	sandboxed := m.Restrictions != nil
+
 	// Parse the tableName and split it into schema and table if needed
 	schemaTable := strings.Split(table, ".")
 	if len(schemaTable) > 1 {
@@ -102,8 +117,12 @@ func (m *DuckDBModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 		table = strings.Trim(table, "\" '`")
 	}
 
-	// Fetch the schema for the table
-	rows, errChan := duckdb.RunDuckDBQuery(connectionString, fmt.Sprintf(fetchDuckDBSchemaSQLQuery, schemaName, table))
+	// Fetch the schema for the table. The DuckDB CLI reads the query from stdin
+	// and cannot bind parameters, so both names are escaped as SQL string
+	// literals; an unescaped quote would let the caller run arbitrary DuckDB SQL
+	// (e.g. read_csv on any local file).
+	rows, errChan := duckdb.RunDuckDBQuery(connectionString, fmt.Sprintf(fetchDuckDBSchemaSQLQuery,
+		strings.ReplaceAll(schemaName, "'", "''"), strings.ReplaceAll(table, "'", "''")), sandboxed)
 	if len(errChan) > 0 {
 		rowErr := <-errChan
 		if rowErr != nil {
@@ -242,13 +261,15 @@ func (m *DuckDBModule) Connect(c *sqlite3.SQLiteConn, args []string) (sqlite3.VT
 	}
 
 	// Merge the schema with the table name
-	table = fmt.Sprintf("\"%s\".\"%s\"", schemaName, table)
+	table = fmt.Sprintf("\"%s\".\"%s\"",
+		strings.ReplaceAll(schemaName, `"`, `""`), strings.ReplaceAll(table, `"`, `""`))
 
 	// Return the table instance
 	return &DuckDBTable{
 		tableName:        table,
 		schema:           internalSchema,
 		connectionString: connectionString,
+		sandboxed:        sandboxed,
 	}, nil
 }
 
@@ -258,6 +279,7 @@ func (t *DuckDBTable) Open() (sqlite3.VTabCursor, error) {
 		schema:           t.schema,
 		limit:            -1,
 		connectionString: t.connectionString,
+		sandboxed:        t.sandboxed,
 	}, nil
 }
 
@@ -388,7 +410,7 @@ func (t *DuckDBCursor) Filter(idxNum int, idxStr string, vals []interface{}) err
 	}
 
 	// Run the query
-	rows, rowErr := duckdb.RunDuckDBQuery(t.connectionString, interpolatedQuery)
+	rows, rowErr := duckdb.RunDuckDBQuery(t.connectionString, interpolatedQuery, t.sandboxed)
 	if len(rowErr) > 0 {
 		rowError := <-rowErr
 		if rowError != nil {

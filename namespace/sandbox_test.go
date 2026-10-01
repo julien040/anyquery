@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -144,6 +145,77 @@ func TestSandboxDBReadersAllowed(t *testing.T) {
 	_, err := conn.ExecContext(ctx, "CREATE VIRTUAL TABLE d USING duckdb_reader(':memory:', 'nonexistent')")
 	if err != nil && strings.Contains(strings.ToLower(err.Error()), "no such module") {
 		t.Errorf("duckdb_reader should be registered when allowed, got: %v", err)
+	}
+}
+
+// duckDBFile creates a DuckDB database in a fresh directory by running setup
+// with the DuckDB CLI, skipping the test when the CLI is not installed.
+func duckDBFile(t *testing.T, setup string) (dir, path string) {
+	t.Helper()
+	if _, err := exec.LookPath("duckdb"); err != nil {
+		t.Skip("duckdb CLI not installed")
+	}
+	dir = t.TempDir()
+	path = filepath.Join(dir, "x.duckdb")
+	if out, err := exec.Command("duckdb", path, "-c", setup).CombinedOutput(); err != nil {
+		t.Fatalf("creating duckdb file: %v: %s", err, out)
+	}
+	return dir, path
+}
+
+// TestDuckDBReaderTableNameInjection: the table argument is interpolated into
+// a query run by the DuckDB CLI, so a quote in it must not end the string
+// literal. Unescaped, the injected SELECT's rows become the table's columns.
+func TestDuckDBReaderTableNameInjection(t *testing.T) {
+	dir, dbPath := duckDBFile(t, "CREATE TABLE t(a INT)")
+	ctx := context.Background()
+	conn := sandboxConn(t, &module.Restrictions{AllowDBConnections: true, AllowedDirs: []string{dir}})
+
+	_, err := conn.ExecContext(ctx, `CREATE VIRTUAL TABLE leak USING duckdb_reader('`+dbPath+`', "x');SELECT 'injected' AS column_name,'varchar' AS data_type,1 AS ordinal_position WHERE 'x'=('x")`)
+	if err == nil {
+		t.Fatal("injected SELECT ran: the virtual table was created from its rows")
+	}
+	if strings.Contains(err.Error(), "sandbox: ") {
+		t.Fatalf("expected the path to be allowed so the injection itself is tested, got: %v", err)
+	}
+}
+
+// TestDuckDBReaderSandboxConfinement: under a sandbox, duckdb_reader only
+// opens local databases inside the allowed directories, and a view stored in
+// an allowed database cannot read files outside them.
+func TestDuckDBReaderSandboxConfinement(t *testing.T) {
+	dir, dbPath := duckDBFile(t, "CREATE TABLE t(a INT); INSERT INTO t VALUES (42); CREATE VIEW leak AS SELECT content AS a FROM read_text('/etc/hosts');")
+	ctx := context.Background()
+	conn := sandboxConn(t, &module.Restrictions{AllowDBConnections: true, AllowedDirs: []string{dir}})
+
+	for _, dsn := range []string{
+		"http://127.0.0.1:1/evil.duckdb",
+		"s3://bucket/evil.duckdb",
+		"/etc/hosts",
+		":memory:",
+	} {
+		_, err := conn.ExecContext(ctx, `CREATE VIRTUAL TABLE bad USING duckdb_reader('`+dsn+`', 't')`)
+		if err == nil || !strings.Contains(err.Error(), "sandbox: ") {
+			t.Errorf("duckdb_reader(%q) should be refused by the sandbox, got: %v", dsn, err)
+		}
+	}
+
+	// A legitimate table in an allowed database still works.
+	if _, err := conn.ExecContext(ctx, `CREATE VIRTUAL TABLE ok USING duckdb_reader('`+dbPath+`', 't')`); err != nil {
+		t.Fatalf("allowed duckdb file should open: %v", err)
+	}
+	var a int
+	if err := conn.QueryRowContext(ctx, "SELECT a FROM ok").Scan(&a); err != nil || a != 42 {
+		t.Fatalf("reading allowed table: a=%d err=%v", a, err)
+	}
+
+	// The view's read_text must be blocked by DuckDB's external access lock.
+	if _, err := conn.ExecContext(ctx, `CREATE VIRTUAL TABLE v USING duckdb_reader('`+dbPath+`', 'leak')`); err != nil {
+		t.Fatalf("declaring the view table: %v", err)
+	}
+	var content string
+	if err := conn.QueryRowContext(ctx, "SELECT a FROM v").Scan(&content); err == nil {
+		t.Fatalf("view read a file outside the allowed dirs: %q", content)
 	}
 }
 

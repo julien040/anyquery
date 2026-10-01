@@ -200,6 +200,10 @@ func TestIsInMemoryDB(t *testing.T) {
 		{"duplicate mode key, both memory", "file:/tmp/x?mode=memory&mode=memory", false},
 		{"mode spoofed as a query VALUE, not a key", "file:/etc/cron.d/pwn?x=mode=memory", false},
 		{"case-sensitive MODE key alongside real mode=rwc", "file:/tmp/x?MODE=memory&mode=rwc", false},
+		{"semicolon pair dropped by net/url, NUL-truncated rwc", "file:/tmp/x?mode=memory&mode=rwc%00;x", false},
+		{"semicolon pair dropped by net/url, NUL-truncated ro", "file:/tmp/x?mode=memory&mode=ro%00;x", false},
+		{"NUL-truncated duplicate mode key", "file:/tmp/x?mode=memory&mode%00=rwc", false},
+		{"semicolon without NUL", "file:/tmp/x?mode=memory&mode=rwc;x", false},
 	}
 	for _, c := range cases {
 		if got := isInMemoryDB(c.input); got != c.want {
