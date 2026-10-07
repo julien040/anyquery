@@ -8,17 +8,23 @@
 package controller
 
 import (
+	"bytes"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 	"time"
 
+	"github.com/adrg/xdg"
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/elk-language/go-prompt"
 	"github.com/julien040/anyquery/module"
+	"github.com/reeflective/readline"
+	"github.com/reeflective/readline/inputrc"
 	"golang.org/x/term"
 )
 
@@ -136,8 +142,9 @@ type shell struct {
 	OutputFile     string
 	OutputFileDesc io.Writer
 
-	// The history of the shell
-	History []string
+	// The line editor, created on the first call to InputQuery and kept
+	// so that its in-memory history survives across queries
+	readline *readline.Shell
 }
 
 func (p *shell) AddMiddleware(m middleware) {
@@ -416,57 +423,182 @@ func writeErrorMessage(message string, output io.Writer) {
 }
 
 func (p *shell) InputQuery() string {
-	prompt := prompt.New(func(s string) {},
-		prompt.WithHistory(p.History),
-		prompt.WithPrefixTextColor(prompt.Fuchsia), prompt.WithKeyBind(
-			prompt.KeyBind{
-				Key: prompt.ControlC,
-				Fn: func(p *prompt.Prompt) (rerender bool) {
-					// Set .quit as the query
-					p.Buffer().InsertTextMoveCursor(".quit", 0, 0, true)
-					return true
-				},
-			},
-			prompt.KeyBind{
-				Key: prompt.ControlD,
-				Fn: func(p *prompt.Prompt) (rerender bool) {
-					// Set .exit as the query
-					p.Buffer().InsertTextMoveCursor(".exit", 0, 0, true)
-					return true
-				},
-			},
-		),
-		prompt.WithExecuteOnEnterCallback(func(prompt *prompt.Prompt, indentSize int) (indent int, execute bool) {
+	if p.readline == nil {
+		// The app name lets users scope settings with `$if anyquery` in ~/.inputrc
+		p.readline = readline.NewShell(inputrc.WithApp("anyquery"))
+		// The library defaults treat bytes above 127 as Meta key presses,
+		// which drops UTF-8 characters such as "é" from the input.
+		// These are the values GNU readline picks under a UTF-8 locale.
+		p.readline.Config.Set("input-meta", true)
+		p.readline.Config.Set("output-meta", true)
+		p.readline.Config.Set("convert-meta", false)
+		p.loadHistory()
+		p.readline.Prompt.Primary(func() string { return "\x1b[35manyquery> \x1b[0m" })
+		p.readline.SyntaxHighlighter = newSQLHighlighter()
+		p.readline.AcceptMultiline = func(line []rune) bool {
 			// We trim the query
-			query := strings.TrimSpace(prompt.Buffer().Text())
+			query := strings.TrimSpace(string(line))
 
 			// If the query is empty, we don't run it and consider the user wants to start with a newline
 			if query == "" {
-				return 0, false
+				return false
 			}
 
 			// If the query starts with a dot, or with a backslash, we consider it as a command
 			// And commands execute on enter
 			if strings.HasPrefix(query, ".") || strings.HasPrefix(query, "\\") {
-				return 0, true
+				return true
 			}
 
 			// If the query ends with a semicolon, we consider it as a query
-			if strings.HasSuffix(query, ";") {
-				return 0, true
-			}
-
 			// Otherwise, we consider it as a multiline query that is not finished
-			return 0, false
-		}),
-		prompt.WithPrefix("anyquery> "),
-	)
+			return strings.HasSuffix(query, ";")
+		}
+		// readline's own editor lookup ignores $VISUAL and $EDITOR,
+		// so both Emacs (Ctrl-X Ctrl-E) and Vi (v) bindings use ours
+		p.readline.Keymap.Register(map[string]func(){
+			"edit-command-line":    p.editCommandLine,
+			"vi-edit-command-line": p.editCommandLine,
+		})
+	}
 
-	sqlQuery := prompt.Input()
-	// We add the query to the history
-	p.History = append(p.History, sqlQuery)
+	sqlQuery, err := p.readline.Readline()
+	switch {
+	case err == nil:
+		return sqlQuery
+	case errors.Is(err, readline.ErrInterrupt):
+		// Ctrl+C quits the shell
+		return ".quit"
+	default:
+		// Ctrl+D (io.EOF) or an unrecoverable read error exits the shell
+		return ".exit"
+	}
+}
 
-	return sqlQuery
+// historyPath returns the file where the shell history is saved.
+// ANYQUERY_HISTORY overrides the default location, and an empty value
+// disables saving (the returned path is then empty).
+func historyPath() (string, error) {
+	if path, ok := os.LookupEnv("ANYQUERY_HISTORY"); ok {
+		return path, nil
+	}
+	return xdg.StateFile("anyquery/history")
+}
+
+// loadHistory replaces the in-memory history with the history file
+// so that previous sessions can be recalled with Up and Ctrl+R.
+// On error, the shell keeps the in-memory history and warns the user.
+func (p *shell) loadHistory() {
+	path, err := historyPath()
+	if err == nil && path == "" {
+		return
+	}
+	if err == nil {
+		// The library reads the file with os.Open, so it must exist.
+		// Queries may contain secrets, hence the owner-only mode
+		var f *os.File
+		f, err = os.OpenFile(path, os.O_CREATE|os.O_RDONLY, 0o600)
+		if err == nil {
+			f.Close()
+		}
+	}
+	var source readline.History
+	if err == nil {
+		source, err = readline.NewHistoryFromFile(path)
+	}
+	if err != nil {
+		writeWarningMessage(fmt.Sprintf("Command history won't be saved: %v", err), os.Stderr)
+		return
+	}
+	p.readline.History.Add("history", ignoreSpaceHistory{source})
+}
+
+// ignoreSpaceHistory does not save lines starting with a space,
+// so users can keep a query out of the history file
+type ignoreSpaceHistory struct {
+	readline.History
+}
+
+func (h ignoreSpaceHistory) Write(line string) (int, error) {
+	if strings.HasPrefix(line, " ") {
+		return h.Len(), nil
+	}
+	return h.History.Write(line)
+}
+
+// findEditor returns the command used to edit the current query:
+// $VISUAL, then $EDITOR, then the first editor found in the PATH.
+// It returns nil if no editor is available
+func findEditor() []string {
+	for _, env := range []string{"VISUAL", "EDITOR"} {
+		if editor := strings.Fields(os.Getenv(env)); len(editor) > 0 {
+			return editor
+		}
+	}
+
+	// VS Code needs --wait, otherwise it returns before the file is edited
+	candidates := [][]string{{"code", "--wait"}, {"nano"}, {"vim"}, {"vi"}}
+	if runtime.GOOS == "windows" {
+		candidates = [][]string{{"code", "--wait"}, {"notepad"}}
+	}
+	for _, candidate := range candidates {
+		if _, err := exec.LookPath(candidate[0]); err == nil {
+			return candidate
+		}
+	}
+	return nil
+}
+
+// editCommandLine opens the current query in an editor and replaces
+// the line with the edited text, without running it
+func (p *shell) editCommandLine() {
+	rl := p.readline
+	editor := findEditor()
+	if editor == nil {
+		rl.Hint.SetTemporary("\x1b[31mNo editor found, set $EDITOR (e.g. export EDITOR=nano)")
+		return
+	}
+
+	edited, err := editInEditor(editor, string(*rl.Line()))
+	if err != nil {
+		rl.Hint.SetTemporary("\x1b[31mEditor error: " + strings.ReplaceAll(err.Error(), "\n", " "))
+		return
+	}
+
+	rl.Line().Set([]rune(edited)...)
+	rl.Cursor().Set(rl.Line().Len())
+}
+
+// editInEditor writes text to a temporary .sql file, opens it with editor
+// attached to the terminal, and returns the content once the editor exits
+func editInEditor(editor []string, text string) (string, error) {
+	file, err := os.CreateTemp("", "anyquery-*.sql")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(file.Name())
+
+	_, err = file.WriteString(text)
+	file.Close()
+	if err != nil {
+		return "", err
+	}
+
+	cmd := exec.Command(editor[0], append(editor[1:], file.Name())...)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	content, err := os.ReadFile(file.Name())
+	if err != nil {
+		return "", err
+	}
+	content = bytes.TrimSuffix(content, []byte("\n"))
+	content = bytes.TrimSuffix(content, []byte("\r"))
+	return string(content), nil
 }
 
 // Split a query by the delimiter ; unless it is inside a string

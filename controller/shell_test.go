@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"testing"
 
+	"github.com/adrg/xdg"
 	"github.com/julien040/anyquery/module"
+	"github.com/reeflective/readline"
 	"github.com/stretchr/testify/require"
 )
 
@@ -277,4 +280,73 @@ func TestReadCommand(t *testing.T) {
 		require.NotContains(t, buf.String(), "leaked",
 			"the file content must never be executed/echoed through the LLM path")
 	})
+}
+
+func TestFindEditor(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("fake executables in PATH are shell scripts")
+	}
+
+	// A PATH holding only a fake "nano" and "vi"
+	dir := t.TempDir()
+	for _, name := range []string{"nano", "vi"} {
+		require.NoError(t, os.WriteFile(filepath.Join(dir, name), []byte("#!/bin/sh\n"), 0o755))
+	}
+
+	tests := []struct {
+		name, visual, editor, path string
+		want                       []string
+	}{
+		{"visual wins", "code --wait", "vim", dir, []string{"code", "--wait"}},
+		{"editor when no visual", "", "hx", dir, []string{"hx"}},
+		{"first editor found in PATH", "", "", dir, []string{"nano"}},
+		{"no editor available", "", "", t.TempDir(), nil},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Setenv("VISUAL", tt.visual)
+			t.Setenv("EDITOR", tt.editor)
+			t.Setenv("PATH", tt.path)
+			require.Equal(t, tt.want, findEditor())
+		})
+	}
+}
+
+func TestHistoryPath(t *testing.T) {
+	stateHome := t.TempDir()
+	t.Setenv("XDG_STATE_HOME", stateHome)
+	xdg.Reload()
+	t.Cleanup(xdg.Reload)
+
+	// Unset: default location under the XDG state directory
+	t.Setenv("ANYQUERY_HISTORY", "")
+	os.Unsetenv("ANYQUERY_HISTORY")
+	path, err := historyPath()
+	require.NoError(t, err)
+	require.Equal(t, filepath.Join(stateHome, "anyquery", "history"), path)
+
+	// Custom path
+	t.Setenv("ANYQUERY_HISTORY", "/tmp/my_history")
+	path, err = historyPath()
+	require.NoError(t, err)
+	require.Equal(t, "/tmp/my_history", path)
+
+	// Empty value disables saving
+	t.Setenv("ANYQUERY_HISTORY", "")
+	path, err = historyPath()
+	require.NoError(t, err)
+	require.Empty(t, path)
+}
+
+func TestIgnoreSpaceHistory(t *testing.T) {
+	hist := ignoreSpaceHistory{readline.NewInMemoryHistory()}
+	_, err := hist.Write("SELECT 1;")
+	require.NoError(t, err)
+	_, err = hist.Write(" SELECT 2;")
+	require.NoError(t, err)
+
+	require.Equal(t, 1, hist.Len())
+	line, err := hist.GetLine(0)
+	require.NoError(t, err)
+	require.Equal(t, "SELECT 1;", line)
 }

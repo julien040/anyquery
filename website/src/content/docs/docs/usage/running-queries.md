@@ -127,6 +127,51 @@ The shell also supports a subset of the PostgreSQL shell commands with slightly 
 - `\d+ view` - Describe the view with more details.
 - `\di` - List the indexes in all databases.
 
+### Keyboard shortcuts
+
+The shell's line editor is based on [readline](https://github.com/reeflective/readline), so the usual bash-style shortcuts work and your `~/.inputrc` is honored (see the [GNU readline documentation](https://tiswww.case.edu/php/chet/readline/rluserman.html)). Here are the most useful ones in the default Emacs mode:
+
+| Shortcut | Action |
+| --- | --- |
+| `Ctrl-R` | Search history backwards |
+| `Ctrl-X Ctrl-E` | Edit the current query in `$VISUAL` / `$EDITOR` (falls back to VS Code, nano, vim or vi) |
+| `Ctrl-_` | Undo |
+| `Ctrl-A` / `Ctrl-E` | Move to the start / end of the line |
+| `Alt-B` / `Alt-F` | Move one word back / forward |
+| `Ctrl-K` | Cut to the end of the line |
+| `Ctrl-Y` | Paste the last cut |
+| `Alt-Backspace` | Delete the previous word |
+| `Alt-U` | Uppercase the word (e.g. `select` becomes `SELECT`) |
+| `Alt-#` | Comment out the line |
+| `Ctrl-L` | Clear the screen |
+| `Ctrl-C` / `Ctrl-D` | Quit the shell |
+
+#### Syntax highlighting
+
+The shell highlights SQL as you type, with the Atom One Dark colors on truecolor terminals with a dark background, and basic terminal colors otherwise. Set the `NO_COLOR` environment variable to disable it.
+
+#### History
+
+The history is saved across sessions in `~/.local/state/anyquery/history` on Linux, `~/Library/Application Support/anyquery/history` on macOS, and `%LOCALAPPDATA%\anyquery\history` on Windows. Set the `ANYQUERY_HISTORY` environment variable to use another file, or set it to an empty value to disable saving. Queries starting with a space are not saved.
+
+#### Vi mode
+
+To use Vi keybindings, add this line to your `~/.inputrc`:
+
+```bash title="~/.inputrc"
+set editing-mode vi
+```
+
+Press `Esc` to enter normal mode and `i` to go back to insert mode. In normal mode, `v` opens the query in `$EDITOR`, and text objects, registers, and visual mode are supported.
+
+This setting also applies to other readline programs, such as bash. To enable it only for anyquery, wrap it in an `$if anyquery` block:
+
+```bash title="~/.inputrc"
+$if anyquery
+  set editing-mode vi
+$endif
+```
+
 ## As a flag argument
 
 To run a query as a one-off command without entering the shell, you can use the `-q` flag. For example, to run `SELECT * FROM table`, you can run
