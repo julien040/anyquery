@@ -6,6 +6,7 @@ import (
 	"cmp"
 	"database/sql"
 	"fmt"
+	"maps"
 	"math/rand/v2"
 	"os"
 	"os/exec"
@@ -414,18 +415,24 @@ func withTableSuggestion(db *sql.DB, err error) string {
 	if qErr != nil {
 		return msg
 	}
-	defer rows.Close()
+	var names []string
+	for rows.Next() {
+		var name string
+		if rows.Scan(&name) == nil {
+			names = append(names, name)
+		}
+	}
+	rows.Close()
+	// read_json, read_csv, etc. are rewritten by middlewareFileQuery before
+	// reaching SQLite, so they are not in the database's table list
+	names = slices.AppendSeq(names, maps.Keys(supportedTableFunctions))
 
 	type candidate struct {
 		name     string
 		distance int
 	}
 	var candidates []candidate
-	for rows.Next() {
-		var name string
-		if rows.Scan(&name) != nil {
-			continue
-		}
+	for _, name := range names {
 		lowerName := strings.ToLower(name)
 		distance := levenshtein(missing, lowerName)
 		// The substring match catches a plugin table queried without its
@@ -442,11 +449,11 @@ func withTableSuggestion(db *sql.DB, err error) string {
 	slices.SortFunc(candidates, func(a, b candidate) int {
 		return cmp.Or(a.distance-b.distance, strings.Compare(a.name, b.name))
 	})
-	names := make([]string, 0, 3)
+	suggestions := make([]string, 0, 3)
 	for _, c := range candidates[:min(3, len(candidates))] {
-		names = append(names, c.name)
+		suggestions = append(suggestions, c.name)
 	}
-	return fmt.Sprintf("%s (did you mean: %s?)", msg, strings.Join(names, ", "))
+	return fmt.Sprintf("%s (did you mean: %s?)", msg, strings.Join(suggestions, ", "))
 }
 
 // levenshtein returns the edit distance between a and b, compared byte-wise.

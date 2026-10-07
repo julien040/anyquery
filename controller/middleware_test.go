@@ -91,6 +91,8 @@ func TestTableSuggestion(t *testing.T) {
 	require.Contains(t, run("SELECT * FROM main.my_repositories"), "(did you mean: github_my_repositories")
 	// Exec path (non-SELECT statements)
 	require.Contains(t, run("DELETE FROM github_my_repostories"), "(did you mean: github_my_repositories")
+	// read_* functions only exist before middlewareFileQuery rewrites them
+	require.Contains(t, run("SELECT * FROM read_jsn('x.json')"), "(did you mean: read_json")
 	// Nothing close: the plain SQLite error, no suggestion
 	out := run("SELECT * FROM zzzzzzzzzzzz")
 	require.Contains(t, out, "no such table: zzzzzzzzzzzz")
