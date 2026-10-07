@@ -24,6 +24,20 @@ Anyquery supports function calling and the Model Context Protocol (MCP) to conne
 
 <LinkCard title="Connection guides" href="/integrations#llm" description="Learn how to connect your chat interface to Anyquery." />
 
+### MCP transports
+
+`anyquery mcp` can talk to your client in three ways:
+
+| Transport | How to start it | Address |
+| --- | --- | --- |
+| Standard input/output | `anyquery mcp --stdio` | Launched by the client |
+| Streamable HTTP (recommended for HTTP) | `anyquery mcp` | `http://127.0.0.1:8070/mcp` |
+| Server-sent events (legacy) | `anyquery mcp` | `http://127.0.0.1:8070/sse` |
+
+Both HTTP endpoints are served on the same port, so older clients that only support SSE keep working. Change the address with the `--host` and `--port` flags. HTTP connections require the bearer token printed at startup (or set with the `ANYQUERY_AI_SERVER_BEARER_TOKEN` environment variable) in the `Authorization` header, unless you pass `--no-auth`.
+
+Anyquery supports the MCP protocol versions `2026-07-28`, `2025-11-25`, `2025-06-18`, `2025-03-26` and `2024-11-05`, and negotiates the version with each client.
+
 ## Usage
 
 Once connected, you can interact with your applications using natural language. For example, if you've set up the Spotify integration, you can ask ChatGPT to recommend a song for you.

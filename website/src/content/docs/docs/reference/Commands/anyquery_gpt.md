@@ -20,19 +20,24 @@ anyquery gpt [flags]
 ### Options
 
 ```bash
-  -c, --config string       Path to the configuration database
-  -d, --database string     Database to connect to (a path or :memory:)
-      --extension strings   Load one or more extensions by specifying their path. Separate multiple extensions with a comma.
-  -h, --help                help for gpt
-      --host string         Host to bind to. If not empty, the tunnel will be disabled
-      --in-memory           Use an in-memory database
-      --log-file string     Log file
-      --log-format string   Log format (text, json) (default "text")
-      --log-level string    Log level (trace, debug, info, warn, error, off) (default "info")
-      --no-auth             Disable the authorization mechanism for locally bound servers
-      --port int            Port to bind to. If not empty, the tunnel will be disabled
-      --read-only           Open the SQLite database in read-only mode
-      --readonly            Open the SQLite database in read-only mode
+      --allow-attach           When sandboxed, allow ATTACH/VACUUM INTO to on-disk paths within --allow-dirs
+      --allow-db-connections   When sandboxed, allow the database reader modules (duckdb/postgres/mysql/clickhouse/cassandra)
+      --allow-dirs strings     When sandboxed, directories that read_* tables (and on-disk ATTACH) may access (repeatable, comma-separated)
+      --allow-remote           When sandboxed, allow read_* tables to fetch remote URLs (http/https)
+  -c, --config string          Path to the configuration database
+  -d, --database string        Database to connect to (a path or :memory:)
+      --extension strings      Load one or more extensions by specifying their path. Separate multiple extensions with a comma.
+  -h, --help                   help for gpt
+      --host string            Host to bind to. If not empty, the tunnel will be disabled
+      --in-memory              Use an in-memory database
+      --log-file string        Log file
+      --log-format string      Log format (text, json) (default "text")
+      --log-level string       Log level (trace, debug, info, warn, error, off) (default "info")
+      --no-auth                Disable the authorization mechanism for locally bound servers
+      --no-sandbox             Disable server sandboxing entirely (UNSAFE: exposes local file read, SSRF, and arbitrary file write)
+      --port int               Port to bind to. If not empty, the tunnel will be disabled
+      --read-only              Open the SQLite database in read-only mode
+      --readonly               Open the SQLite database in read-only mode
 ```
 
 ### SEE ALSO

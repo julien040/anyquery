@@ -24,7 +24,13 @@ var mcpCmd = &cobra.Command{
 	Long: `Start the Model Context Protocol (MCP) server. It is used to provide context for LLM that supports it. 
 Pass the --stdio flag to use standard input/output for communication. 
 
-By default, it will bind locally to localhost:8070 (modify it with the --host, --port and --domain flags). Authentication is enabled by default for server-side events (SSE) connections. The token can be found when starting the server, or you can provide one using the ANYQUERY_AI_SERVER_BEARER_TOKEN environment variable.,
+By default, it will bind locally to localhost:8070 (modify it with the --host, --port and --domain flags). The server exposes two HTTP endpoints on the same port:
+- /mcp for the Streamable HTTP transport (recommended)
+- /sse for the legacy server-sent events (SSE) transport
+
+Supported MCP protocol versions: 2026-07-28, 2025-11-25, 2025-06-18, 2025-03-26 and 2024-11-05. The version is negotiated with each client.
+
+Authentication is enabled by default for HTTP connections. The token can be found when starting the server, or you can provide one using the ANYQUERY_AI_SERVER_BEARER_TOKEN environment variable.
 You can disable the authorization mechanism by setting the --no-auth flag.`,
 	RunE: controller.Mcp,
 }

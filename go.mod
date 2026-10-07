@@ -37,7 +37,7 @@ require (
 	github.com/julien040/go-ternary v1.0.1
 	github.com/julien040/pql-anyquery v0.2.2
 	github.com/klauspost/compress v1.18.5
-	github.com/mark3labs/mcp-go v0.58.0
+	github.com/mark3labs/mcp-go v1.1.1
 	github.com/olekukonko/tablewriter v1.1.4
 	github.com/parquet-go/parquet-go v0.25.1
 	github.com/samber/lo v1.51.0

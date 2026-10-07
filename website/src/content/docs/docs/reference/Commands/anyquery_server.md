@@ -33,19 +33,24 @@ anyquery server --log-level debug --log-file /var/log/anyquery.log
 ### Options
 
 ```bash
-      --auth-file string    Path to the authentication file
-  -c, --config string       Path to the configuration database
-  -d, --database string     Database to connect to (a path or :memory:) (default "anyquery.db")
-      --dev                 Run the program in developer mode
-      --extension strings   Load one or more extensions by specifying their path. Separate multiple extensions with a comma.
-  -h, --help                help for server
-      --host string         Host to listen on (default "127.0.0.1")
-      --in-memory           Use an in-memory database
-      --log-file string     Log file (default "/dev/stdout")
-      --log-format string   Log format (text, json) (default "text")
-      --log-level string    Log level (debug, info, warn, error, fatal) (default "info")
-  -p, --port int            Port to listen on (default 8070)
-      --readonly            Start the server in read-only mode
+      --allow-attach           When sandboxed, allow ATTACH/VACUUM INTO to on-disk paths within --allow-dirs
+      --allow-db-connections   When sandboxed, allow the database reader modules (duckdb/postgres/mysql/clickhouse/cassandra)
+      --allow-dirs strings     When sandboxed, directories that read_* tables (and on-disk ATTACH) may access (repeatable, comma-separated)
+      --allow-remote           When sandboxed, allow read_* tables to fetch remote URLs (http/https)
+      --auth-file string       Path to the authentication file
+  -c, --config string          Path to the configuration database
+  -d, --database string        Database to connect to (a path or :memory:) (default "anyquery.db")
+      --dev                    Run the program in developer mode (implies --no-sandbox: UNSAFE, exposes local file read, SSRF, and arbitrary file write; do not use on a network-exposed server)
+      --extension strings      Load one or more extensions by specifying their path. Separate multiple extensions with a comma.
+  -h, --help                   help for server
+      --host string            Host to listen on (default "127.0.0.1")
+      --in-memory              Use an in-memory database
+      --log-file string        Log file (default "/dev/stdout")
+      --log-format string      Log format (text, json) (default "text")
+      --log-level string       Log level (debug, info, warn, error, fatal) (default "info")
+      --no-sandbox             Disable server sandboxing entirely (UNSAFE: exposes local file read, SSRF, and arbitrary file write)
+  -p, --port int               Port to listen on (default 8070)
+      --readonly               Start the server in read-only mode
 ```
 
 ### SEE ALSO

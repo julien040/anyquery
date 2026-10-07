@@ -36,6 +36,7 @@ anyquery run https://raw.githubusercontent.com/julien040/anyquery/main/queries/g
   -h, --help              help for run
       --in-memory         Use an in-memory database
       --json              Output format as JSON
+      --limit uint        Limit the number of rows returned. Overrides the query limit.
       --plain             Output format as plain text
       --read-only         Start the server in read-only mode
       --readonly          Start the server in read-only mode

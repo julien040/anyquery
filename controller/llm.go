@@ -702,7 +702,7 @@ func Mcp(cmd *cobra.Command, args []string) error {
 		bearerToken = envBearerToken
 	}
 
-	s := server.NewMCPServer("Anyquery", "0.1.0")
+	s := server.NewMCPServer("Anyquery", CurrentVersion)
 
 	// Create the MCP server
 	tool := mcp.NewTool("listTables",
@@ -969,18 +969,26 @@ By default, Anyquery does not have any integrations. The user must visit https:/
 				fmt.Printf("Authorization token: %s\n", bearerToken)
 			}
 		}
-		fmt.Printf("Model context protocol server listening on %s/sse\n", baseURL)
+		fmt.Printf("Model context protocol server listening on %s/mcp (Streamable HTTP) and %s/sse (SSE)\n", baseURL, baseURL)
 
-		sse := server.NewSSEServer(s, server.WithBaseURL(baseURL))
+		// Streamable HTTP is the current transport; SSE is kept on the same port for older clients
+		mux := http.NewServeMux()
+		mux.Handle("/mcp", server.NewStreamableHTTPServer(s))
+		mux.Handle("/", server.NewSSEServer(s, server.WithBaseURL(baseURL)))
+		httpServer := &http.Server{Addr: bindAddr, Handler: mux}
+
 		// Catch the signals to gracefully close the server
 		signalChanSSE := make(chan os.Signal, 1)
 		signal.Notify(signalChanSSE, os.Interrupt)
 		go func() {
 			<-signalChanSSE
-			sse.Shutdown(context.Background())
+			httpServer.Shutdown(context.Background())
 		}()
 
-		return sse.Start(bindAddr)
+		if err := httpServer.ListenAndServe(); err != http.ErrServerClosed {
+			return err
+		}
+		return nil
 	}
 
 }
