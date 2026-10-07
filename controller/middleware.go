@@ -3,10 +3,13 @@
 package controller
 
 import (
+	"cmp"
+	"database/sql"
 	"fmt"
 	"math/rand/v2"
 	"os"
 	"os/exec"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -204,8 +207,7 @@ func middlewareDotCommand(queryData *QueryData) bool {
 			}
 		}
 	case "tables", "table":
-		queryData.SQLQuery = "SELECT name FROM pragma_table_list UNION SELECT name FROM pragma_module_list" +
-			" WHERE name NOT LIKE 'fts%' AND name NOT LIKE 'rtree%'"
+		queryData.SQLQuery = tableListQuery
 		return true
 	case "languages", "language":
 		if len(args) == 0 {
@@ -359,7 +361,7 @@ func middlewareQuery(queryData *QueryData) bool {
 	if runWithQuery {
 		rows, err := queryData.DB.Query(queryData.SQLQuery, queryData.Args...)
 		if err != nil {
-			queryData.Message = err.Error()
+			queryData.Message = withTableSuggestion(queryData.DB, err)
 			queryData.StatusCode = 2
 			return false
 		}
@@ -367,7 +369,7 @@ func middlewareQuery(queryData *QueryData) bool {
 	} else {
 		res, err := queryData.DB.Exec(queryData.SQLQuery, queryData.Args...)
 		if err != nil {
-			queryData.Message = err.Error()
+			queryData.Message = withTableSuggestion(queryData.DB, err)
 			queryData.StatusCode = 2
 			return false
 		}
@@ -385,6 +387,87 @@ func middlewareQuery(queryData *QueryData) bool {
 	// The post-execution statements are run at the end of the pipeline
 	// after the output was printed
 	return true
+}
+
+// tableListQuery lists every queryable name: regular tables and views, plus
+// modules, because plugin tables are registered as eponymous virtual tables
+// and only show up in pragma_module_list.
+const tableListQuery = "SELECT name FROM pragma_table_list UNION SELECT name FROM pragma_module_list" +
+	" WHERE name NOT LIKE 'fts%' AND name NOT LIKE 'rtree%'"
+
+// withTableSuggestion returns the message of err. When err is SQLite's
+// "no such table: X", it appends up to three existing names close to X,
+// on the same line so that it renders well in the shell and in MCP results.
+func withTableSuggestion(db *sql.DB, err error) string {
+	msg := err.Error()
+	_, missing, ok := strings.Cut(msg, "no such table: ")
+	if !ok || missing == "" {
+		return msg
+	}
+	// "main.foo" or "github.repos": compare on the name without its schema
+	if i := strings.LastIndexByte(missing, '.'); i >= 0 {
+		missing = missing[i+1:]
+	}
+	missing = strings.ToLower(missing)
+
+	rows, qErr := db.Query(tableListQuery)
+	if qErr != nil {
+		return msg
+	}
+	defer rows.Close()
+
+	type candidate struct {
+		name     string
+		distance int
+	}
+	var candidates []candidate
+	for rows.Next() {
+		var name string
+		if rows.Scan(&name) != nil {
+			continue
+		}
+		lowerName := strings.ToLower(name)
+		distance := levenshtein(missing, lowerName)
+		// The substring match catches a plugin table queried without its
+		// prefix (e.g. "my_repositories" for "github_my_repositories"),
+		// which edit distance alone ranks far away.
+		if distance <= max(2, len(missing)/3) || (len(missing) >= 3 && strings.Contains(lowerName, missing)) {
+			candidates = append(candidates, candidate{name, distance})
+		}
+	}
+	if len(candidates) == 0 {
+		return msg
+	}
+
+	slices.SortFunc(candidates, func(a, b candidate) int {
+		return cmp.Or(a.distance-b.distance, strings.Compare(a.name, b.name))
+	})
+	names := make([]string, 0, 3)
+	for _, c := range candidates[:min(3, len(candidates))] {
+		names = append(names, c.name)
+	}
+	return fmt.Sprintf("%s (did you mean: %s?)", msg, strings.Join(names, ", "))
+}
+
+// levenshtein returns the edit distance between a and b, compared byte-wise.
+func levenshtein(a, b string) int {
+	prev := make([]int, len(b)+1)
+	curr := make([]int, len(b)+1)
+	for j := range prev {
+		prev[j] = j
+	}
+	for i := 1; i <= len(a); i++ {
+		curr[0] = i
+		for j := 1; j <= len(b); j++ {
+			cost := 1
+			if a[i-1] == b[j-1] {
+				cost = 0
+			}
+			curr[j] = min(prev[j]+1, curr[j-1]+1, prev[j-1]+cost)
+		}
+		prev, curr = curr, prev
+	}
+	return prev[len(b)]
 }
 
 func middlewareSlashCommand(queryData *QueryData) bool {
@@ -413,8 +496,7 @@ func middlewareSlashCommand(queryData *QueryData) bool {
 		return true
 	case "d":
 		if len(args) == 0 {
-			queryData.SQLQuery = "SELECT name FROM pragma_table_list UNION SELECT name FROM pragma_module_list" +
-				" WHERE name NOT LIKE 'fts%' AND name NOT LIKE 'rtree%'"
+			queryData.SQLQuery = tableListQuery
 		} else {
 			queryData.SQLQuery = "SELECT name as Column, type as Type, '' as Collation, iif(\"notnull\" = 0, '', 'not null') as \"Null\"," +
 				" dflt_value as \"Default\", pk as PrimaryKey FROM pragma_table_info(?)"
@@ -435,8 +517,7 @@ func middlewareSlashCommand(queryData *QueryData) bool {
 		queryData.SQLQuery = "SELECT * FROM pragma_index_list;"
 		return true
 	case "dt":
-		queryData.SQLQuery = "SELECT name FROM pragma_table_list UNION SELECT name FROM pragma_module_list" +
-			" WHERE name NOT LIKE 'fts%' AND name NOT LIKE 'rtree%'"
+		queryData.SQLQuery = tableListQuery
 		return true
 	case "dv":
 		queryData.SQLQuery = "SELECT * FROM pragma_table_list WHERE type = 'view';"
