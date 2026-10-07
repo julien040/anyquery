@@ -65,6 +65,12 @@ var well_known_text_types = map[string]struct{}{
 	"geomcollection":     {},
 }
 
+// mysqlGeometryValue wraps a WKT value in ST_GeomFromText while keeping it
+// a bound parameter, so the value never becomes part of the SQL text.
+func mysqlGeometryValue(value any) sqlbuilder.Builder {
+	return sqlbuilder.Buildf("ST_GeomFromText(%v)", value)
+}
+
 type wellKnowTextGeo struct {
 	StrRepresentation string
 }
@@ -607,7 +613,7 @@ func (t *MySQLTable) Insert(id any, vals []any) (int64, error) {
 		// Special case for geometry types
 		value := v
 		if _, ok := well_known_text_types[t.schema[i].RemoteType]; ok {
-			value = sqlbuilder.Raw(fmt.Sprintf("ST_GeomFromText('%s')", v))
+			value = mysqlGeometryValue(v)
 		}
 
 		values = append(values, value)
@@ -644,7 +650,7 @@ func (t *MySQLTable) Update(id any, vals []any) error {
 		// Special case for geometry types
 		// We use the ST_GeomFromText function to convert the text to a geometry type
 		if _, ok := well_known_text_types[t.schema[i].RemoteType]; ok {
-			value = sqlbuilder.Raw(fmt.Sprintf("ST_GeomFromText('%s')", v))
+			value = mysqlGeometryValue(v)
 		}
 
 		sets = append(sets, builder.Assign(t.schema[i].Realname, value))
