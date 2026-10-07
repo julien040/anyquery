@@ -65,16 +65,10 @@ var well_known_text_types = map[string]struct{}{
 	"geomcollection":     {},
 }
 
-// escapeMySQLLiteral escapes a value for inlining into a single-quoted MySQL
-// string literal. Only the geometry special case below inlines values this
-// way (ST_GeomFromText needs a literal), everything else stays parameterized —
-// so an unescaped value here is a SQL injection through the geometry column.
-func escapeMySQLLiteral(value any) string {
-	escaped := fmt.Sprint(value)
-	// MySQL processes backslash escapes inside string literals by default,
-	// so a trailing backslash would otherwise swallow the closing quote.
-	escaped = strings.ReplaceAll(escaped, "\\", "\\\\")
-	return strings.ReplaceAll(escaped, "'", "''")
+// mysqlGeometryValue wraps a WKT value in ST_GeomFromText while keeping it
+// a bound parameter, so the value never becomes part of the SQL text.
+func mysqlGeometryValue(value any) sqlbuilder.Builder {
+	return sqlbuilder.Buildf("ST_GeomFromText(%v)", value)
 }
 
 type wellKnowTextGeo struct {
@@ -619,7 +613,7 @@ func (t *MySQLTable) Insert(id any, vals []any) (int64, error) {
 		// Special case for geometry types
 		value := v
 		if _, ok := well_known_text_types[t.schema[i].RemoteType]; ok {
-			value = sqlbuilder.Raw(fmt.Sprintf("ST_GeomFromText('%s')", escapeMySQLLiteral(v)))
+			value = mysqlGeometryValue(v)
 		}
 
 		values = append(values, value)
@@ -656,7 +650,7 @@ func (t *MySQLTable) Update(id any, vals []any) error {
 		// Special case for geometry types
 		// We use the ST_GeomFromText function to convert the text to a geometry type
 		if _, ok := well_known_text_types[t.schema[i].RemoteType]; ok {
-			value = sqlbuilder.Raw(fmt.Sprintf("ST_GeomFromText('%s')", escapeMySQLLiteral(v)))
+			value = mysqlGeometryValue(v)
 		}
 
 		sets = append(sets, builder.Assign(t.schema[i].Realname, value))
