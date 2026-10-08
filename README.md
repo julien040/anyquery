@@ -15,20 +15,20 @@
 
 <p align="center">
   <sub><i>Sponsored by</i></sub><br><br>
-  <a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">
+  <a href="https://fluxionai.space/register?source=github&campaign=github-sidrune-anyquery&promo=SDRANYQUERY">
     <picture>
       <!-- <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg"> -->
-      <img src="https://cdn.julienc.me/share/Fluxion_AI_English_Partner_Banner_v3.png" width="100%">
+      <img src="https://cdn.julienc.me/share/SidruneAI-banner.png" width="100%">
     </picture>
   </a>
 </p>
 
 <h3 align="center">
-  <a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">Fluxion AI - Reliable, cost-efficient access to GPT, Claude, and other leading AI models</a>
+  <a href="https://fluxionai.space/register?source=github&campaign=github-sidrune-anyquery&promo=SDRANYQUERY">Sidrune AI - Reliable, cost-efficient access to GPT, Claude, and other leading AI models</a>
 </h3>
 <p align="center">
   <sub>
-    Fluxion AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $3 in API credits when you sign up through this link.
+    Sidrune AI provides reliable, cost-efficient access to GPT, Claude, and other leading AI models through one unified API. Save up to 70% compared with official API pricing—and get $3 in API credits when you sign up through this link.
   </sub>
 </p>
 
@@ -176,10 +176,10 @@ Anyquery is plugin-based, and you can install plugins to extend its functionalit
 
 Anyquery is an independent open-source project. These companies support its development:
 
-<a href="https://fluxionai.world/register?source=github&campaign=github-anyquery&promo=ANYQUERY">
+<a href="https://fluxionai.space/register?source=github&campaign=github-sidrune-anyquery&promo=SDRANYQUERY">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg">
-    <img src="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg" alt="Fluxion AI" width="220">
+    <img src="https://cdn.julienc.me/share/fluxion-ai-logo-with-name-transparent.svg" alt="Sidrune AI" width="220">
   </picture>
 </a>
 
