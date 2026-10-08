@@ -144,7 +144,8 @@ func Query(cmd *cobra.Command, args []string) error {
 
 	// Create the shell
 	shell := shell{
-		DB: db,
+		DB:        db,
+		Namespace: namespace,
 		Middlewares: []middleware{
 			middlewareSlashCommand, middlewareDotCommand,
 			middlewarePRQL, middlewarePQL,

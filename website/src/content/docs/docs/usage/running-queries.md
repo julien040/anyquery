@@ -134,7 +134,7 @@ The shell's line editor is based on [readline](https://github.com/reeflective/re
 | Shortcut | Action |
 | --- | --- |
 | `Ctrl-R` | Search history backwards |
-| `Ctrl-X Ctrl-E` | Edit the current query in `$VISUAL` / `$EDITOR` (falls back to VS Code, nano, vim or vi) |
+| `Ctrl-X Ctrl-E` | Edit the current query in `$VISUAL` / `$EDITOR` (falls back to VS Code, nano, vim or vi, or to VS Code and Notepad on Windows) |
 | `Ctrl-_` | Undo |
 | `Ctrl-A` / `Ctrl-E` | Move to the start / end of the line |
 | `Alt-B` / `Alt-F` | Move one word back / forward |
@@ -150,9 +150,23 @@ The shell's line editor is based on [readline](https://github.com/reeflective/re
 
 The shell highlights SQL as you type, with the Atom One Dark colors on truecolor terminals with a dark background, and basic terminal colors otherwise. Set the `NO_COLOR` environment variable to disable it.
 
+#### Completion
+
+Press `Tab` to show a menu of suggestions (e.g. table name, file paths, etc.). Press `Tab` again to cycle through the matches or `Shift-Tab` to cycle backwards.
+
+Plugin tables and their columns show their description in the menu. When a table takes parameters, they are shown below the prompt as you type. To get suggestions as you type, add this to your `~/.inputrc`:
+
+```bash title="~/.inputrc"
+$if anyquery
+  set autocomplete on
+$endif
+```
+
 #### History
 
 The history is saved across sessions in `~/.local/state/anyquery/history` on Linux, `~/Library/Application Support/anyquery/history` on macOS, and `%LOCALAPPDATA%\anyquery\history` on Windows. Set the `ANYQUERY_HISTORY` environment variable to use another file, or set it to an empty value to disable saving. Queries starting with a space are not saved.
+
+As you type, the rest of the last matching query from your history is shown in grey after the cursor. Press `→` (Right arrow) at the end of the line to accept it, or keep typing to ignore it. To turn it off, add `set history-autosuggest off` inside the `$if anyquery` block of your `~/.inputrc`.
 
 #### Vi mode
 
@@ -162,7 +176,7 @@ To use Vi keybindings, add this line to your `~/.inputrc`:
 set editing-mode vi
 ```
 
-Press `Esc` to enter normal mode and `i` to go back to insert mode. In normal mode, `v` opens the query in `$EDITOR`, and text objects, registers, and visual mode are supported.
+Press `Esc` to enter normal mode and `i` to go back to insert mode. In normal mode, `v` opens the query in `$VISUAL` / `$EDITOR`, and text objects, registers, and visual mode are supported.
 
 This setting also applies to other readline programs, such as bash. To enable it only for anyquery, wrap it in an `$if anyquery` block:
 

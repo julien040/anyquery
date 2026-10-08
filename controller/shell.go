@@ -8,13 +8,16 @@
 package controller
 
 import (
+	"bufio"
 	"bytes"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
+	"os/user"
 	"runtime"
 	"strings"
 	"time"
@@ -23,6 +26,7 @@ import (
 	"github.com/briandowns/spinner"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/julien040/anyquery/module"
+	"github.com/julien040/anyquery/namespace"
 	"github.com/reeflective/readline"
 	"github.com/reeflective/readline/inputrc"
 	"golang.org/x/term"
@@ -128,6 +132,10 @@ type shell struct {
 	// The DB to run the query on
 	DB *sql.DB
 
+	// The namespace behind DB, used by the completer for the descriptions
+	// of plugin tables and columns. It may be nil.
+	Namespace *namespace.Namespace
+
 	// The configuration that will be passed to the middlewares
 	Config middlewareConfiguration
 
@@ -145,6 +153,9 @@ type shell struct {
 	// The line editor, created on the first call to InputQuery and kept
 	// so that its in-memory history survives across queries
 	readline *readline.Shell
+
+	// The schema used by the completer of the line editor
+	completion completionCache
 }
 
 func (p *shell) AddMiddleware(m middleware) {
@@ -435,6 +446,36 @@ func (p *shell) InputQuery() string {
 		p.loadHistory()
 		p.readline.Prompt.Primary(func() string { return "\x1b[35manyquery> \x1b[0m" })
 		p.readline.SyntaxHighlighter = newSQLHighlighter()
+		p.readline.Completer = p.complete
+		p.readline.Hint.SetProvider(func(line []rune, cursor int) []rune {
+			return []rune(paramsHint(string(line[:cursor]), p.tableParams))
+		})
+		// SQL is case-insensitive, so "sel" completes to SELECT
+		p.readline.Config.Set("completion-ignore-case", true)
+		// Tab inserts the prefix shared by all matches and lists them,
+		// a second Tab then cycles through the list
+		p.readline.Config.Set("menu-complete-display-prefix", true)
+		p.readline.Config.Bind("emacs", "\t", "menu-complete", false)
+		p.readline.Config.Bind("vi-insert", "\t", "menu-complete", false)
+		// Show the rest of the last matching history entry in grey,
+		// Right arrow at the end of the line accepts it
+		p.readline.Config.Set("history-autosuggest", true)
+		// Pasted text is inserted as is, so a tab in it doesn't trigger completion
+		p.readline.Config.Set("enable-bracketed-paste", true)
+		// readline asks the terminal for the cursor position on stdout and
+		// waits for the answer on stdin. When stdout is redirected to a file,
+		// the terminal never sees the request and the shell would hang
+		if !isSTDoutAtty() {
+			p.readline.Config.Set("cursor-position-probe", false)
+		}
+		// The settings above are defaults: parse the user's inputrc again
+		// so that its values (e.g. `set history-autosuggest off`) win
+		if u, err := user.Current(); err == nil {
+			_ = inputrc.UserDefault(u, p.readline.Config,
+				inputrc.WithApp("anyquery"),
+				inputrc.WithMode(p.readline.Config.GetString("editing-mode")),
+				inputrc.WithTerm(os.Getenv("TERM")))
+		}
 		p.readline.AcceptMultiline = func(line []rune) bool {
 			// We trim the query
 			query := strings.TrimSpace(string(line))
@@ -465,6 +506,13 @@ func (p *shell) InputQuery() string {
 	sqlQuery, err := p.readline.Readline()
 	switch {
 	case err == nil:
+		// Any statement other than SELECT might change the schema
+		for _, query := range splitMultipleQuery(sqlQuery) {
+			if fields := strings.Fields(query); len(fields) == 0 || !strings.EqualFold(fields[0], "SELECT") {
+				p.completion = completionCache{}
+				break
+			}
+		}
 		return sqlQuery
 	case errors.Is(err, readline.ErrInterrupt):
 		// Ctrl+C quits the shell
@@ -520,20 +568,38 @@ type ignoreSpaceHistory struct {
 }
 
 func (h ignoreSpaceHistory) Write(line string) (int, error) {
-	if strings.HasPrefix(line, " ") {
+	if strings.HasPrefix(line, " ") || tooLongForHistory(line) {
 		return h.Len(), nil
 	}
 	return h.History.Write(line)
 }
 
-// findEditor returns the command used to edit the current query:
-// $VISUAL, then $EDITOR, then the first editor found in the PATH.
-// It returns nil if no editor is available
+// tooLongForHistory reports whether line would not be read back from the
+// history file. The file source stores one JSON object per line and reads them
+// with a default bufio.Scanner, which stops at the first line longer than
+// bufio.MaxScanTokenSize and silently drops every entry after it.
+// The margin covers the timestamp and keys around the JSON-encoded line.
+func tooLongForHistory(line string) bool {
+	encoded, err := json.Marshal(line)
+	return err != nil || len(encoded) > bufio.MaxScanTokenSize-1024
+}
+
+// findEditor returns the command used to edit the current query,
+// to which the file name is appended: $VISUAL, then $EDITOR, then the first
+// editor found in the PATH. It returns nil if no editor is available
 func findEditor() []string {
 	for _, env := range []string{"VISUAL", "EDITOR"} {
-		if editor := strings.Fields(os.Getenv(env)); len(editor) > 0 {
-			return editor
+		editor := strings.TrimSpace(os.Getenv(env))
+		if editor == "" {
+			continue
 		}
+		if runtime.GOOS == "windows" {
+			return strings.Fields(editor)
+		}
+		// Like git, let the shell parse the variable so that quoted
+		// arguments and paths with spaces work. The file name is passed
+		// as a positional argument, never interpolated into the script
+		return []string{"sh", "-c", editor + ` "$@"`, editor}
 	}
 
 	// VS Code needs --wait, otherwise it returns before the file is edited
@@ -553,6 +619,12 @@ func findEditor() []string {
 // the line with the edited text, without running it
 func (p *shell) editCommandLine() {
 	rl := p.readline
+	// An editor can run any program (e.g. `:!sh` in vim),
+	// which the sandbox cannot confine
+	if p.Restrictions != nil {
+		rl.Hint.SetTemporary("\x1b[31mEditing in $EDITOR is disabled in sandbox mode")
+		return
+	}
 	editor := findEditor()
 	if editor == nil {
 		rl.Hint.SetTemporary("\x1b[31mNo editor found, set $EDITOR (e.g. export EDITOR=nano)")

@@ -1,0 +1,8 @@
+Welcome to anyquery!
+Install plugins by running `anyquery install [plugin]`
+Run `anyquery` to open a shell to run queries
+Run `anyquery --help` to see the available commands
+Visit https://anyquery.dev/integrations to see the available plugins
+
+[?2004h[35manyquery> [0m[1 q[?25l[169D[35manyquery> [0m[0m[0K[49m[169D[10C[1B[169D[0J[1A[10C[169D[10C[?25h^C[10D[10C[169D[10C[0J[169D
+[0 q[?2004l

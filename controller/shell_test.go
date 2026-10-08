@@ -1,10 +1,12 @@
 package controller
 
 import (
+	"bufio"
 	"bytes"
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/adrg/xdg"
@@ -297,8 +299,8 @@ func TestFindEditor(t *testing.T) {
 		name, visual, editor, path string
 		want                       []string
 	}{
-		{"visual wins", "code --wait", "vim", dir, []string{"code", "--wait"}},
-		{"editor when no visual", "", "hx", dir, []string{"hx"}},
+		{"visual wins", "code --wait", "vim", dir, []string{"sh", "-c", `code --wait "$@"`, "code --wait"}},
+		{"editor when no visual", "", "hx", dir, []string{"sh", "-c", `hx "$@"`, "hx"}},
 		{"first editor found in PATH", "", "", dir, []string{"nano"}},
 		{"no editor available", "", "", t.TempDir(), nil},
 	}
@@ -345,8 +347,39 @@ func TestIgnoreSpaceHistory(t *testing.T) {
 	_, err = hist.Write(" SELECT 2;")
 	require.NoError(t, err)
 
+	// Over the file source's line limit, it would hide all later entries
+	_, err = hist.Write("SELECT '" + strings.Repeat("x", bufio.MaxScanTokenSize) + "';")
+	require.NoError(t, err)
+
 	require.Equal(t, 1, hist.Len())
 	line, err := hist.GetLine(0)
 	require.NoError(t, err)
 	require.Equal(t, "SELECT 1;", line)
+}
+
+func TestEditInEditorQuotedPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("$EDITOR is run through sh")
+	}
+	// An editor script whose path has a space, called with a quoted argument
+	dir := filepath.Join(t.TempDir(), "my editors")
+	require.NoError(t, os.Mkdir(dir, 0o755))
+	script := filepath.Join(dir, "edit.sh")
+	require.NoError(t, os.WriteFile(script, []byte("#!/bin/sh\nprintf '%s' \"$1\" > \"$2\"\n"), 0o755))
+	t.Setenv("VISUAL", "")
+	t.Setenv("EDITOR", `"`+script+`" 'SELECT 42;'`)
+
+	edited, err := editInEditor(findEditor(), "SELECT 1;")
+	require.NoError(t, err)
+	require.Equal(t, "SELECT 42;", edited)
+}
+
+func TestEditCommandLineSandbox(t *testing.T) {
+	// The editor would fail the test if it ran
+	t.Setenv("VISUAL", "false")
+	sh := &shell{Restrictions: &module.Restrictions{}, readline: readline.NewShell()}
+	sh.readline.Line().Set([]rune("SELECT 1;")...)
+	sh.editCommandLine()
+	require.Equal(t, "SELECT 1;", string(*sh.readline.Line()))
+	require.Contains(t, sh.readline.Hint.Text(), "sandbox")
 }
