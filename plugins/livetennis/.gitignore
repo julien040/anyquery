@@ -1,0 +1,7 @@
+*.out
+*.exe
+*.test
+*.log
+coverage.out
+devManifest.local.json
+dist/

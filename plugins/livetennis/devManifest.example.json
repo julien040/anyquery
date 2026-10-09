@@ -1,0 +1,12 @@
+{
+  "executable": "./livetennis.out",
+  "build_command": "make",
+  "user_config": {
+    "default": {
+      "api_key": ""
+    }
+  },
+  "tables": ["matches"],
+  "log_file": "dev.log",
+  "log_level": "error"
+}

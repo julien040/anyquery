@@ -1,0 +1,27 @@
+version: 2
+project_name: livetennis
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: anyquery
+    binary: "{{ .Os }}_{{ .Arch }}/livetennis"
+    no_unique_dist_dir: true
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+
+archives:
+  - format: binary

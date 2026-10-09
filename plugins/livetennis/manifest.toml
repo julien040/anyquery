@@ -1,0 +1,53 @@
+name = "livetennis"
+version = "0.1.0"
+description = "Query cached tennis match snapshots with SQL"
+author = ""
+license = "MIT"
+repository = "https://github.com/julien040/anyquery/tree/main/plugins/livetennis"
+homepage = "https://github.com/julien040/anyquery/tree/main/plugins/livetennis"
+type = "anyquery"
+minimumAnyqueryVersion = "0.4.0"
+
+[[table]]
+name = "matches"
+description = "Read a cached snapshot of up to 200 matches in progress"
+examples = [
+    "SELECT * FROM livetennis_matches;",
+    "SELECT tournament, count(*) FROM livetennis_matches GROUP BY tournament;",
+]
+
+[[userConfig]]
+name = "api_key"
+description = "Your free Live Tennis API key. See the plugin README for setup."
+type = "string"
+required = true
+
+[[file]]
+platform = "linux/amd64"
+directory = "dist/linux_amd64"
+executablePath = "livetennis"
+
+[[file]]
+platform = "linux/arm64"
+directory = "dist/linux_arm64"
+executablePath = "livetennis"
+
+[[file]]
+platform = "darwin/amd64"
+directory = "dist/darwin_amd64"
+executablePath = "livetennis"
+
+[[file]]
+platform = "darwin/arm64"
+directory = "dist/darwin_arm64"
+executablePath = "livetennis"
+
+[[file]]
+platform = "windows/amd64"
+directory = "dist/windows_amd64"
+executablePath = "livetennis.exe"
+
+[[file]]
+platform = "windows/arm64"
+directory = "dist/windows_arm64"
+executablePath = "livetennis.exe"
