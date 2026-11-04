@@ -1,0 +1,22 @@
+# Configuration for the SLSA Go builder (slsa-github-generator).
+# Mirrors the project makefile: CGO on, sqlite build tags, stripped binary.
+version: 1
+
+env:
+  - CGO_ENABLED=1
+  - CGO_CFLAGS=-O2
+
+flags:
+  - -tags=vtable,fts5,sqlite_json,sqlite_math_functions
+  - -trimpath
+
+goos: linux
+goarch: amd64
+
+main: main.go
+
+binary: anyquery-{{ .Os }}-{{ .Arch }}
+
+ldflags:
+  - -s
+  - -w
